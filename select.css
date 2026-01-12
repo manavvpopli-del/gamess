@@ -1,0 +1,85 @@
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+body{
+    min-height:100vh;
+    background:radial-gradient(circle at top,#1b0022,#000);
+    font-family:Arial,Helvetica,sans-serif;
+    color:white;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+}
+
+.title{
+    margin:40px 0;
+    font-size:48px;
+    text-shadow:0 0 20px #ff4fd8;
+}
+
+/* OYUNLAR GRID */
+.games{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+    gap:30px;
+    width:90%;
+    max-width:900px;
+}
+
+/* OYUN KARTI */
+.game-card{
+    position:relative;
+    height:360px;
+    border-radius:22px;
+    overflow:hidden;
+    cursor:pointer;
+    box-shadow:0 20px 40px rgba(0,0,0,0.6);
+    transition:transform .4s ease, box-shadow .4s ease;
+}
+
+.game-card:hover{
+    transform:translateY(-12px) scale(1.04);
+    box-shadow:0 35px 70px rgba(255,79,216,0.5);
+}
+
+/* ŞƏKİL */
+.game-card img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    transition:transform .6s ease;
+}
+
+/* HOVER ZOOM */
+.game-card:hover img{
+    transform:scale(1.08);
+}
+
+/* ÜST YAZI */
+.overlay{
+    position:absolute;
+    inset:0;
+    background:linear-gradient(
+        to top,
+        rgba(0,0,0,0.7),
+        rgba(0,0,0,0)
+    );
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-end;
+    padding:26px;
+}
+
+.overlay h2{
+    font-size:36px;
+    margin-bottom:6px;
+    text-shadow:0 0 15px #ff4fd8;
+}
+
+.overlay p{
+    font-size:16px;
+    opacity:0.9;
+}

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Panel</title>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #232526, #414345);
+      font-family: Arial, sans-serif;
+      color: white;
+      padding: 20px;
+    }
+
+    .card {
+      background: #2c2c2c;
+      padding: 20px;
+      border-radius: 15px;
+      max-width: 500px;
+      margin: auto;
+      box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+      animation: fadeIn 0.8s ease;
+    }
+
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 8px;
+      border: none;
+    }
+
+    button {
+      background: #667eea;
+      color: white;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: #764ba2;
+    }
+
+    ul {
+      padding: 0;
+      list-style: none;
+    }
+
+    li {
+      background: #3a3a3a;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 8px;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <h2>Admin Girişi</h2>
+  <input type="password" id="adminPass" placeholder="Admin şifrəsi">
+  <button onclick="adminLogin()">Giriş</button>
+
+  <div id="adminPanel" style="display:none">
+    <h3>Key yarat</h3>
+    <input id="newKey" placeholder="Key">
+    <input id="deviceLimit" type="number" placeholder="Cihaz sayı">
+    <input id="expireDate" type="date">
+    <button onclick="addKey()">Yarat</button>
+
+    <ul id="keyList"></ul>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

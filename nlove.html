@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<title>N Love</title>
+<link rel="stylesheet" href="nlove.css">
+</head>
+
+<body>
+
+<!-- ARXA FON -->
+<div id="bg"></div>
+
+<!-- DAVAM ET -->
+<div id="startOverlay">
+    <button id="continueBtn">Davam et</button>
+</div>
+
+<!-- MUSIQI -->
+<audio id="bgMusic" src="music.mp3" loop></audio>
+
+<!-- YUXARIDA TOPLANAN SÖZ -->
+<div id="topWord"></div>
+
+<!-- OYUN -->
+<div id="game">
+    <img id="heart" src="heart.png" draggable="false">
+</div>
+
+<!-- PARTICLE -->
+<canvas id="particles"></canvas>
+
+<!-- QAZAN -->
+<div id="endScreen">
+    <div id="loveText">SƏNİ SEVİRƏM 🖤</div>
+    <div id="endButtons">
+        <button onclick="restartGame()">Yenidən oyna</button>
+        <button onclick="closeGame()">Çıx</button>
+    </div>
+</div>
+
+<!-- UDUZ -->
+<div id="loseScreen">
+    <div id="loseText">Uduzdun 💔</div>
+    <div id="endButtons">
+        <button onclick="restartGame()">Yenidən oyna</button>
+        <button onclick="closeGame()">Çıx</button>
+    </div>
+</div>
+
+<script src="nlove.js"></script>
+</body>
+</html>

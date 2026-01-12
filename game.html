@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+  <meta charset="UTF-8">
+  <title>XOXO Premium</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- DAVAM ET OVERLAY -->
+<div id="continueOverlay">
+  <button id="continueBtn">▶</button>
+</div>
+
+<!-- AUDIO -->
+<audio id="bgMusic" src="bg.mp3" loop preload="auto"></audio>
+<audio id="clickSound" src="click.mp3" preload="auto"></audio>
+<audio id="winSound" src="win.mp3" preload="auto"></audio>
+
+<div class="container">
+
+  <h1>XOXO Oyunu</h1>
+
+  <!-- MODE -->
+  <div class="modes">
+    <button onclick="setMode('pvp')">👥 İki Nəfər</button>
+    <button onclick="setMode('bot')">🤖 Botla Oyna</button>
+  </div>
+
+  <!-- BOT LEVEL -->
+  <div id="difficulty" class="hidden">
+    <button onclick="setDifficulty('easy')">Asan</button>
+    <button onclick="setDifficulty('normal')">Normal</button>
+    <button onclick="setDifficulty('hard')">Çətin</button>
+  </div>
+
+  <div id="status">Oyunçu X başlayır</div>
+
+  <div class="board" id="board"></div>
+
+  <button class="restart" onclick="restart()">Yenidən başla</button>
+
+</div>
+
+<script src="game.js"></script>
+</body>
+</html>
