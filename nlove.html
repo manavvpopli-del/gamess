@@ -8,29 +8,39 @@
 
 <body>
 
-<!-- ARXA FON -->
-<div id="bg"></div>
+<!-- PAROL EKRANI -->
+<div id="passwordScreen">
+    <div class="passBox">
+        <h2>N Love</h2>
+        <input type="password" id="passwordInput" placeholder="Parolu daxil et">
+        <button id="passwordBtn">Daxil ol</button>
+        <div id="passwordError">Parol yanlışdır</div>
+    </div>
+</div>
+
+<!-- ARXA FON (ƏVVƏLCƏ GİZLİ) -->
+<div id="bg" class="hidden"></div>
 
 <!-- DAVAM ET -->
-<div id="startOverlay">
+<div id="startOverlay" class="hidden">
     <button id="continueBtn">Davam et</button>
 </div>
 
-<!-- MUSIQI -->
+<!-- MUSİQİ -->
 <audio id="bgMusic" src="music.mp3" loop></audio>
 
-<!-- YUXARIDA TOPLANAN SÖZ -->
+<!-- TOP WORD -->
 <div id="topWord"></div>
 
-<!-- OYUN -->
+<!-- GAME -->
 <div id="game">
     <img id="heart" src="heart.png" draggable="false">
 </div>
 
-<!-- PARTICLE -->
+<!-- CANVAS -->
 <canvas id="particles"></canvas>
 
-<!-- QAZAN -->
+<!-- WIN -->
 <div id="endScreen">
     <div id="loveText">SƏNİ SEVİRƏM 🖤</div>
     <div id="endButtons">
@@ -39,7 +49,7 @@
     </div>
 </div>
 
-<!-- UDUZ -->
+<!-- LOSE -->
 <div id="loseScreen">
     <div id="loseText">Uduzdun 💔</div>
     <div id="endButtons">
