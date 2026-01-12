@@ -11,10 +11,67 @@ html,body{
 #bg{
     position:fixed;
     inset:0;
-    z-index:-1;
+    z-index:0;
     background:
         linear-gradient(rgba(0,0,0,.45),rgba(0,0,0,.75)),
         url("background.jpg") center / cover no-repeat;
+}
+
+/* ================= GİZLƏTMƏ ================= */
+.hidden{
+    display:none !important;
+}
+
+/* ================= PAROL EKRANI ================= */
+#passwordScreen{
+    position:fixed;
+    inset:0;
+    background:#000;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    z-index:200;
+}
+
+.passBox{
+    background:#111;
+    padding:35px 45px;
+    border-radius:20px;
+    text-align:center;
+    box-shadow:0 0 40px rgba(255,79,216,.4);
+}
+
+.passBox h2{
+    color:#ff4fd8;
+    margin-bottom:20px;
+}
+
+.passBox input{
+    width:220px;
+    padding:12px;
+    font-size:18px;
+    border-radius:12px;
+    border:none;
+    outline:none;
+    margin-bottom:15px;
+    text-align:center;
+}
+
+.passBox button{
+    width:100%;
+    padding:12px;
+    border:none;
+    border-radius:20px;
+    background:#ff4fd8;
+    font-size:18px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+#passwordError{
+    color:#ff4d4d;
+    margin-top:12px;
+    display:none;
 }
 
 /* ================= DAVAM ET ================= */
@@ -25,7 +82,7 @@ html,body{
     display:flex;
     justify-content:center;
     align-items:center;
-    z-index:100;
+    z-index:150;
 }
 
 #continueBtn{
@@ -63,7 +120,7 @@ html,body{
     text-shadow:
         0 0 15px #ff4fd8,
         0 0 40px #ff4fd8;
-    z-index:20;
+    z-index:30;
     pointer-events:none;
 }
 
@@ -73,6 +130,7 @@ html,body{
     width:100vw;
     height:100vh;
     overflow:hidden;
+    z-index:10;
 }
 
 /* ================= HEART ================= */
@@ -82,7 +140,7 @@ html,body{
     width:130px;
     left:50%;
     transform:translateX(-50%);
-    z-index:10;
+    z-index:20;
     touch-action:none;
     user-select:none;
 }
@@ -97,10 +155,9 @@ html,body{
     text-shadow:
         0 0 12px #ff4fd8,
         0 0 30px #ff4fd8;
-    animation-name: fall;
-    animation-timing-function: linear;
-    will-change: transform;
-    z-index:5;
+    animation:fall linear;
+    will-change:transform;
+    z-index:15;
 }
 
 @keyframes fall{
@@ -113,7 +170,7 @@ canvas{
     position:fixed;
     inset:0;
     pointer-events:none;
-    z-index:15;
+    z-index:25;
 }
 
 /* ================= WIN / LOSE ================= */
@@ -126,7 +183,7 @@ canvas{
     flex-direction:column;
     justify-content:center;
     align-items:center;
-    z-index:50;
+    z-index:100;
 }
 
 #loveText,
