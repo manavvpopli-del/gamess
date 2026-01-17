@@ -1,840 +1,173 @@
 <!DOCTYPE html>
 <html lang="az">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium Tic Tac Toe</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XOXO Online Premium</title>
 
-        body {
-            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
-            color: #fff;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-        }
+<style>
+:root{
+    --main:#ff4fd8;
+    --x:#00f7ff;
+    --bg1:#2b0040;
+    --bg2:#000;
+}
 
-        .container {
-            max-width: 1200px;
-            width: 100%;
-            padding: 20px;
-        }
+*{margin:0;padding:0;box-sizing:border-box;font-family:Segoe UI,sans-serif}
 
-        /* Giriş Ekranı */
-        #start-screen {
-            text-align: center;
-            animation: fadeIn 1.5s ease;
-        }
+body{
+    width:100vw;
+    height:100vh;
+    background:radial-gradient(circle at top,var(--bg1),var(--bg2));
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    color:white;
+}
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+.game{
+    background:rgba(0,0,0,.6);
+    padding:30px;
+    border-radius:25px;
+    box-shadow:0 0 40px var(--main);
+    text-align:center;
+}
 
-        .logo {
-            font-size: 4rem;
-            margin-bottom: 20px;
-            background: linear-gradient(45deg, #ff0080, #ff8c00, #40e0d0);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            animation: logoGlow 3s infinite alternate;
-        }
+h1{
+    font-size:48px;
+    color:var(--main);
+    text-shadow:0 0 20px var(--main);
+}
 
-        @keyframes logoGlow {
-            0% { filter: drop-shadow(0 0 5px rgba(255, 0, 128, 0.5)); }
-            100% { filter: drop-shadow(0 0 20px rgba(64, 224, 208, 0.8)); }
-        }
+.board{
+    display:grid;
+    grid-template-columns:repeat(3,110px);
+    gap:15px;
+    margin:25px 0;
+}
 
-        .game-title {
-            font-size: 3rem;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            background: linear-gradient(to right, #f7ff00, #db36a4);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
+.cell{
+    height:110px;
+    border-radius:20px;
+    background:rgba(255,255,255,.05);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:60px;
+    cursor:pointer;
+}
 
-        .subtitle {
-            font-size: 1.2rem;
-            margin-bottom: 40px;
-            opacity: 0.8;
-        }
+.cell.X{color:var(--x);text-shadow:0 0 20px var(--x)}
+.cell.O{color:var(--main);text-shadow:0 0 20px var(--main)}
 
-        #start-btn {
-            background: linear-gradient(45deg, #6a11cb, #2575fc);
-            color: white;
-            border: none;
-            padding: 20px 60px;
-            font-size: 1.5rem;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.4s ease;
-            box-shadow: 0 10px 30px rgba(106, 17, 203, 0.4);
-            position: relative;
-            overflow: hidden;
-            letter-spacing: 2px;
-            font-weight: bold;
-            margin-top: 20px;
-        }
+select,button{
+    padding:10px 20px;
+    border-radius:20px;
+    border:none;
+    font-weight:bold;
+    cursor:pointer;
+    margin:5px;
+}
 
-        #start-btn:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(106, 17, 203, 0.6);
-            background: linear-gradient(45deg, #2575fc, #6a11cb);
-        }
+button{
+    background:var(--main);
+}
 
-        #start-btn:active {
-            transform: translateY(0);
-        }
-
-        #start-btn::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: 0.5s;
-        }
-
-        #start-btn:hover::after {
-            left: 100%;
-        }
-
-        .pulse {
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-
-        /* Oyun Ekranı */
-        #game-screen {
-            display: none;
-            animation: slideUp 1s ease;
-        }
-
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(50px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .game-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 40px;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .player-turn {
-            font-size: 1.8rem;
-            font-weight: bold;
-            text-align: center;
-            flex-grow: 1;
-        }
-
-        .x-turn {
-            color: #ff0080;
-            text-shadow: 0 0 10px rgba(255, 0, 128, 0.7);
-        }
-
-        .o-turn {
-            color: #00d4ff;
-            text-shadow: 0 0 10px rgba(0, 212, 255, 0.7);
-        }
-
-        .game-stats {
-            display: flex;
-            gap: 30px;
-        }
-
-        .stat-box {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 15px 25px;
-            border-radius: 15px;
-            text-align: center;
-            min-width: 120px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            transition: all 0.3s ease;
-        }
-
-        .stat-box:hover {
-            transform: translateY(-5px);
-            background: rgba(255, 255, 255, 0.15);
-        }
-
-        .stat-value {
-            font-size: 2.5rem;
-            font-weight: bold;
-            display: block;
-        }
-
-        .stat-label {
-            font-size: 0.9rem;
-            opacity: 0.8;
-        }
-
-        .game-board-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-bottom: 40px;
-        }
-
-        .game-board {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            grid-gap: 15px;
-            margin: 30px 0;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 20px;
-            border-radius: 25px;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-        }
-
-        .cell {
-            width: 140px;
-            height: 140px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 5rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 2px solid transparent;
-        }
-
-        .cell:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: scale(1.05);
-            border-color: rgba(255, 255, 255, 0.3);
-        }
-
-        .cell.x {
-            color: #ff0080;
-            text-shadow: 0 0 20px rgba(255, 0, 128, 0.8);
-        }
-
-        .cell.o {
-            color: #00d4ff;
-            text-shadow: 0 0 20px rgba(0, 212, 255, 0.8);
-        }
-
-        .winning-cell {
-            animation: winPulse 1.5s infinite;
-            background: rgba(255, 255, 255, 0.15);
-        }
-
-        @keyframes winPulse {
-            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7); }
-            70% { transform: scale(1.05); box-shadow: 0 0 0 20px rgba(255, 215, 0, 0); }
-            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); }
-        }
-
-        .game-controls {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin-top: 30px;
-        }
-
-        .control-btn {
-            padding: 15px 35px;
-            font-size: 1.2rem;
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: bold;
-            letter-spacing: 1px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        #restart-btn {
-            background: linear-gradient(45deg, #ff416c, #ff4b2b);
-            color: white;
-            box-shadow: 0 10px 25px rgba(255, 65, 108, 0.4);
-        }
-
-        #restart-btn:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 35px rgba(255, 65, 108, 0.6);
-        }
-
-        #music-toggle {
-            background: linear-gradient(45deg, #36d1dc, #5b86e5);
-            color: white;
-            box-shadow: 0 10px 25px rgba(91, 134, 229, 0.4);
-        }
-
-        #music-toggle:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 35px rgba(91, 134, 229, 0.6);
-        }
-
-        .control-btn i {
-            font-size: 1.3rem;
-        }
-
-        /* Kazanma Mesajı */
-        .win-message {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            animation: fadeIn 0.5s ease;
-        }
-
-        .win-content {
-            text-align: center;
-            background: linear-gradient(135deg, rgba(30, 30, 50, 0.9), rgba(20, 20, 40, 0.9));
-            padding: 60px;
-            border-radius: 30px;
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.7);
-            max-width: 600px;
-            width: 90%;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
-        }
-
-        .win-title {
-            font-size: 4rem;
-            margin-bottom: 20px;
-            background: linear-gradient(45deg, #f7ff00, #db36a4);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
-
-        .winner-icon {
-            font-size: 6rem;
-            margin: 30px 0;
-            animation: bounce 1s infinite alternate;
-        }
-
-        @keyframes bounce {
-            from { transform: translateY(0); }
-            to { transform: translateY(-20px); }
-        }
-
-        .win-text {
-            font-size: 2rem;
-            margin-bottom: 40px;
-        }
-
-        .win-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-        }
-
-        .win-btn {
-            padding: 15px 40px;
-            font-size: 1.3rem;
-            border-radius: 50px;
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: bold;
-            letter-spacing: 1px;
-        }
-
-        #play-again-btn {
-            background: linear-gradient(45deg, #00b09b, #96c93d);
-            color: white;
-        }
-
-        #play-again-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 10px 25px rgba(0, 176, 155, 0.5);
-        }
-
-        #main-menu-btn {
-            background: linear-gradient(45deg, #8e2de2, #4a00e0);
-            color: white;
-        }
-
-        #main-menu-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 10px 25px rgba(142, 45, 226, 0.5);
-        }
-
-        /* Müzik Kontrolleri */
-        .music-controls {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            border-radius: 50px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .volume-slider {
-            width: 100px;
-            accent-color: #6a11cb;
-        }
-
-        /* Responsive Tasarım */
-        @media (max-width: 768px) {
-            .cell {
-                width: 100px;
-                height: 100px;
-                font-size: 4rem;
-            }
-            
-            .game-title {
-                font-size: 2.5rem;
-            }
-            
-            .logo {
-                font-size: 3rem;
-            }
-            
-            .stat-box {
-                min-width: 90px;
-                padding: 10px 15px;
-            }
-            
-            .stat-value {
-                font-size: 2rem;
-            }
-            
-            .win-content {
-                padding: 30px;
-            }
-            
-            .win-title {
-                font-size: 2.5rem;
-            }
-            
-            .winner-icon {
-                font-size: 4rem;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .cell {
-                width: 80px;
-                height: 80px;
-                font-size: 3rem;
-            }
-            
-            .game-board {
-                grid-gap: 10px;
-                padding: 15px;
-            }
-            
-            .game-controls {
-                flex-direction: column;
-                align-items: center;
-            }
-            
-            .control-btn {
-                width: 100%;
-                justify-content: center;
-            }
-            
-            .game-stats {
-                flex-direction: column;
-                gap: 15px;
-            }
-        }
-    </style>
+#status{margin-top:10px}
+</style>
 </head>
+
 <body>
-    <!-- Giriş Ekranı -->
-    <div id="start-screen" class="container">
-        <div class="logo">
-            <i class="fas fa-gamepad"></i>
-        </div>
-        <h1 class="game-title">Premium Tic Tac Toe</h1>
-        <p class="subtitle">Əfsanəvi oyun, premium təcrübə ilə</p>
-        <button id="start-btn" class="pulse">
-            <i class="fas fa-play-circle"></i> OYUNU BAŞLAT
-        </button>
-    </div>
 
-    <!-- Oyun Ekranı -->
-    <div id="game-screen" class="container">
-        <div class="game-header">
-            <div class="player-turn" id="turn-indicator">X-in növbəsi</div>
-            <div class="game-stats">
-                <div class="stat-box">
-                    <span class="stat-value" id="x-wins">0</span>
-                    <span class="stat-label">X Qalib</span>
-                </div>
-                <div class="stat-box">
-                    <span class="stat-value" id="draws">0</span>
-                    <span class="stat-label">Heç-heçə</span>
-                </div>
-                <div class="stat-box">
-                    <span class="stat-value" id="o-wins">0</span>
-                    <span class="stat-label">O Qalib</span>
-                </div>
-            </div>
-        </div>
+<div class="game">
+    <h1>XOXO</h1>
 
-        <div class="game-board-container">
-            <div class="game-board" id="game-board">
-                <!-- Hücreler JavaScript ile eklenecek -->
-            </div>
-        </div>
+    <select onchange="setTheme(this.value)">
+        <option value="purple">💜 Purple</option>
+        <option value="blue">💙 Blue</option>
+        <option value="red">❤️ Red</option>
+    </select>
 
-        <div class="game-controls">
-            <button id="restart-btn" class="control-btn">
-                <i class="fas fa-redo"></i> YENİDƏN BAŞLA
-            </button>
-            <button id="music-toggle" class="control-btn">
-                <i class="fas fa-volume-up"></i> MUSİQİ SÖNDÜR
-            </button>
-        </div>
-    </div>
+    <div class="board" id="board"></div>
+    <div id="status">Qoşulur...</div>
 
-    <!-- Kazanma Mesajı -->
-    <div id="win-message" class="win-message">
-        <div class="win-content">
-            <h2 class="win-title">Qalib!</h2>
-            <div class="winner-icon" id="winner-icon"></div>
-            <div class="win-text" id="winner-text">X qazandı!</div>
-            <div class="win-buttons">
-                <button id="play-again-btn" class="win-btn">YENİ OYUN</button>
-                <button id="main-menu-btn" class="win-btn">ƏSAS MENYU</button>
-            </div>
-        </div>
-    </div>
+    <button onclick="resetGame()">Reset</button>
+</div>
 
-    <!-- Müzik Kontrolleri -->
-    <div class="music-controls">
-        <i class="fas fa-music"></i>
-        <input type="range" min="0" max="100" value="50" class="volume-slider" id="volume-slider">
-    </div>
+<!-- 🔥 FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
-    <!-- Sesler -->
-    <audio id="background-music" loop>
-        <!-- Burada arka plan müziği olacak -->
-    </audio>
-    
-    <audio id="click-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-select-click-1109.mp3"></audio>
-    <audio id="win-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3"></audio>
-    <audio id="draw-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-game-show-wrong-answer-buzz-950.mp3"></audio>
+<script>
+/* 🔥 FIREBASE CONFIG — BURANI DƏYİŞ */
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  databaseURL: "https://YOUR_PROJECT.firebaseio.com",
+  projectId: "YOUR_PROJECT",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "ID",
+  appId: "APP_ID"
+};
 
-    <script>
-        // Oyun değişkenleri
-        let currentPlayer = 'X';
-        let gameBoard = ['', '', '', '', '', '', '', '', ''];
-        let gameActive = true;
-        let xWins = 0;
-        let oWins = 0;
-        let draws = 0;
-        let musicPlaying = true;
-        let backgroundMusic;
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const room = db.ref("xoxo-room");
 
-        // Kazanma kombinasyonları
-        const winConditions = [
-            [0, 1, 2], [3, 4, 5], [6, 7, 8], // Yatay
-            [0, 3, 6], [1, 4, 7], [2, 5, 8], // Dikey
-            [0, 4, 8], [2, 4, 6]             // Çapraz
-        ];
+let mySymbol="";
+let board = Array(9).fill("");
 
-        // DOM Elementleri
-        const startScreen = document.getElementById('start-screen');
-        const gameScreen = document.getElementById('game-screen');
-        const startBtn = document.getElementById('start-btn');
-        const gameBoardElement = document.getElementById('game-board');
-        const turnIndicator = document.getElementById('turn-indicator');
-        const xWinsElement = document.getElementById('x-wins');
-        const oWinsElement = document.getElementById('o-wins');
-        const drawsElement = document.getElementById('draws');
-        const winMessage = document.getElementById('win-message');
-        const winnerIcon = document.getElementById('winner-icon');
-        const winnerText = document.getElementById('winner-text');
-        const playAgainBtn = document.getElementById('play-again-btn');
-        const mainMenuBtn = document.getElementById('main-menu-btn');
-        const restartBtn = document.getElementById('restart-btn');
-        const musicToggleBtn = document.getElementById('music-toggle');
-        const volumeSlider = document.getElementById('volume-slider');
-        const backgroundMusicElement = document.getElementById('background-music');
-        const clickSound = document.getElementById('click-sound');
-        const winSound = document.getElementById('win-sound');
-        const drawSound = document.getElementById('draw-sound');
+const boardEl = document.getElementById("board");
+const statusEl = document.getElementById("status");
 
-        // Oyun tahtasını oluştur
-        function createBoard() {
-            gameBoardElement.innerHTML = '';
-            for (let i = 0; i < 9; i++) {
-                const cell = document.createElement('div');
-                cell.classList.add('cell');
-                cell.setAttribute('data-index', i);
-                cell.addEventListener('click', () => handleCellClick(i));
-                gameBoardElement.appendChild(cell);
-            }
-        }
+/* PLAYER JOIN */
+room.once("value", snap=>{
+    const data = snap.val();
+    mySymbol = (!data || !data.playerX) ? "X" : "O";
+    room.update({["player"+mySymbol]:true});
+    statusEl.innerText="Sən "+mySymbol+"-san";
+});
 
-        // Hücre tıklama işlemi
-        function handleCellClick(index) {
-            if (!gameActive || gameBoard[index] !== '') return;
+room.on("value", snap=>{
+    const d = snap.val();
+    if(!d) return;
+    board = d.board || board;
+    render();
+});
 
-            // Tıklama sesi
-            playSound(clickSound);
+/* GAME */
+function render(){
+    boardEl.innerHTML="";
+    board.forEach((v,i)=>{
+        const c=document.createElement("div");
+        c.className="cell "+v;
+        c.innerText=v;
+        c.onclick=()=>play(i);
+        boardEl.appendChild(c);
+    });
+}
 
-            // Hücreyi güncelle
-            gameBoard[index] = currentPlayer;
-            const cell = document.querySelector(`.cell[data-index="${index}"]`);
-            cell.textContent = currentPlayer;
-            cell.classList.add(currentPlayer.toLowerCase());
-            
-            // Animasyon ekle
-            cell.style.animation = 'none';
-            setTimeout(() => {
-                cell.style.animation = 'fadeIn 0.5s ease';
-            }, 10);
+function play(i){
+    if(board[i] || mySymbol!==getTurn()) return;
+    board[i]=mySymbol;
+    room.update({board});
+}
 
-            // Kazanma kontrolü
-            if (checkWin()) {
-                gameActive = false;
-                highlightWinningCells();
-                updateStats();
-                showWinMessage(currentPlayer);
-                playSound(winSound);
-                return;
-            }
+function getTurn(){
+    return board.filter(v=>v).length%2==0?"X":"O";
+}
 
-            // Beraberlik kontrolü
-            if (checkDraw()) {
-                gameActive = false;
-                showWinMessage('draw');
-                playSound(drawSound);
-                return;
-            }
+function resetGame(){
+    room.set({board:Array(9).fill("")});
+}
 
-            // Oyuncu değiştir
-            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
-            updateTurnIndicator();
-        }
+/* THEMES */
+function setTheme(t){
+    if(t=="purple") document.documentElement.style.cssText="--main:#ff4fd8;--x:#00f7ff;--bg1:#2b0040";
+    if(t=="blue") document.documentElement.style.cssText="--main:#00f7ff;--x:#fff;--bg1:#002b40";
+    if(t=="red") document.documentElement.style.cssText="--main:#ff2e2e;--x:#fff;--bg1:#400000";
+}
+</script>
 
-        // Kazanma kontrolü
-        function checkWin() {
-            for (let condition of winConditions) {
-                const [a, b, c] = condition;
-                if (
-                    gameBoard[a] &&
-                    gameBoard[a] === gameBoard[b] &&
-                    gameBoard[a] === gameBoard[c]
-                ) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        // Beraberlik kontrolü
-        function checkDraw() {
-            return !gameBoard.includes('');
-        }
-
-        // Kazanan hücreleri vurgula
-        function highlightWinningCells() {
-            for (let condition of winConditions) {
-                const [a, b, c] = condition;
-                if (
-                    gameBoard[a] &&
-                    gameBoard[a] === gameBoard[b] &&
-                    gameBoard[a] === gameBoard[c]
-                ) {
-                    document.querySelector(`.cell[data-index="${a}"]`).classList.add('winning-cell');
-                    document.querySelector(`.cell[data-index="${b}"]`).classList.add('winning-cell');
-                    document.querySelector(`.cell[data-index="${c}"]`).classList.add('winning-cell');
-                    break;
-                }
-            }
-        }
-
-        // İstatistikleri güncelle
-        function updateStats() {
-            xWinsElement.textContent = xWins;
-            oWinsElement.textContent = oWins;
-            drawsElement.textContent = draws;
-        }
-
-        // Sıra göstergesini güncelle
-        function updateTurnIndicator() {
-            turnIndicator.textContent = `${currentPlayer}-in növbəsi`;
-            turnIndicator.className = 'player-turn';
-            turnIndicator.classList.add(currentPlayer.toLowerCase() + '-turn');
-        }
-
-        // Kazanma mesajını göster
-        function showWinMessage(winner) {
-            if (winner === 'draw') {
-                winnerIcon.innerHTML = '<i class="fas fa-handshake"></i>';
-                winnerText.textContent = 'Heç-heçə!';
-            } else {
-                winnerIcon.innerHTML = winner === 'X' ? 
-                    '<i class="fas fa-times"></i>' : 
-                    '<i class="far fa-circle"></i>';
-                winnerIcon.classList.add(winner.toLowerCase());
-                winnerText.textContent = `${winner} qazandı!`;
-                
-                // İstatistikleri güncelle
-                if (winner === 'X') xWins++;
-                else oWins++;
-            }
-            
-            winMessage.style.display = 'flex';
-        }
-
-        // Oyunu sıfırla
-        function resetGame() {
-            gameBoard = ['', '', '', '', '', '', '', '', ''];
-            gameActive = true;
-            currentPlayer = 'X';
-            createBoard();
-            updateTurnIndicator();
-            winMessage.style.display = 'none';
-        }
-
-        // Ses çal
-        function playSound(soundElement) {
-            if (!musicPlaying) return;
-            
-            const volume = volumeSlider.value / 100;
-            soundElement.volume = volume;
-            soundElement.currentTime = 0;
-            soundElement.play().catch(e => console.log("Ses çalınamadı:", e));
-        }
-
-        // Arka plan müziğini başlat
-        function startBackgroundMusic() {
-            // Basit bir arka plan müziği oluştur (Web Audio API)
-            try {
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
-                
-                oscillator.connect(gainNode);
-                gainNode.connect(audioContext.destination);
-                
-                oscillator.type = 'sine';
-                oscillator.frequency.setValueAtTime(440, audioContext.currentTime);
-                gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-                
-                // Daha kompleks bir melodi için
-                const melody = [
-                    261.63, 329.63, 392.00, 523.25,
-                    493.88, 440.00, 392.00, 329.63
-                ];
-                
-                let time = audioContext.currentTime;
-                melody.forEach((freq, index) => {
-                    oscillator.frequency.setValueAtTime(freq, time);
-                    time += 0.5;
-                });
-                
-                oscillator.start();
-                oscillator.stop(time + 0.5);
-                
-                // Döngü için
-                setInterval(() => {
-                    if (musicPlaying) {
-                        startBackgroundMusic();
-                    }
-                }, 4000);
-                
-            } catch (e) {
-                console.log("Müzik çalınamadı:", e);
-                // Alternatif olarak basit bir ses kullan
-                backgroundMusicElement.src = "https://assets.mixkit.co/music/preview/mixkit-game-show-suspense-waiting-667.mp3";
-                backgroundMusicElement.loop = true;
-                backgroundMusicElement.volume = volumeSlider.value / 100;
-                backgroundMusicElement.play().catch(e => console.log("Alternatif müzik çalınamadı:", e));
-            }
-        }
-
-        // Olay dinleyicileri
-        startBtn.addEventListener('click', () => {
-            startScreen.style.display = 'none';
-            gameScreen.style.display = 'block';
-            createBoard();
-            updateTurnIndicator();
-            
-            // Müziği başlat
-            startBackgroundMusic();
-        });
-
-        restartBtn.addEventListener('click', resetGame);
-
-        playAgainBtn.addEventListener('click', () => {
-            resetGame();
-        });
-
-        mainMenuBtn.addEventListener('click', () => {
-            winMessage.style.display = 'none';
-            gameScreen.style.display = 'none';
-            startScreen.style.display = 'block';
-            resetGame();
-        });
-
-        musicToggleBtn.addEventListener('click', () => {
-            musicPlaying = !musicPlaying;
-            if (musicPlaying) {
-                musicToggleBtn.innerHTML = '<i class="fas fa-volume-up"></i> MUSİQİ SÖNDÜR';
-                backgroundMusicElement.play().catch(e => console.log("Müzik çalınamadı:", e));
-            } else {
-                musicToggleBtn.innerHTML = '<i class="fas fa-volume-mute"></i> MUSİQİ AÇ';
-                backgroundMusicElement.pause();
-            }
-        });
-
-        volumeSlider.addEventListener('input', () => {
-            const volume = volumeSlider.value / 100;
-            backgroundMusicElement.volume = volume;
-            clickSound.volume = volume;
-            winSound.volume = volume;
-            drawSound.volume = volume;
-        });
-
-        // Oyun başlangıcında müzik düğmesini güncelle
-        musicToggleBtn.innerHTML = '<i class="fas fa-volume-up"></i> MUSİQİ SÖNDÜR';
-        
-        // Sayfa yüklendiğinde tahtayı oluştur (ilk görünüm için)
-        createBoard();
-    </script>
 </body>
 </html>
