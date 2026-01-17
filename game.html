@@ -7,221 +7,267 @@
 
 <style>
 :root{
-    --main:#ff4fd8;
-    --x:#00f7ff;
-    --bg1:#2b0040;
-    --bg2:#000;
+  --x:#00eaff;
+  --o:#ff3cac;
+  --bg:#070014;
 }
 
-*{margin:0;padding:0;box-sizing:border-box;font-family:Segoe UI,sans-serif}
+*{box-sizing:border-box;font-family:Inter,Segoe UI,sans-serif}
 
 body{
-    width:100vw;height:100vh;
-    background:radial-gradient(circle at top,var(--bg1),var(--bg2));
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    color:white;
+  margin:0;
+  width:100vw;
+  height:100vh;
+  background:radial-gradient(circle at top,#22003d,var(--bg));
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  color:#fff;
+  overflow:hidden;
 }
 
 /* MENU */
-.menu{
-    background:rgba(0,0,0,.7);
-    padding:40px;
-    border-radius:30px;
-    box-shadow:0 0 60px var(--main);
-    text-align:center;
+#menu{
+  background:rgba(0,0,0,.7);
+  padding:40px 50px;
+  border-radius:32px;
+  box-shadow:0 0 80px #ff3cac88;
+  text-align:center;
+  animation:fadeIn .6s ease;
 }
 
-.menu h1{
-    font-size:56px;
-    color:var(--main);
-    text-shadow:0 0 30px var(--main);
+#menu h1{
+  font-size:56px;
+  margin-bottom:30px;
+  color:var(--o);
+  text-shadow:0 0 30px var(--o);
 }
 
-.menu button,select{
-    width:260px;
-    margin:12px;
-    padding:15px;
-    font-size:18px;
-    border:none;
-    border-radius:30px;
-    cursor:pointer;
-    font-weight:bold;
+button,select{
+  width:260px;
+  padding:14px;
+  margin:10px 0;
+  border-radius:30px;
+  border:none;
+  font-size:17px;
+  font-weight:600;
+  cursor:pointer;
 }
 
-.menu button{
-    background:var(--main);
-}
+button{background:var(--o);color:#000}
+select{background:#111;color:#fff}
 
 /* GAME */
-.game{
-    display:none;
-    flex-direction:column;
-    align-items:center;
-}
-
-.board{
-    display:grid;
-    grid-template-columns:repeat(3,110px);
-    gap:16px;
-    margin:25px 0;
-}
-
-.cell{
-    height:110px;
-    border-radius:20px;
-    background:rgba(255,255,255,.08);
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    font-size:64px;
-    cursor:pointer;
-    transition:.3s;
-}
-
-.cell.X{color:var(--x);text-shadow:0 0 25px var(--x)}
-.cell.O{color:var(--main);text-shadow:0 0 25px var(--main)}
-
-.cell.win{
-    animation:winGlow 1s infinite;
-}
-
-@keyframes winGlow{
-    0%{box-shadow:0 0 10px}
-    50%{box-shadow:0 0 40px}
-    100%{box-shadow:0 0 10px}
+#game{
+  display:none;
+  flex-direction:column;
+  align-items:center;
 }
 
 #status{
-    font-size:22px;
-    margin-top:10px;
+  font-size:22px;
+  margin-bottom:20px;
 }
 
-.overlay{
-    position:fixed;
-    inset:0;
-    background:rgba(0,0,0,.85);
-    display:none;
-    justify-content:center;
-    align-items:center;
-    flex-direction:column;
-    z-index:10;
+.board{
+  display:grid;
+  grid-template-columns:repeat(3,120px);
+  gap:18px;
 }
 
-.overlay h2{
-    font-size:60px;
-    color:var(--main);
-    text-shadow:0 0 30px var(--main);
-    animation:pulse 1.5s infinite;
+.cell{
+  width:120px;
+  height:120px;
+  background:rgba(255,255,255,.06);
+  border-radius:22px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  font-size:68px;
+  cursor:pointer;
+  transition:.25s;
 }
 
-@keyframes pulse{
-    0%{transform:scale(1)}
-    50%{transform:scale(1.1)}
-    100%{transform:scale(1)}
+.cell:hover{background:rgba(255,255,255,.12)}
+
+.cell.X{
+  color:var(--x);
+  text-shadow:0 0 25px var(--x);
+}
+.cell.O{
+  color:var(--o);
+  text-shadow:0 0 25px var(--o);
 }
 
-.back{background:#444;color:white;margin-top:10px}
+.cell.win{
+  animation:winPulse 1s infinite;
+}
+
+@keyframes winPulse{
+  0%{box-shadow:0 0 10px}
+  50%{box-shadow:0 0 45px}
+  100%{box-shadow:0 0 10px}
+}
+
+/* RESULT */
+#overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.85);
+  display:none;
+  justify-content:center;
+  align-items:center;
+  flex-direction:column;
+  backdrop-filter:blur(6px);
+}
+
+#overlay h2{
+  font-size:64px;
+  color:var(--o);
+  animation:scaleIn .6s ease;
+}
+
+@keyframes scaleIn{
+  from{transform:scale(.6);opacity:0}
+  to{transform:scale(1);opacity:1}
+}
+
+.small{
+  background:#333;
+  color:#fff;
+  margin-top:14px;
+}
 </style>
 </head>
 
 <body>
 
-<!-- MENU -->
-<div class="menu" id="menu">
-    <h1>XOXO</h1>
+<div id="menu">
+  <h1>XOXO</h1>
+  <button onclick="start('local')">👥 2 Nəfər</button>
 
-    <button onclick="startGame('local')">👥 2 Nəfər</button>
-
-    <select id="botLevel">
-        <option value="easy">🤖 Asan Bot</option>
-        <option value="normal">🤖 Normal Bot</option>
-        <option value="hard">🤖 Çətin Bot</option>
-    </select>
-    <button onclick="startGame('bot')">Botla Oyna</button>
-
-    <button onclick="alert('🌐 Online rejim tezliklə aktiv olacaq')">
-        🌐 Online (Beta)
-    </button>
+  <select id="level">
+    <option value="easy">🤖 Asan</option>
+    <option value="normal">🤖 Normal</option>
+    <option value="hard">🤖 Çətin</option>
+  </select>
+  <button onclick="start('bot')">Botla oyna</button>
 </div>
 
-<!-- GAME -->
-<div class="game" id="game">
-    <div id="status">X başlayır</div>
-    <div class="board" id="board"></div>
-    <button onclick="reset()">Yenidən</button>
-    <button class="back" onclick="backMenu()">Menyu</button>
+<div id="game">
+  <div id="status"></div>
+  <div class="board" id="board"></div>
+  <button onclick="reset()">Yenidən</button>
+  <button class="small" onclick="back()">Menyu</button>
 </div>
 
-<!-- WIN OVERLAY -->
-<div class="overlay" id="result">
-    <h2 id="resultText"></h2>
-    <button onclick="reset()">Yenidən</button>
+<div id="overlay">
+  <h2 id="resultText"></h2>
+  <button onclick="reset()">Yenidən</button>
 </div>
 
 <script>
 let board,turn,mode,botLevel,locked=false;
-const winCombos=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+const wins=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8]];
 
-const menu=document.getElementById("menu");
-const game=document.getElementById("game");
 const boardEl=document.getElementById("board");
 const statusEl=document.getElementById("status");
-const result=document.getElementById("result");
+const overlay=document.getElementById("overlay");
 const resultText=document.getElementById("resultText");
 
-function startGame(m){
-    mode=m;
-    botLevel=document.getElementById("botLevel").value;
-    menu.style.display="none";
-    game.style.display="flex";
-    reset();
+function start(m){
+  mode=m;
+  botLevel=document.getElementById("level").value;
+  document.getElementById("menu").style.display="none";
+  document.getElementById("game").style.display="flex";
+  reset();
 }
 
 function reset(){
-    board=Array(9).fill("");
-    turn="X";
-    locked=false;
-    result.style.display="none";
-    draw();
+  board=Array(9).fill("");
+  turn="X";
+  locked=false;
+  overlay.style.display="none";
+  render();
 }
 
-function draw(){
-    boardEl.innerHTML="";
-    board.forEach((v,i)=>{
-        const c=document.createElement("div");
-        c.className="cell "+v;
-        c.innerText=v;
-        c.onclick=()=>play(i);
-        boardEl.appendChild(c);
-    });
-    statusEl.innerText=turn+" növbədədir";
+function render(){
+  boardEl.innerHTML="";
+  board.forEach((v,i)=>{
+    const c=document.createElement("div");
+    c.className="cell "+v;
+    c.textContent=v;
+    c.onclick=()=>move(i);
+    boardEl.appendChild(c);
+  });
+  statusEl.textContent=turn+" növbədədir";
 }
 
-function play(i){
-    if(board[i]||locked) return;
-    board[i]=turn;
-    if(checkWin(turn)) return endGame(turn);
-    if(!board.includes("")) return endGame("draw");
-    turn=turn=="X"?"O":"X";
-    draw();
-}
+function move(i){
+  if(board[i]||locked) return;
+  board[i]=turn;
+  if(check(turn)) return end(turn);
+  if(!board.includes("")) return end("draw");
 
-function checkWin(p){
-    return winCombos.some(c=>c.every(i=>board[i]==p));
-}
+  turn=turn==="X"?"O":"X";
+  render();
 
-function endGame(w){
+  if(mode==="bot" && turn==="O"){
     locked=true;
-    result.style.display="flex";
-    resultText.innerText=
-        w=="draw" ? "🤝 Heç-Heçə" : "🏆 "+w+" QAZANDI";
+    setTimeout(botMove,450);
+  }
 }
 
-function backMenu(){
-    game.style.display="none";
-    menu.style.display="block";
+function botMove(){
+  let move;
+  if(botLevel==="easy") move=random();
+  else if(botLevel==="normal") move=smart() ?? random();
+  else move=best();
+
+  board[move]="O";
+  locked=false;
+
+  if(check("O")) return end("O");
+  if(!board.includes("")) return end("draw");
+
+  turn="X";
+  render();
+}
+
+function random(){
+  const e=board.map((v,i)=>v===""?i:null).filter(v=>v!==null);
+  return e[Math.floor(Math.random()*e.length)];
+}
+
+function smart(){
+  for(let i=0;i<9;i++){
+    if(board[i]===""){
+      board[i]="O";
+      if(check("O")){board[i]="";return i}
+      board[i]="";
+    }
+  }
+  return null;
+}
+
+function best(){
+  return smart() ?? random();
+}
+
+function check(p){
+  return wins.some(w=>w.every(i=>board[i]===p));
+}
+
+function end(w){
+  locked=true;
+  overlay.style.display="flex";
+  resultText.textContent =
+    w==="draw" ? "Heç-heçə" : w+" qazandı";
+}
+
+function back(){
+  document.getElementById("game").style.display="none";
+  document.getElementById("menu").style.display="block";
 }
 </script>
 
