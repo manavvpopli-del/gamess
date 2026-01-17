@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Tic Tac Toe Premium</title>
+
 <style>
 *{box-sizing:border-box;font-family:Arial}
 body{
@@ -15,193 +16,241 @@ justify-content:center;
 height:100vh;
 overflow:hidden;
 }
-.screen{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column}
+
+.screen{
+position:absolute;
+inset:0;
+display:flex;
+flex-direction:column;
+align-items:center;
+justify-content:center;
+}
+
 .hidden{display:none}
+
 button{
-padding:14px 30px;
+padding:14px 32px;
 margin:10px;
 font-size:18px;
 border:none;
-border-radius:10px;
+border-radius:12px;
 cursor:pointer;
 background:#00ffc6;
 color:#000;
 font-weight:bold;
-transition:.3s;
+transition:.25s;
 }
-button:hover{transform:scale(1.1)}
+button:hover{transform:scale(1.08)}
+
 #board{
 display:grid;
 grid-template-columns:repeat(3,120px);
 gap:15px;
 }
+
 .cell{
-width:120px;height:120px;
-background:rgba(255,255,255,.05);
-backdrop-filter:blur(10px);
+width:120px;
+height:120px;
 display:flex;
 align-items:center;
 justify-content:center;
-font-size:70px;
+font-size:72px;
+background:rgba(255,255,255,.08);
+border-radius:18px;
 cursor:pointer;
-border-radius:15px;
-transition:.3s;
+transition:.25s;
+backdrop-filter:blur(10px);
 }
-.cell:hover{background:rgba(255,255,255,.15)}
-.win{background:#00ff88!important;animation:pulse .5s infinite alternate}
-@keyframes pulse{from{transform:scale(1)}to{transform:scale(1.08)}}
+.cell:hover{background:rgba(255,255,255,.18)}
+
+.win{
+background:#00ff88!important;
+animation:pulse .5s infinite alternate;
+}
+
+@keyframes pulse{
+from{transform:scale(1)}
+to{transform:scale(1.1)}
+}
+
 #result{
-font-size:40px;
+font-size:42px;
 margin-bottom:20px;
-animation:fade .6s;
+animation:fade .4s;
 }
-@keyframes fade{from{opacity:0;transform:scale(.8)}to{opacity:1}}
+
+@keyframes fade{
+from{opacity:0;transform:scale(.85)}
+to{opacity:1}
+}
 </style>
 </head>
 
 <body>
 
-<audio id="bg" loop src="bg.mp3"></audio>
+<audio id="bg" src="bg.mp3" loop></audio>
 
-<!-- CONTINUE -->
-<div id="start" class="screen">
+<!-- START -->
+<div id="startScreen" class="screen">
 <h1>TIC TAC TOE</h1>
 <button onclick="startGame()">DAVAM ET</button>
 </div>
 
 <!-- MODE -->
-<div id="mode" class="screen hidden">
+<div id="modeScreen" class="screen hidden">
 <h2>Rejimi seç</h2>
-<button onclick="setMode('pvp')">2 Nəfər</button>
-<button onclick="setMode('bot')">Bot</button>
+<button onclick="chooseMode('pvp')">2 Nəfər</button>
+<button onclick="chooseMode('bot')">Bot</button>
 </div>
 
 <!-- BOT LEVEL -->
-<div id="level" class="screen hidden">
-<h2>Bot Səviyyəsi</h2>
-<button onclick="setLevel('easy')">Easy</button>
-<button onclick="setLevel('normal')">Normal</button>
-<button onclick="setLevel('hard')">Hard</button>
+<div id="levelScreen" class="screen hidden">
+<h2>Bot səviyyəsi</h2>
+<button onclick="chooseLevel('easy')">Easy</button>
+<button onclick="chooseLevel('normal')">Normal</button>
+<button onclick="chooseLevel('hard')">Hard</button>
 </div>
 
 <!-- GAME -->
-<div id="game" class="screen hidden">
+<div id="gameScreen" class="screen hidden">
 <div id="board"></div>
 </div>
 
-<!-- RESULT -->
-<div id="end" class="screen hidden">
+<!-- END -->
+<div id="endScreen" class="screen hidden">
 <div id="result"></div>
 <button onclick="restart()">Yenidən</button>
 </div>
 
 <script>
-const wins=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
-let board,turn,mode,level;
+const startScreen = document.getElementById("startScreen");
+const modeScreen  = document.getElementById("modeScreen");
+const levelScreen = document.getElementById("levelScreen");
+const gameScreen  = document.getElementById("gameScreen");
+const endScreen   = document.getElementById("endScreen");
+const boardDiv    = document.getElementById("board");
+const resultDiv   = document.getElementById("result");
+const bg          = document.getElementById("bg");
 
-const screens={start,modeScr:mode,levelScr:level,game,end};
+const wins=[
+[0,1,2],[3,4,5],[6,7,8],
+[0,3,6],[1,4,7],[2,5,8],
+[0,4,8],[2,4,6]
+];
 
-function show(s){
-document.querySelectorAll('.screen').forEach(e=>e.classList.add('hidden'));
-s.classList.remove('hidden');
+let board, turn, mode, level;
+
+function show(screen){
+[startScreen,modeScreen,levelScreen,gameScreen,endScreen]
+.forEach(s=>s.classList.add("hidden"));
+screen.classList.remove("hidden");
 }
 
 function startGame(){
-document.getElementById("bg").play();
-show(mode);
+bg.play();
+show(modeScreen);
 }
 
-function setMode(m){
+function chooseMode(m){
 mode=m;
-m==='bot'?show(level):init();
+m==="bot" ? show(levelScreen) : initGame();
 }
 
-function setLevel(l){
+function chooseLevel(l){
 level=l;
-init();
+initGame();
 }
 
-function init(){
+function initGame(){
 board=Array(9).fill("");
 turn="X";
-draw();
-show(game);
+drawBoard();
+show(gameScreen);
 }
 
-function draw(){
+function drawBoard(){
 boardDiv.innerHTML="";
 board.forEach((v,i)=>{
-const d=document.createElement("div");
-d.className="cell";
-d.textContent=v;
-d.onclick=()=>move(i);
-boardDiv.appendChild(d);
+const c=document.createElement("div");
+c.className="cell";
+c.textContent=v;
+c.onclick=()=>move(i);
+boardDiv.appendChild(c);
 });
 }
 
 function move(i){
-if(board[i]||check())return;
+if(board[i]||checkWin())return;
 board[i]=turn;
-draw();
-if(check()){endGame(turn);return;}
-if(!board.includes("")){endGame("draw");return;}
+drawBoard();
+
+if(checkWin()){finish(turn);return;}
+if(!board.includes("")){finish("draw");return;}
+
 turn=turn==="X"?"O":"X";
-if(mode==="bot"&&turn==="O")setTimeout(botMove,300);
+if(mode==="bot" && turn==="O")setTimeout(botMove,300);
 }
 
 function botMove(){
 let i;
-if(level==="easy")i=random();
-else if(level==="normal")i=Math.random()<.5?random():best();
-else i=best();
+if(level==="easy") i=randomMove();
+else if(level==="normal") i=Math.random()<0.5?randomMove():bestMove();
+else i=bestMove();
+
 board[i]="O";
-draw();
-if(check())endGame("O");
-else if(!board.includes(""))endGame("draw");
+drawBoard();
+
+if(checkWin()) finish("O");
+else if(!board.includes("")) finish("draw");
 else turn="X";
 }
 
-function random(){
-return board.map((v,i)=>v===""?i:null).filter(v=>v!==null)
-[Math.floor(Math.random()*board.filter(v=>v==="").length)];
+function randomMove(){
+const free=board.map((v,i)=>v===""?i:null).filter(v=>v!==null);
+return free[Math.floor(Math.random()*free.length)];
 }
 
-function best(){
-let best=-1e9,move;
+function bestMove(){
+let best=-Infinity, move;
 for(let i=0;i<9;i++){
 if(board[i]===""){
 board[i]="O";
-let s=minimax(board,0,false);
+let score=minimax(board,0,false);
 board[i]="";
-if(s>best){best=s;move=i;}
+if(score>best){best=score;move=i;}
 }}
 return move;
 }
 
 function minimax(b,d,isMax){
-if(win(b,"O"))return 10-d;
-if(win(b,"X"))return d-10;
-if(!b.includes(""))return 0;
-let best=isMax?-1e9:1e9;
+if(win(b,"O")) return 10-d;
+if(win(b,"X")) return d-10;
+if(!b.includes("")) return 0;
+
+let best=isMax?-Infinity:Infinity;
 for(let i=0;i<9;i++){
 if(b[i]===""){
 b[i]=isMax?"O":"X";
-best=isMax?Math.max(best,minimax(b,d+1,false))
-:Math.min(best,minimax(b,d+1,true));
+let score=minimax(b,d+1,!isMax);
 b[i]="";
+best=isMax?Math.max(best,score):Math.min(best,score);
 }}
 return best;
 }
 
 function win(b,p){return wins.some(w=>w.every(i=>b[i]===p));}
-function check(){return win(board,"X")||win(board,"O");}
+function checkWin(){return win(board,"X")||win(board,"O");}
 
-function endGame(r){
-show(end);
-result.textContent=r==="draw"?"HEÇ-HEÇƏ":r+" QAZANDI!";
+function finish(r){
+show(endScreen);
+resultDiv.textContent=
+r==="draw"?"HEÇ-HEÇƏ":r+" QAZANDI!";
 }
 
-function restart(){show(mode);}
+function restart(){
+show(modeScreen);
+}
 </script>
+
 </body>
 </html>
