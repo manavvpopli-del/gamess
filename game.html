@@ -2,274 +2,206 @@
 <html lang="az">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>XOXO Premium</title>
-
+<title>Tic Tac Toe Premium</title>
 <style>
-:root{
-  --x:#00eaff;
-  --o:#ff3cac;
-  --bg:#070014;
-}
-
-*{box-sizing:border-box;font-family:Inter,Segoe UI,sans-serif}
-
+*{box-sizing:border-box;font-family:Arial}
 body{
-  margin:0;
-  width:100vw;
-  height:100vh;
-  background:radial-gradient(circle at top,#22003d,var(--bg));
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  color:#fff;
-  overflow:hidden;
+margin:0;
+background:radial-gradient(circle at top,#111,#000);
+color:#fff;
+display:flex;
+align-items:center;
+justify-content:center;
+height:100vh;
+overflow:hidden;
 }
-
-/* MENU */
-#menu{
-  background:rgba(0,0,0,.7);
-  padding:40px 50px;
-  border-radius:32px;
-  box-shadow:0 0 80px #ff3cac88;
-  text-align:center;
-  animation:fadeIn .6s ease;
+.screen{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column}
+.hidden{display:none}
+button{
+padding:14px 30px;
+margin:10px;
+font-size:18px;
+border:none;
+border-radius:10px;
+cursor:pointer;
+background:#00ffc6;
+color:#000;
+font-weight:bold;
+transition:.3s;
 }
-
-#menu h1{
-  font-size:56px;
-  margin-bottom:30px;
-  color:var(--o);
-  text-shadow:0 0 30px var(--o);
+button:hover{transform:scale(1.1)}
+#board{
+display:grid;
+grid-template-columns:repeat(3,120px);
+gap:15px;
 }
-
-button,select{
-  width:260px;
-  padding:14px;
-  margin:10px 0;
-  border-radius:30px;
-  border:none;
-  font-size:17px;
-  font-weight:600;
-  cursor:pointer;
-}
-
-button{background:var(--o);color:#000}
-select{background:#111;color:#fff}
-
-/* GAME */
-#game{
-  display:none;
-  flex-direction:column;
-  align-items:center;
-}
-
-#status{
-  font-size:22px;
-  margin-bottom:20px;
-}
-
-.board{
-  display:grid;
-  grid-template-columns:repeat(3,120px);
-  gap:18px;
-}
-
 .cell{
-  width:120px;
-  height:120px;
-  background:rgba(255,255,255,.06);
-  border-radius:22px;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  font-size:68px;
-  cursor:pointer;
-  transition:.25s;
+width:120px;height:120px;
+background:rgba(255,255,255,.05);
+backdrop-filter:blur(10px);
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:70px;
+cursor:pointer;
+border-radius:15px;
+transition:.3s;
 }
-
-.cell:hover{background:rgba(255,255,255,.12)}
-
-.cell.X{
-  color:var(--x);
-  text-shadow:0 0 25px var(--x);
+.cell:hover{background:rgba(255,255,255,.15)}
+.win{background:#00ff88!important;animation:pulse .5s infinite alternate}
+@keyframes pulse{from{transform:scale(1)}to{transform:scale(1.08)}}
+#result{
+font-size:40px;
+margin-bottom:20px;
+animation:fade .6s;
 }
-.cell.O{
-  color:var(--o);
-  text-shadow:0 0 25px var(--o);
-}
-
-.cell.win{
-  animation:winPulse 1s infinite;
-}
-
-@keyframes winPulse{
-  0%{box-shadow:0 0 10px}
-  50%{box-shadow:0 0 45px}
-  100%{box-shadow:0 0 10px}
-}
-
-/* RESULT */
-#overlay{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.85);
-  display:none;
-  justify-content:center;
-  align-items:center;
-  flex-direction:column;
-  backdrop-filter:blur(6px);
-}
-
-#overlay h2{
-  font-size:64px;
-  color:var(--o);
-  animation:scaleIn .6s ease;
-}
-
-@keyframes scaleIn{
-  from{transform:scale(.6);opacity:0}
-  to{transform:scale(1);opacity:1}
-}
-
-.small{
-  background:#333;
-  color:#fff;
-  margin-top:14px;
-}
+@keyframes fade{from{opacity:0;transform:scale(.8)}to{opacity:1}}
 </style>
 </head>
 
 <body>
 
-<div id="menu">
-  <h1>XOXO</h1>
-  <button onclick="start('local')">👥 2 Nəfər</button>
+<audio id="bg" loop src="bg.mp3"></audio>
 
-  <select id="level">
-    <option value="easy">🤖 Asan</option>
-    <option value="normal">🤖 Normal</option>
-    <option value="hard">🤖 Çətin</option>
-  </select>
-  <button onclick="start('bot')">Botla oyna</button>
+<!-- CONTINUE -->
+<div id="start" class="screen">
+<h1>TIC TAC TOE</h1>
+<button onclick="startGame()">DAVAM ET</button>
 </div>
 
-<div id="game">
-  <div id="status"></div>
-  <div class="board" id="board"></div>
-  <button onclick="reset()">Yenidən</button>
-  <button class="small" onclick="back()">Menyu</button>
+<!-- MODE -->
+<div id="mode" class="screen hidden">
+<h2>Rejimi seç</h2>
+<button onclick="setMode('pvp')">2 Nəfər</button>
+<button onclick="setMode('bot')">Bot</button>
 </div>
 
-<div id="overlay">
-  <h2 id="resultText"></h2>
-  <button onclick="reset()">Yenidən</button>
+<!-- BOT LEVEL -->
+<div id="level" class="screen hidden">
+<h2>Bot Səviyyəsi</h2>
+<button onclick="setLevel('easy')">Easy</button>
+<button onclick="setLevel('normal')">Normal</button>
+<button onclick="setLevel('hard')">Hard</button>
+</div>
+
+<!-- GAME -->
+<div id="game" class="screen hidden">
+<div id="board"></div>
+</div>
+
+<!-- RESULT -->
+<div id="end" class="screen hidden">
+<div id="result"></div>
+<button onclick="restart()">Yenidən</button>
 </div>
 
 <script>
-let board,turn,mode,botLevel,locked=false;
-const wins=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8]];
+const wins=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+let board,turn,mode,level;
 
-const boardEl=document.getElementById("board");
-const statusEl=document.getElementById("status");
-const overlay=document.getElementById("overlay");
-const resultText=document.getElementById("resultText");
+const screens={start,modeScr:mode,levelScr:level,game,end};
 
-function start(m){
-  mode=m;
-  botLevel=document.getElementById("level").value;
-  document.getElementById("menu").style.display="none";
-  document.getElementById("game").style.display="flex";
-  reset();
+function show(s){
+document.querySelectorAll('.screen').forEach(e=>e.classList.add('hidden'));
+s.classList.remove('hidden');
 }
 
-function reset(){
-  board=Array(9).fill("");
-  turn="X";
-  locked=false;
-  overlay.style.display="none";
-  render();
+function startGame(){
+document.getElementById("bg").play();
+show(mode);
 }
 
-function render(){
-  boardEl.innerHTML="";
-  board.forEach((v,i)=>{
-    const c=document.createElement("div");
-    c.className="cell "+v;
-    c.textContent=v;
-    c.onclick=()=>move(i);
-    boardEl.appendChild(c);
-  });
-  statusEl.textContent=turn+" növbədədir";
+function setMode(m){
+mode=m;
+m==='bot'?show(level):init();
+}
+
+function setLevel(l){
+level=l;
+init();
+}
+
+function init(){
+board=Array(9).fill("");
+turn="X";
+draw();
+show(game);
+}
+
+function draw(){
+boardDiv.innerHTML="";
+board.forEach((v,i)=>{
+const d=document.createElement("div");
+d.className="cell";
+d.textContent=v;
+d.onclick=()=>move(i);
+boardDiv.appendChild(d);
+});
 }
 
 function move(i){
-  if(board[i]||locked) return;
-  board[i]=turn;
-  if(check(turn)) return end(turn);
-  if(!board.includes("")) return end("draw");
-
-  turn=turn==="X"?"O":"X";
-  render();
-
-  if(mode==="bot" && turn==="O"){
-    locked=true;
-    setTimeout(botMove,450);
-  }
+if(board[i]||check())return;
+board[i]=turn;
+draw();
+if(check()){endGame(turn);return;}
+if(!board.includes("")){endGame("draw");return;}
+turn=turn==="X"?"O":"X";
+if(mode==="bot"&&turn==="O")setTimeout(botMove,300);
 }
 
 function botMove(){
-  let move;
-  if(botLevel==="easy") move=random();
-  else if(botLevel==="normal") move=smart() ?? random();
-  else move=best();
-
-  board[move]="O";
-  locked=false;
-
-  if(check("O")) return end("O");
-  if(!board.includes("")) return end("draw");
-
-  turn="X";
-  render();
+let i;
+if(level==="easy")i=random();
+else if(level==="normal")i=Math.random()<.5?random():best();
+else i=best();
+board[i]="O";
+draw();
+if(check())endGame("O");
+else if(!board.includes(""))endGame("draw");
+else turn="X";
 }
 
 function random(){
-  const e=board.map((v,i)=>v===""?i:null).filter(v=>v!==null);
-  return e[Math.floor(Math.random()*e.length)];
-}
-
-function smart(){
-  for(let i=0;i<9;i++){
-    if(board[i]===""){
-      board[i]="O";
-      if(check("O")){board[i]="";return i}
-      board[i]="";
-    }
-  }
-  return null;
+return board.map((v,i)=>v===""?i:null).filter(v=>v!==null)
+[Math.floor(Math.random()*board.filter(v=>v==="").length)];
 }
 
 function best(){
-  return smart() ?? random();
+let best=-1e9,move;
+for(let i=0;i<9;i++){
+if(board[i]===""){
+board[i]="O";
+let s=minimax(board,0,false);
+board[i]="";
+if(s>best){best=s;move=i;}
+}}
+return move;
 }
 
-function check(p){
-  return wins.some(w=>w.every(i=>board[i]===p));
+function minimax(b,d,isMax){
+if(win(b,"O"))return 10-d;
+if(win(b,"X"))return d-10;
+if(!b.includes(""))return 0;
+let best=isMax?-1e9:1e9;
+for(let i=0;i<9;i++){
+if(b[i]===""){
+b[i]=isMax?"O":"X";
+best=isMax?Math.max(best,minimax(b,d+1,false))
+:Math.min(best,minimax(b,d+1,true));
+b[i]="";
+}}
+return best;
 }
 
-function end(w){
-  locked=true;
-  overlay.style.display="flex";
-  resultText.textContent =
-    w==="draw" ? "Heç-heçə" : w+" qazandı";
+function win(b,p){return wins.some(w=>w.every(i=>b[i]===p));}
+function check(){return win(board,"X")||win(board,"O");}
+
+function endGame(r){
+show(end);
+result.textContent=r==="draw"?"HEÇ-HEÇƏ":r+" QAZANDI!";
 }
 
-function back(){
-  document.getElementById("game").style.display="none";
-  document.getElementById("menu").style.display="block";
-}
+function restart(){show(mode);}
 </script>
-
 </body>
 </html>
