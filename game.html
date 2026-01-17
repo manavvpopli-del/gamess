@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>XOXO Online Premium</title>
+<title>XOXO Premium</title>
 
 <style>
 :root{
@@ -16,8 +16,7 @@
 *{margin:0;padding:0;box-sizing:border-box;font-family:Segoe UI,sans-serif}
 
 body{
-    width:100vw;
-    height:100vh;
+    width:100vw;height:100vh;
     background:radial-gradient(circle at top,var(--bg1),var(--bg2));
     display:flex;
     justify-content:center;
@@ -25,18 +24,40 @@ body{
     color:white;
 }
 
-.game{
-    background:rgba(0,0,0,.6);
-    padding:30px;
-    border-radius:25px;
-    box-shadow:0 0 40px var(--main);
+/* MENU */
+.menu{
+    background:rgba(0,0,0,.65);
+    padding:35px;
+    border-radius:30px;
+    box-shadow:0 0 50px var(--main);
     text-align:center;
 }
 
-h1{
-    font-size:48px;
+.menu h1{
+    font-size:52px;
     color:var(--main);
-    text-shadow:0 0 20px var(--main);
+    text-shadow:0 0 25px var(--main);
+}
+
+.menu button,select{
+    width:240px;
+    margin:12px;
+    padding:14px;
+    font-size:18px;
+    border:none;
+    border-radius:25px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+.menu button{
+    background:var(--main);
+}
+
+.game{
+    display:none;
+    flex-direction:column;
+    align-items:center;
 }
 
 .board{
@@ -49,7 +70,7 @@ h1{
 .cell{
     height:110px;
     border-radius:20px;
-    background:rgba(255,255,255,.05);
+    background:rgba(255,255,255,.06);
     display:flex;
     justify-content:center;
     align-items:center;
@@ -60,83 +81,69 @@ h1{
 .cell.X{color:var(--x);text-shadow:0 0 20px var(--x)}
 .cell.O{color:var(--main);text-shadow:0 0 20px var(--main)}
 
-select,button{
-    padding:10px 20px;
-    border-radius:20px;
-    border:none;
-    font-weight:bold;
-    cursor:pointer;
-    margin:5px;
-}
+#status{font-size:20px;margin:10px}
 
-button{
-    background:var(--main);
+.back{
+    background:#444;
+    color:white;
 }
-
-#status{margin-top:10px}
 </style>
 </head>
 
 <body>
 
-<div class="game">
+<!-- MENU -->
+<div class="menu" id="menu">
     <h1>XOXO</h1>
+
+    <button onclick="startGame('local')">👥 2 Nəfər</button>
+
+    <select id="botLevel">
+        <option value="easy">🤖 Asan Bot</option>
+        <option value="normal">🤖 Normal Bot</option>
+        <option value="hard">🤖 Çətin Bot</option>
+    </select>
+    <button onclick="startGame('bot')">Botla Oyna</button>
 
     <select onchange="setTheme(this.value)">
         <option value="purple">💜 Purple</option>
         <option value="blue">💙 Blue</option>
         <option value="red">❤️ Red</option>
     </select>
-
-    <div class="board" id="board"></div>
-    <div id="status">Qoşulur...</div>
-
-    <button onclick="resetGame()">Reset</button>
 </div>
 
-<!-- 🔥 FIREBASE -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<!-- GAME -->
+<div class="game" id="game">
+    <div id="status">X başlayır</div>
+    <div class="board" id="board"></div>
+    <button onclick="reset()">Yenidən</button>
+    <button class="back" onclick="backMenu()">Menyu</button>
+</div>
 
 <script>
-/* 🔥 FIREBASE CONFIG — BURANI DƏYİŞ */
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  databaseURL: "https://YOUR_PROJECT.firebaseio.com",
-  projectId: "YOUR_PROJECT",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "ID",
-  appId: "APP_ID"
-};
+let board,turn,mode,botLevel;
+const winCombos=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-const room = db.ref("xoxo-room");
+const menu=document.getElementById("menu");
+const game=document.getElementById("game");
+const boardEl=document.getElementById("board");
+const statusEl=document.getElementById("status");
 
-let mySymbol="";
-let board = Array(9).fill("");
+function startGame(m){
+    mode=m;
+    botLevel=document.getElementById("botLevel").value;
+    menu.style.display="none";
+    game.style.display="flex";
+    reset();
+}
 
-const boardEl = document.getElementById("board");
-const statusEl = document.getElementById("status");
+function reset(){
+    board=Array(9).fill("");
+    turn="X";
+    draw();
+}
 
-/* PLAYER JOIN */
-room.once("value", snap=>{
-    const data = snap.val();
-    mySymbol = (!data || !data.playerX) ? "X" : "O";
-    room.update({["player"+mySymbol]:true});
-    statusEl.innerText="Sən "+mySymbol+"-san";
-});
-
-room.on("value", snap=>{
-    const d = snap.val();
-    if(!d) return;
-    board = d.board || board;
-    render();
-});
-
-/* GAME */
-function render(){
+function draw(){
     boardEl.innerHTML="";
     board.forEach((v,i)=>{
         const c=document.createElement("div");
@@ -145,20 +152,82 @@ function render(){
         c.onclick=()=>play(i);
         boardEl.appendChild(c);
     });
+    statusEl.innerText=turn+" növbədədir";
 }
 
 function play(i){
-    if(board[i] || mySymbol!==getTurn()) return;
-    board[i]=mySymbol;
-    room.update({board});
+    if(board[i] || checkWin()) return;
+    board[i]=turn;
+    turn=turn=="X"?"O":"X";
+    draw();
+
+    if(mode=="bot" && turn=="O"){
+        setTimeout(botMove,500);
+    }
 }
 
-function getTurn(){
-    return board.filter(v=>v).length%2==0?"X":"O";
+function botMove(){
+    let move;
+    if(botLevel=="easy"){
+        move=randomMove();
+    }else if(botLevel=="normal"){
+        move=winMove("O") ?? randomMove();
+    }else{
+        move=minimax(board,"O").index;
+    }
+    board[move]="O";
+    turn="X";
+    draw();
 }
 
-function resetGame(){
-    room.set({board:Array(9).fill("")});
+function randomMove(){
+    const empty=board.map((v,i)=>v==""?i:null).filter(v=>v!=null);
+    return empty[Math.floor(Math.random()*empty.length)];
+}
+
+function winMove(p){
+    for(let c of winCombos){
+        const vals=c.map(i=>board[i]);
+        if(vals.filter(v=>v==p).length==2 && vals.includes("")){
+            return c[vals.indexOf("")];
+        }
+    }
+    return null;
+}
+
+function minimax(b,p){
+    if(check("X",b)) return {score:-10};
+    if(check("O",b)) return {score:10};
+    if(!b.includes("")) return {score:0};
+
+    let moves=[];
+    b.forEach((v,i)=>{
+        if(v==""){
+            let copy=[...b];
+            copy[i]=p;
+            let score=minimax(copy,p=="O"?"X":"O").score;
+            moves.push({index:i,score});
+        }
+    });
+
+    return p=="O"
+        ? moves.reduce((a,b)=>b.score>a.score?b:a)
+        : moves.reduce((a,b)=>b.score<a.score?b:a);
+}
+
+function check(p,b=board){
+    return winCombos.some(c=>c.every(i=>b[i]==p));
+}
+
+function checkWin(){
+    if(check("X")){alert("X qazandı");return true;}
+    if(check("O")){alert("O qazandı");return true;}
+    return false;
+}
+
+function backMenu(){
+    game.style.display="none";
+    menu.style.display="block";
 }
 
 /* THEMES */
