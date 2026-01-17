@@ -26,26 +26,26 @@ body{
 
 /* MENU */
 .menu{
-    background:rgba(0,0,0,.65);
-    padding:35px;
+    background:rgba(0,0,0,.7);
+    padding:40px;
     border-radius:30px;
-    box-shadow:0 0 50px var(--main);
+    box-shadow:0 0 60px var(--main);
     text-align:center;
 }
 
 .menu h1{
-    font-size:52px;
+    font-size:56px;
     color:var(--main);
-    text-shadow:0 0 25px var(--main);
+    text-shadow:0 0 30px var(--main);
 }
 
 .menu button,select{
-    width:240px;
+    width:260px;
     margin:12px;
-    padding:14px;
+    padding:15px;
     font-size:18px;
     border:none;
-    border-radius:25px;
+    border-radius:30px;
     cursor:pointer;
     font-weight:bold;
 }
@@ -54,6 +54,7 @@ body{
     background:var(--main);
 }
 
+/* GAME */
 .game{
     display:none;
     flex-direction:column;
@@ -63,30 +64,65 @@ body{
 .board{
     display:grid;
     grid-template-columns:repeat(3,110px);
-    gap:15px;
+    gap:16px;
     margin:25px 0;
 }
 
 .cell{
     height:110px;
     border-radius:20px;
-    background:rgba(255,255,255,.06);
+    background:rgba(255,255,255,.08);
     display:flex;
     justify-content:center;
     align-items:center;
-    font-size:60px;
+    font-size:64px;
     cursor:pointer;
+    transition:.3s;
 }
 
-.cell.X{color:var(--x);text-shadow:0 0 20px var(--x)}
-.cell.O{color:var(--main);text-shadow:0 0 20px var(--main)}
+.cell.X{color:var(--x);text-shadow:0 0 25px var(--x)}
+.cell.O{color:var(--main);text-shadow:0 0 25px var(--main)}
 
-#status{font-size:20px;margin:10px}
-
-.back{
-    background:#444;
-    color:white;
+.cell.win{
+    animation:winGlow 1s infinite;
 }
+
+@keyframes winGlow{
+    0%{box-shadow:0 0 10px}
+    50%{box-shadow:0 0 40px}
+    100%{box-shadow:0 0 10px}
+}
+
+#status{
+    font-size:22px;
+    margin-top:10px;
+}
+
+.overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.85);
+    display:none;
+    justify-content:center;
+    align-items:center;
+    flex-direction:column;
+    z-index:10;
+}
+
+.overlay h2{
+    font-size:60px;
+    color:var(--main);
+    text-shadow:0 0 30px var(--main);
+    animation:pulse 1.5s infinite;
+}
+
+@keyframes pulse{
+    0%{transform:scale(1)}
+    50%{transform:scale(1.1)}
+    100%{transform:scale(1)}
+}
+
+.back{background:#444;color:white;margin-top:10px}
 </style>
 </head>
 
@@ -105,11 +141,9 @@ body{
     </select>
     <button onclick="startGame('bot')">Botla Oyna</button>
 
-    <select onchange="setTheme(this.value)">
-        <option value="purple">💜 Purple</option>
-        <option value="blue">💙 Blue</option>
-        <option value="red">❤️ Red</option>
-    </select>
+    <button onclick="alert('🌐 Online rejim tezliklə aktiv olacaq')">
+        🌐 Online (Beta)
+    </button>
 </div>
 
 <!-- GAME -->
@@ -120,14 +154,22 @@ body{
     <button class="back" onclick="backMenu()">Menyu</button>
 </div>
 
+<!-- WIN OVERLAY -->
+<div class="overlay" id="result">
+    <h2 id="resultText"></h2>
+    <button onclick="reset()">Yenidən</button>
+</div>
+
 <script>
-let board,turn,mode,botLevel;
+let board,turn,mode,botLevel,locked=false;
 const winCombos=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
 
 const menu=document.getElementById("menu");
 const game=document.getElementById("game");
 const boardEl=document.getElementById("board");
 const statusEl=document.getElementById("status");
+const result=document.getElementById("result");
+const resultText=document.getElementById("resultText");
 
 function startGame(m){
     mode=m;
@@ -140,6 +182,8 @@ function startGame(m){
 function reset(){
     board=Array(9).fill("");
     turn="X";
+    locked=false;
+    result.style.display="none";
     draw();
 }
 
@@ -156,85 +200,28 @@ function draw(){
 }
 
 function play(i){
-    if(board[i] || checkWin()) return;
+    if(board[i]||locked) return;
     board[i]=turn;
+    if(checkWin(turn)) return endGame(turn);
+    if(!board.includes("")) return endGame("draw");
     turn=turn=="X"?"O":"X";
     draw();
-
-    if(mode=="bot" && turn=="O"){
-        setTimeout(botMove,500);
-    }
 }
 
-function botMove(){
-    let move;
-    if(botLevel=="easy"){
-        move=randomMove();
-    }else if(botLevel=="normal"){
-        move=winMove("O") ?? randomMove();
-    }else{
-        move=minimax(board,"O").index;
-    }
-    board[move]="O";
-    turn="X";
-    draw();
+function checkWin(p){
+    return winCombos.some(c=>c.every(i=>board[i]==p));
 }
 
-function randomMove(){
-    const empty=board.map((v,i)=>v==""?i:null).filter(v=>v!=null);
-    return empty[Math.floor(Math.random()*empty.length)];
-}
-
-function winMove(p){
-    for(let c of winCombos){
-        const vals=c.map(i=>board[i]);
-        if(vals.filter(v=>v==p).length==2 && vals.includes("")){
-            return c[vals.indexOf("")];
-        }
-    }
-    return null;
-}
-
-function minimax(b,p){
-    if(check("X",b)) return {score:-10};
-    if(check("O",b)) return {score:10};
-    if(!b.includes("")) return {score:0};
-
-    let moves=[];
-    b.forEach((v,i)=>{
-        if(v==""){
-            let copy=[...b];
-            copy[i]=p;
-            let score=minimax(copy,p=="O"?"X":"O").score;
-            moves.push({index:i,score});
-        }
-    });
-
-    return p=="O"
-        ? moves.reduce((a,b)=>b.score>a.score?b:a)
-        : moves.reduce((a,b)=>b.score<a.score?b:a);
-}
-
-function check(p,b=board){
-    return winCombos.some(c=>c.every(i=>b[i]==p));
-}
-
-function checkWin(){
-    if(check("X")){alert("X qazandı");return true;}
-    if(check("O")){alert("O qazandı");return true;}
-    return false;
+function endGame(w){
+    locked=true;
+    result.style.display="flex";
+    resultText.innerText=
+        w=="draw" ? "🤝 Heç-Heçə" : "🏆 "+w+" QAZANDI";
 }
 
 function backMenu(){
     game.style.display="none";
     menu.style.display="block";
-}
-
-/* THEMES */
-function setTheme(t){
-    if(t=="purple") document.documentElement.style.cssText="--main:#ff4fd8;--x:#00f7ff;--bg1:#2b0040";
-    if(t=="blue") document.documentElement.style.cssText="--main:#00f7ff;--x:#fff;--bg1:#002b40";
-    if(t=="red") document.documentElement.style.cssText="--main:#ff2e2e;--x:#fff;--bg1:#400000";
 }
 </script>
 
