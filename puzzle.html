@@ -56,6 +56,14 @@ html,body{
     box-shadow:0 0 30px rgba(0,255,150,.9);
 }
 
+.highlight{
+    position:absolute;
+    border-radius:6px;
+    background:rgba(0,255,150,0.3);
+    pointer-events:none;
+    z-index:0;
+}
+
 #win{
     position:fixed;
     inset:0;
@@ -127,7 +135,11 @@ function init(){
     let indices=[...Array(ROWS*COLS).keys()];
     indices.sort(()=>Math.random()-0.5);
 
-    indices.forEach(i=>{
+    let startLeft = window.innerWidth - pw*COLS - 20;
+    let startTop = 50;
+    let margin = 5;
+
+    indices.forEach((i,idx)=>{
         const x=i%COLS;
         const y=Math.floor(i/COLS);
 
@@ -140,15 +152,24 @@ function init(){
         p.style.backgroundSize=`${size}px ${size}px`;
         p.style.backgroundPosition=`-${x*pw}px -${y*ph}px`;
 
-        p.style.left=Math.random()*(window.innerWidth-pw)+"px";
-        p.style.top=Math.random()*(window.innerHeight-ph)+"px";
+        p.style.left = startLeft + (idx % COLS)*(pw+margin) + "px";
+        p.style.top = startTop + Math.floor(idx / COLS)*(ph+margin) + "px";
 
-        drag(p,pw,ph,slots);
+        // Highlight əlavə et
+        const hl = document.createElement("div");
+        hl.className="highlight";
+        hl.style.width = pw + "px";
+        hl.style.height = ph + "px";
+        hl.style.left = x*pw + "px";
+        hl.style.top = y*ph + "px";
+        board.appendChild(hl);
+
+        drag(p,pw,ph,slots,hl);
         document.body.appendChild(p);
     });
 }
 
-function drag(el,pw,ph,slots){
+function drag(el,pw,ph,slots,hl){
     let dx,dy;
 
     el.addEventListener("pointerdown",e=>{
@@ -157,6 +178,7 @@ function drag(el,pw,ph,slots){
         dy=e.clientY-el.offsetTop;
         el.setPointerCapture(e.pointerId);
         el.style.zIndex=5;
+        hl.style.display="block"; // highlight görünür
     });
 
     el.addEventListener("pointermove",e=>{
@@ -168,19 +190,17 @@ function drag(el,pw,ph,slots){
     el.addEventListener("pointerup",e=>{
         el.releasePointerCapture(e.pointerId);
         el.style.zIndex=1;
+        hl.style.display="none"; // highlight gizlənir
 
         const i=+el.dataset.index;
         const slot=slots[i];
         const r1=el.getBoundingClientRect();
         const r2=slot.getBoundingClientRect();
 
-        const close =
-            Math.abs(r1.left-r2.left)<20 &&
-            Math.abs(r1.top-r2.top)<20;
-
-        if(close){
-            el.style.left=r2.left+"px";
-            el.style.top=r2.top+"px";
+        // Tam düzgün yerində olmalıdır
+        if(Math.abs(r1.left - r2.left)<1 && Math.abs(r1.top - r2.top)<1){
+            el.style.left = r2.left + "px";
+            el.style.top = r2.top + "px";
             el.classList.add("locked");
             placed++;
             if(placed===ROWS*COLS){
