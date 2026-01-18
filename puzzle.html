@@ -18,37 +18,41 @@ html, body {
 }
 
 #puzzle-container {
-    position: relative;
-    width: 90vmin;
-    height: 90vmin;
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    grid-template-rows: repeat(4, 1fr);
-    gap: 2px;
-    background: #222;
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    grid-template-rows:repeat(4,1fr);
+    gap:2px;
+    width:90vmin;
+    height:90vmin;
+    position:relative;
+    background:#222;
 }
 
 .piece {
-    background-image: url('image.jpg');
-    background-size: 400% 400%;
-    cursor: grab;
+    width:100%;
+    height:100%;
+    background-image:url('image.jpg');
+    background-size:400% 400%;
+    cursor:grab;
     user-select:none;
+    position:relative;
     transition: transform 0.2s;
 }
 
 .piece.correct {
-    cursor: default;
-    box-shadow: 0 0 10px lime;
+    cursor:default;
+    box-shadow:0 0 10px lime;
 }
 
 #message {
-    position: fixed;
+    position:fixed;
     top:50%;
     left:50%;
     transform:translate(-50%,-50%);
-    font-size: 5vmin;
-    color: lime;
+    font-size:5vmin;
+    color:lime;
     display:none;
+    z-index:100;
 }
 </style>
 </head>
@@ -62,22 +66,22 @@ const rows = 4;
 const cols = 4;
 const container = document.getElementById('puzzle-container');
 const message = document.getElementById('message');
+
 let pieces = [];
 
 // Generate pieces
-for(let r=0; r<rows; r++){
-    for(let c=0; c<cols; c++){
+for(let r=0;r<rows;r++){
+    for(let c=0;c<cols;c++){
         const div = document.createElement('div');
         div.classList.add('piece');
         div.dataset.row = r;
         div.dataset.col = c;
         div.style.backgroundPosition = `${-c*100/(cols-1)}% ${-r*100/(rows-1)}%`;
-        container.appendChild(div);
         pieces.push(div);
     }
 }
 
-// Shuffle pieces
+// Shuffle positions
 function shuffle(array){
     for(let i=array.length-1;i>0;i--){
         const j = Math.floor(Math.random()*(i+1));
@@ -87,62 +91,63 @@ function shuffle(array){
 }
 pieces = shuffle(pieces);
 
-// Append shuffled pieces to container as absolute
-container.innerHTML = '';
+// Append shuffled pieces to grid
 pieces.forEach(p=>{
-    p.style.position = 'absolute';
-    p.style.width = `${100/cols}%`;
-    p.style.height = `${100/rows}%`;
-    p.style.left = `${Math.floor(Math.random()*100)}%`;
-    p.style.top = `${Math.floor(Math.random()*100)}%`;
     container.appendChild(p);
 });
 
 // Drag & drop logic
-let draggingPiece = null;
-let offsetX=0, offsetY=0;
+let dragging = null;
+let startIndex = null;
 
-pieces.forEach(p=>{
+pieces.forEach((p,i)=>{
     p.addEventListener('pointerdown', e=>{
         if(p.classList.contains('correct')) return;
-        draggingPiece = p;
-        offsetX = e.clientX - p.offsetLeft;
-        offsetY = e.clientY - p.offsetTop;
+        dragging = p;
+        startIndex = i;
         p.setPointerCapture(e.pointerId);
-        p.style.zIndex = 100;
+        p.style.zIndex=100;
     });
-    
+
     p.addEventListener('pointermove', e=>{
-        if(draggingPiece !== p) return;
-        draggingPiece.style.left = `${e.clientX - offsetX}px`;
-        draggingPiece.style.top = `${e.clientY - offsetY}px`;
+        if(dragging!==p) return;
+        dragging.style.transform = `translate(${e.movementX}px, ${e.movementY}px)`;
     });
-    
+
     p.addEventListener('pointerup', e=>{
-        if(draggingPiece !== p) return;
-        // Check if close to correct position
-        const cw = container.clientWidth/cols;
-        const ch = container.clientHeight/rows;
-        const targetLeft = p.dataset.col * cw;
-        const targetTop = p.dataset.row * ch;
-        const dx = Math.abs(draggingPiece.offsetLeft - targetLeft);
-        const dy = Math.abs(draggingPiece.offsetTop - targetTop);
-        if(dx<cw/3 && dy<ch/3){
-            draggingPiece.style.left = `${targetLeft}px`;
-            draggingPiece.style.top = `${targetTop}px`;
-            draggingPiece.classList.add('correct');
-            checkWin();
+        if(dragging!==p) return;
+        dragging.style.transform='';
+
+        // Swap only if wrong position
+        const target = document.elementFromPoint(e.clientX, e.clientY);
+        if(target && target.classList.contains('piece') && target!==dragging){
+            const dragPos = Array.from(container.children).indexOf(dragging);
+            const targetPos = Array.from(container.children).indexOf(target);
+            container.insertBefore(dragging, targetPos>dragPos?target.nextSibling:target);
         }
-        draggingPiece.style.zIndex = 1;
-        draggingPiece.releasePointerCapture(e.pointerId);
-        draggingPiece = null;
+
+        // Check correct placement
+        pieces.forEach((piece,j)=>{
+            const row = Math.floor(j/cols);
+            const col = j%cols;
+            if(piece.dataset.row==row && piece.dataset.col==col){
+                piece.classList.add('correct');
+            }else{
+                piece.classList.remove('correct');
+            }
+        });
+
+        checkWin();
+        dragging.releasePointerCapture(e.pointerId);
+        dragging.style.zIndex=1;
+        dragging=null;
     });
 });
 
 function checkWin(){
     const allCorrect = pieces.every(p=>p.classList.contains('correct'));
     if(allCorrect){
-        message.style.display = 'block';
+        message.style.display='block';
     }
 }
 </script>
