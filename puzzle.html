@@ -135,9 +135,10 @@ function init(){
     let indices=[...Array(ROWS*COLS).keys()];
     indices.sort(()=>Math.random()-0.5);
 
-    let startLeft = window.innerWidth - pw*COLS - 20;
+    // Başlanğıcda parçaları boardun sağında səliqəli şəkildə düz
+    let startLeft = window.innerWidth - pw*COLS - 30;
     let startTop = 50;
-    let margin = 5;
+    let margin = 10;
 
     indices.forEach((i,idx)=>{
         const x=i%COLS;
@@ -152,6 +153,7 @@ function init(){
         p.style.backgroundSize=`${size}px ${size}px`;
         p.style.backgroundPosition=`-${x*pw}px -${y*ph}px`;
 
+        // Start position kənarda
         p.style.left = startLeft + (idx % COLS)*(pw+margin) + "px";
         p.style.top = startTop + Math.floor(idx / COLS)*(ph+margin) + "px";
 
@@ -178,7 +180,7 @@ function drag(el,pw,ph,slots,hl){
         dy=e.clientY-el.offsetTop;
         el.setPointerCapture(e.pointerId);
         el.style.zIndex=5;
-        hl.style.display="block"; // highlight görünür
+        hl.style.display="block";
     });
 
     el.addEventListener("pointermove",e=>{
@@ -190,14 +192,14 @@ function drag(el,pw,ph,slots,hl){
     el.addEventListener("pointerup",e=>{
         el.releasePointerCapture(e.pointerId);
         el.style.zIndex=1;
-        hl.style.display="none"; // highlight gizlənir
+        hl.style.display="none";
 
         const i=+el.dataset.index;
         const slot=slots[i];
         const r1=el.getBoundingClientRect();
         const r2=slot.getBoundingClientRect();
 
-        // Tam düzgün yerində olmalıdır
+        // Tam düzgün yerinə qoy
         if(Math.abs(r1.left - r2.left)<1 && Math.abs(r1.top - r2.top)<1){
             el.style.left = r2.left + "px";
             el.style.top = r2.top + "px";
