@@ -2,169 +2,123 @@
 <html lang="az">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no">
-<title>Puzzle</title>
-
+<title>Puzzle Game</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-
-html,body{
+  html, body {
+    margin:0;
+    padding:0;
     width:100%;
     height:100%;
     overflow:hidden;
-    background:#000;
-    touch-action:none;
-    font-family:Arial;
-}
-
-#game{
-    width:100vw;
-    height:100vh;
+    background:#111;
     display:flex;
     justify-content:center;
     align-items:center;
-    gap:20px;
-}
+  }
 
-/* BOARD */
-#board{
-    width:300px;
-    height:400px;
-    display:grid;
-    grid-template-columns:repeat(3,1fr);
-    grid-template-rows:repeat(4,1fr);
-    border:3px solid #fff;
-    position:relative;
-}
+  #puzzle-container {
+    position: relative;
+    width: 90vmin;
+    height: 90vmin;
+    max-width: 90vmin;
+    max-height: 90vmin;
+    border: 2px solid #fff;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap:2px;
+    touch-action: none;
+    background: #222;
+  }
 
-/* CELLS */
-.cell{
-    border:1px solid rgba(255,255,255,.2);
-}
+  .piece {
+    background-image: url("image.jpg");
+    background-size: 300% 300%;
+    cursor: grab;
+    transition: all 0.2s;
+    position: relative;
+  }
 
-/* PIECES AREA */
-#pieces{
-    width:220px;
-    height:400px;
-    display:grid;
-    grid-template-columns:repeat(3,1fr);
-    grid-auto-rows:90px;
-    gap:6px;
-}
+  .piece.correct {
+    pointer-events: none;
+    cursor: default;
+  }
 
-/* PIECE */
-.piece{
-    background-image:url("image.jpg");
-    background-size:300px 400px;
-    border:1px solid #fff;
-    cursor:grab;
-    touch-action:none;
-    user-select:none;
-}
-
-/* LOCKED */
-.locked{
-    pointer-events:none;
-}
-
-/* WIN */
-#win{
-    position:fixed;
-    inset:0;
-    background:rgba(0,0,0,.9);
-    color:#fff;
-    display:none;
-    justify-content:center;
-    align-items:center;
-    font-size:48px;
-    z-index:10;
-}
+  .piece.dragging {
+    z-index: 100;
+    opacity: 0.9;
+  }
 </style>
 </head>
-
 <body>
 
-<div id="game">
-    <div id="board"></div>
-    <div id="pieces"></div>
-</div>
-
-<div id="win">🎉 Puzzle Bitdi</div>
+<div id="puzzle-container"></div>
 
 <script>
-const ROWS=4, COLS=3;
-const board=document.getElementById("board");
-const pieces=document.getElementById("pieces");
-let correctCount=0;
+const container = document.getElementById("puzzle-container");
+const rows = 3;
+const cols = 3;
+let pieces = [];
 
-/* BOARD */
-for(let i=0;i<ROWS*COLS;i++){
-    const c=document.createElement("div");
-    c.className="cell";
-    c.dataset.index=i;
-    board.appendChild(c);
+// Create pieces
+for(let r=0;r<rows;r++){
+  for(let c=0;c<cols;c++){
+    const piece = document.createElement("div");
+    piece.classList.add("piece");
+    piece.dataset.correctRow = r;
+    piece.dataset.correctCol = c;
+    piece.style.backgroundPosition = `${(-c*100/ (cols-1))}% ${(-r*100/ (rows-1))}%`;
+    container.appendChild(piece);
+    pieces.push(piece);
+  }
 }
 
-/* PIECES */
-let arr=[...Array(ROWS*COLS).keys()].sort(()=>Math.random()-0.5);
+// Shuffle pieces in container
+pieces = pieces.sort(()=>Math.random()-0.5);
+pieces.forEach(p=>container.appendChild(p));
 
-arr.forEach(i=>{
-    const p=document.createElement("div");
-    p.className="piece";
-    p.dataset.correct=i;
-    p.style.backgroundPosition=
-        `${-(i%COLS)*100}px ${-Math.floor(i/COLS)*100}px`;
-    pieces.appendChild(p);
-    drag(p);
+// Drag & Drop
+let dragged = null;
+pieces.forEach(piece=>{
+  piece.addEventListener("pointerdown", e=>{
+    if(piece.classList.contains("correct")) return;
+    dragged = piece;
+    piece.classList.add("dragging");
+    piece.setPointerCapture(e.pointerId);
+  });
+
+  piece.addEventListener("pointermove", e=>{
+    if(dragged !== piece) return;
+    piece.style.position = "absolute";
+    piece.style.left = (e.clientX - container.getBoundingClientRect().left - piece.offsetWidth/2)+"px";
+    piece.style.top = (e.clientY - container.getBoundingClientRect().top - piece.offsetHeight/2)+"px";
+  });
+
+  piece.addEventListener("pointerup", e=>{
+    if(dragged !== piece) return;
+    piece.classList.remove("dragging");
+    piece.style.position = "relative";
+    piece.style.left = "";
+    piece.style.top = "";
+
+    // Determine which cell it's closest to
+    const containerRect = container.getBoundingClientRect();
+    const cellWidth = containerRect.width / cols;
+    const cellHeight = containerRect.height / rows;
+    const pieceRect = piece.getBoundingClientRect();
+    const centerX = pieceRect.left - containerRect.left + pieceRect.width/2;
+    const centerY = pieceRect.top - containerRect.top + pieceRect.height/2;
+    const col = Math.floor(centerX / cellWidth);
+    const row = Math.floor(centerY / cellHeight);
+
+    if(row == piece.dataset.correctRow && col == piece.dataset.correctCol){
+      piece.style.gridRowStart = parseInt(row)+1;
+      piece.style.gridColumnStart = parseInt(col)+1;
+      piece.classList.add("correct");
+    }
+    dragged = null;
+  });
 });
-
-/* DRAG */
-function drag(piece){
-    let startX,startY,origX,origY;
-
-    piece.addEventListener("pointerdown",e=>{
-        e.preventDefault();
-        startX=e.clientX;
-        startY=e.clientY;
-        origX=piece.offsetLeft;
-        origY=piece.offsetTop;
-        piece.style.position="relative";
-        piece.setPointerCapture(e.pointerId);
-    });
-
-    piece.addEventListener("pointermove",e=>{
-        if(!piece.hasPointerCapture(e.pointerId))return;
-        piece.style.left=(origX+(e.clientX-startX))+"px";
-        piece.style.top=(origY+(e.clientY-startY))+"px";
-    });
-
-    piece.addEventListener("pointerup",e=>{
-        piece.releasePointerCapture(e.pointerId);
-
-        const hit=[...document.elementsFromPoint(e.clientX,e.clientY)]
-            .find(el=>el.classList.contains("cell"));
-
-        if(hit && hit.dataset.index===piece.dataset.correct){
-            const r=hit.getBoundingClientRect();
-            const b=board.getBoundingClientRect();
-
-            piece.style.left=(r.left-b.left)+"px";
-            piece.style.top=(r.top-b.top)+"px";
-            piece.style.position="absolute";
-            board.appendChild(piece);
-            piece.classList.add("locked");
-            correctCount++;
-
-            if(correctCount===ROWS*COLS){
-                document.getElementById("win").style.display="flex";
-            }
-        }else{
-            piece.style.left="";
-            piece.style.top="";
-        }
-    });
-}
 </script>
-
 </body>
 </html>
