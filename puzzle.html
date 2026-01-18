@@ -2,153 +2,192 @@
 <html lang="az">
 <head>
 <meta charset="UTF-8">
-<title>Puzzle Oyunu</title>
+<title>Puzzle Game</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
 <style>
-html, body {
+*{
     margin:0;
     padding:0;
+    box-sizing:border-box;
+    touch-action:none;
+    user-select:none;
+}
+html,body{
     width:100%;
     height:100%;
     overflow:hidden;
+    background:#0b0b0b;
+    font-family:Arial,Helvetica,sans-serif;
+}
+
+#game{
+    position:fixed;
+    inset:0;
     display:flex;
     justify-content:center;
     align-items:center;
-    background:#111;
-    font-family:Arial, sans-serif;
 }
 
-#puzzle-container {
-    display:grid;
-    grid-template-columns:repeat(4,1fr);
-    grid-template-rows:repeat(4,1fr);
-    gap:2px;
+#board{
+    position:relative;
     width:90vmin;
     height:90vmin;
-    position:relative;
-    background:#222;
+    background:#111;
+    border-radius:20px;
+    box-shadow:0 0 40px rgba(255,0,120,.4);
 }
 
-.piece {
-    width:100%;
-    height:100%;
-    background-image:url('image.jpg');
-    background-size:400% 400%;
+.slot{
+    position:absolute;
+    border:2px dashed rgba(255,255,255,.15);
+}
+
+.piece{
+    position:absolute;
     cursor:grab;
-    user-select:none;
-    position:relative;
-    transition: transform 0.2s;
+    border-radius:6px;
+    box-shadow:0 10px 25px rgba(0,0,0,.6);
+    transition:.25s;
 }
 
-.piece.correct {
+.piece.locked{
     cursor:default;
-    box-shadow:0 0 10px lime;
+    box-shadow:0 0 30px rgba(0,255,150,.9);
 }
 
-#message {
+#win{
     position:fixed;
-    top:50%;
-    left:50%;
-    transform:translate(-50%,-50%);
-    font-size:5vmin;
-    color:lime;
+    inset:0;
+    background:rgba(0,0,0,.85);
     display:none;
-    z-index:100;
+    justify-content:center;
+    align-items:center;
+    flex-direction:column;
+    z-index:10;
+}
+
+#win h1{
+    font-size:64px;
+    color:#fff;
+    text-shadow:0 0 30px #ff2e9a;
+    animation:pulse 1.4s infinite;
+}
+
+@keyframes pulse{
+    0%{transform:scale(1)}
+    50%{transform:scale(1.1)}
+    100%{transform:scale(1)}
 }
 </style>
 </head>
 <body>
 
-<div id="puzzle-container"></div>
-<div id="message">Halaldı!</div>
+<div id="game">
+    <div id="board"></div>
+</div>
+
+<div id="win">
+    <h1>🎉 Puzzle Bitdi!</h1>
+</div>
+
+<img id="img" src="image.jpg" hidden>
 
 <script>
-const rows = 4;
-const cols = 4;
-const container = document.getElementById('puzzle-container');
-const message = document.getElementById('message');
+const ROWS = 3;
+const COLS = 3;
 
-let pieces = [];
+const board = document.getElementById("board");
+const img = document.getElementById("img");
+let placed = 0;
 
-// Generate pieces
-for(let r=0;r<rows;r++){
-    for(let c=0;c<cols;c++){
-        const div = document.createElement('div');
-        div.classList.add('piece');
-        div.dataset.row = r;
-        div.dataset.col = c;
-        div.style.backgroundPosition = `${-c*100/(cols-1)}% ${-r*100/(rows-1)}%`;
-        pieces.push(div);
-    }
-}
+img.onload = () => init();
 
-// Shuffle positions
-function shuffle(array){
-    for(let i=array.length-1;i>0;i--){
-        const j = Math.floor(Math.random()*(i+1));
-        [array[i],array[j]] = [array[j],array[i]];
-    }
-    return array;
-}
-pieces = shuffle(pieces);
+function init(){
+    const size = board.clientWidth;
+    const pw = size / COLS;
+    const ph = size / ROWS;
 
-// Append shuffled pieces to grid
-pieces.forEach(p=>{
-    container.appendChild(p);
-});
-
-// Drag & drop logic
-let dragging = null;
-let startIndex = null;
-
-pieces.forEach((p,i)=>{
-    p.addEventListener('pointerdown', e=>{
-        if(p.classList.contains('correct')) return;
-        dragging = p;
-        startIndex = i;
-        p.setPointerCapture(e.pointerId);
-        p.style.zIndex=100;
-    });
-
-    p.addEventListener('pointermove', e=>{
-        if(dragging!==p) return;
-        dragging.style.transform = `translate(${e.movementX}px, ${e.movementY}px)`;
-    });
-
-    p.addEventListener('pointerup', e=>{
-        if(dragging!==p) return;
-        dragging.style.transform='';
-
-        // Swap only if wrong position
-        const target = document.elementFromPoint(e.clientX, e.clientY);
-        if(target && target.classList.contains('piece') && target!==dragging){
-            const dragPos = Array.from(container.children).indexOf(dragging);
-            const targetPos = Array.from(container.children).indexOf(target);
-            container.insertBefore(dragging, targetPos>dragPos?target.nextSibling:target);
+    // slots
+    let slots = [];
+    for(let y=0;y<ROWS;y++){
+        for(let x=0;x<COLS;x++){
+            const s = document.createElement("div");
+            s.className="slot";
+            s.style.width=pw+"px";
+            s.style.height=ph+"px";
+            s.style.left=x*pw+"px";
+            s.style.top=y*ph+"px";
+            board.appendChild(s);
+            slots.push(s);
         }
-
-        // Check correct placement
-        pieces.forEach((piece,j)=>{
-            const row = Math.floor(j/cols);
-            const col = j%cols;
-            if(piece.dataset.row==row && piece.dataset.col==col){
-                piece.classList.add('correct');
-            }else{
-                piece.classList.remove('correct');
-            }
-        });
-
-        checkWin();
-        dragging.releasePointerCapture(e.pointerId);
-        dragging.style.zIndex=1;
-        dragging=null;
-    });
-});
-
-function checkWin(){
-    const allCorrect = pieces.every(p=>p.classList.contains('correct'));
-    if(allCorrect){
-        message.style.display='block';
     }
+
+    // pieces
+    let indices=[...Array(ROWS*COLS).keys()];
+    indices.sort(()=>Math.random()-0.5);
+
+    indices.forEach(i=>{
+        const x=i%COLS;
+        const y=Math.floor(i/COLS);
+
+        const p=document.createElement("div");
+        p.className="piece";
+        p.dataset.index=i;
+        p.style.width=pw+"px";
+        p.style.height=ph+"px";
+        p.style.background=`url(image.jpg)`;
+        p.style.backgroundSize=`${size}px ${size}px`;
+        p.style.backgroundPosition=`-${x*pw}px -${y*ph}px`;
+
+        p.style.left=Math.random()*(window.innerWidth-pw)+"px";
+        p.style.top=Math.random()*(window.innerHeight-ph)+"px";
+
+        drag(p,pw,ph,slots);
+        document.body.appendChild(p);
+    });
+}
+
+function drag(el,pw,ph,slots){
+    let dx,dy;
+
+    el.addEventListener("pointerdown",e=>{
+        if(el.classList.contains("locked")) return;
+        dx=e.clientX-el.offsetLeft;
+        dy=e.clientY-el.offsetTop;
+        el.setPointerCapture(e.pointerId);
+        el.style.zIndex=5;
+    });
+
+    el.addEventListener("pointermove",e=>{
+        if(!el.hasPointerCapture(e.pointerId)) return;
+        el.style.left=e.clientX-dx+"px";
+        el.style.top=e.clientY-dy+"px";
+    });
+
+    el.addEventListener("pointerup",e=>{
+        el.releasePointerCapture(e.pointerId);
+        el.style.zIndex=1;
+
+        const i=+el.dataset.index;
+        const slot=slots[i];
+        const r1=el.getBoundingClientRect();
+        const r2=slot.getBoundingClientRect();
+
+        const close =
+            Math.abs(r1.left-r2.left)<20 &&
+            Math.abs(r1.top-r2.top)<20;
+
+        if(close){
+            el.style.left=r2.left+"px";
+            el.style.top=r2.top+"px";
+            el.classList.add("locked");
+            placed++;
+            if(placed===ROWS*COLS){
+                document.getElementById("win").style.display="flex";
+            }
+        }
+    });
 }
 </script>
 
