@@ -2,123 +2,150 @@
 <html lang="az">
 <head>
 <meta charset="UTF-8">
-<title>Puzzle Game</title>
+<title>Puzzle Oyunu</title>
 <style>
-  html, body {
+html, body {
     margin:0;
     padding:0;
     width:100%;
     height:100%;
     overflow:hidden;
-    background:#111;
     display:flex;
     justify-content:center;
     align-items:center;
-  }
+    background:#111;
+    font-family:Arial, sans-serif;
+}
 
-  #puzzle-container {
+#puzzle-container {
     position: relative;
     width: 90vmin;
     height: 90vmin;
-    max-width: 90vmin;
-    max-height: 90vmin;
-    border: 2px solid #fff;
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    grid-template-rows: repeat(3, 1fr);
-    gap:2px;
-    touch-action: none;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(4, 1fr);
+    gap: 2px;
     background: #222;
-  }
+}
 
-  .piece {
-    background-image: url("image.jpg");
-    background-size: 300% 300%;
+.piece {
+    background-image: url('image.jpg');
+    background-size: 400% 400%;
     cursor: grab;
-    transition: all 0.2s;
-    position: relative;
-  }
+    user-select:none;
+    transition: transform 0.2s;
+}
 
-  .piece.correct {
-    pointer-events: none;
+.piece.correct {
     cursor: default;
-  }
+    box-shadow: 0 0 10px lime;
+}
 
-  .piece.dragging {
-    z-index: 100;
-    opacity: 0.9;
-  }
+#message {
+    position: fixed;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    font-size: 5vmin;
+    color: lime;
+    display:none;
+}
 </style>
 </head>
 <body>
 
 <div id="puzzle-container"></div>
+<div id="message">Halaldı!</div>
 
 <script>
-const container = document.getElementById("puzzle-container");
-const rows = 3;
-const cols = 3;
+const rows = 4;
+const cols = 4;
+const container = document.getElementById('puzzle-container');
+const message = document.getElementById('message');
 let pieces = [];
 
-// Create pieces
-for(let r=0;r<rows;r++){
-  for(let c=0;c<cols;c++){
-    const piece = document.createElement("div");
-    piece.classList.add("piece");
-    piece.dataset.correctRow = r;
-    piece.dataset.correctCol = c;
-    piece.style.backgroundPosition = `${(-c*100/ (cols-1))}% ${(-r*100/ (rows-1))}%`;
-    container.appendChild(piece);
-    pieces.push(piece);
-  }
+// Generate pieces
+for(let r=0; r<rows; r++){
+    for(let c=0; c<cols; c++){
+        const div = document.createElement('div');
+        div.classList.add('piece');
+        div.dataset.row = r;
+        div.dataset.col = c;
+        div.style.backgroundPosition = `${-c*100/(cols-1)}% ${-r*100/(rows-1)}%`;
+        container.appendChild(div);
+        pieces.push(div);
+    }
 }
 
-// Shuffle pieces in container
-pieces = pieces.sort(()=>Math.random()-0.5);
-pieces.forEach(p=>container.appendChild(p));
-
-// Drag & Drop
-let dragged = null;
-pieces.forEach(piece=>{
-  piece.addEventListener("pointerdown", e=>{
-    if(piece.classList.contains("correct")) return;
-    dragged = piece;
-    piece.classList.add("dragging");
-    piece.setPointerCapture(e.pointerId);
-  });
-
-  piece.addEventListener("pointermove", e=>{
-    if(dragged !== piece) return;
-    piece.style.position = "absolute";
-    piece.style.left = (e.clientX - container.getBoundingClientRect().left - piece.offsetWidth/2)+"px";
-    piece.style.top = (e.clientY - container.getBoundingClientRect().top - piece.offsetHeight/2)+"px";
-  });
-
-  piece.addEventListener("pointerup", e=>{
-    if(dragged !== piece) return;
-    piece.classList.remove("dragging");
-    piece.style.position = "relative";
-    piece.style.left = "";
-    piece.style.top = "";
-
-    // Determine which cell it's closest to
-    const containerRect = container.getBoundingClientRect();
-    const cellWidth = containerRect.width / cols;
-    const cellHeight = containerRect.height / rows;
-    const pieceRect = piece.getBoundingClientRect();
-    const centerX = pieceRect.left - containerRect.left + pieceRect.width/2;
-    const centerY = pieceRect.top - containerRect.top + pieceRect.height/2;
-    const col = Math.floor(centerX / cellWidth);
-    const row = Math.floor(centerY / cellHeight);
-
-    if(row == piece.dataset.correctRow && col == piece.dataset.correctCol){
-      piece.style.gridRowStart = parseInt(row)+1;
-      piece.style.gridColumnStart = parseInt(col)+1;
-      piece.classList.add("correct");
+// Shuffle pieces
+function shuffle(array){
+    for(let i=array.length-1;i>0;i--){
+        const j = Math.floor(Math.random()*(i+1));
+        [array[i],array[j]] = [array[j],array[i]];
     }
-    dragged = null;
-  });
+    return array;
+}
+pieces = shuffle(pieces);
+
+// Append shuffled pieces to container as absolute
+container.innerHTML = '';
+pieces.forEach(p=>{
+    p.style.position = 'absolute';
+    p.style.width = `${100/cols}%`;
+    p.style.height = `${100/rows}%`;
+    p.style.left = `${Math.floor(Math.random()*100)}%`;
+    p.style.top = `${Math.floor(Math.random()*100)}%`;
+    container.appendChild(p);
 });
+
+// Drag & drop logic
+let draggingPiece = null;
+let offsetX=0, offsetY=0;
+
+pieces.forEach(p=>{
+    p.addEventListener('pointerdown', e=>{
+        if(p.classList.contains('correct')) return;
+        draggingPiece = p;
+        offsetX = e.clientX - p.offsetLeft;
+        offsetY = e.clientY - p.offsetTop;
+        p.setPointerCapture(e.pointerId);
+        p.style.zIndex = 100;
+    });
+    
+    p.addEventListener('pointermove', e=>{
+        if(draggingPiece !== p) return;
+        draggingPiece.style.left = `${e.clientX - offsetX}px`;
+        draggingPiece.style.top = `${e.clientY - offsetY}px`;
+    });
+    
+    p.addEventListener('pointerup', e=>{
+        if(draggingPiece !== p) return;
+        // Check if close to correct position
+        const cw = container.clientWidth/cols;
+        const ch = container.clientHeight/rows;
+        const targetLeft = p.dataset.col * cw;
+        const targetTop = p.dataset.row * ch;
+        const dx = Math.abs(draggingPiece.offsetLeft - targetLeft);
+        const dy = Math.abs(draggingPiece.offsetTop - targetTop);
+        if(dx<cw/3 && dy<ch/3){
+            draggingPiece.style.left = `${targetLeft}px`;
+            draggingPiece.style.top = `${targetTop}px`;
+            draggingPiece.classList.add('correct');
+            checkWin();
+        }
+        draggingPiece.style.zIndex = 1;
+        draggingPiece.releasePointerCapture(e.pointerId);
+        draggingPiece = null;
+    });
+});
+
+function checkWin(){
+    const allCorrect = pieces.every(p=>p.classList.contains('correct'));
+    if(allCorrect){
+        message.style.display = 'block';
+    }
+}
 </script>
+
 </body>
 </html>
