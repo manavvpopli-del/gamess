@@ -2,7 +2,7 @@
 <html lang="az">
 <head>
 <meta charset="UTF-8">
-<title>Puzzle Game</title>
+<title>Puzzle</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
 <style>
@@ -10,68 +10,84 @@
     margin:0;
     padding:0;
     box-sizing:border-box;
-    touch-action:none;
     user-select:none;
+    touch-action:none;
 }
 html,body{
     width:100%;
     height:100%;
     overflow:hidden;
-    background:#0b0b0b;
+    background:#0a0a0a;
     font-family:Arial,Helvetica,sans-serif;
 }
 
+/* GAME */
 #game{
     position:fixed;
     inset:0;
     display:flex;
-    justify-content:center;
+    flex-direction:column;
     align-items:center;
+    justify-content:center;
 }
 
+/* BOARD */
 #board{
     position:relative;
-    width:90vmin;
-    height:90vmin;
+    width:80vmin;
+    height:80vmin;
     background:#111;
     border-radius:20px;
-    box-shadow:0 0 40px rgba(255,0,120,.4);
+    box-shadow:0 0 40px rgba(255,0,120,.5);
 }
 
+/* SLOT */
 .slot{
     position:absolute;
     border:2px dashed rgba(255,255,255,.15);
 }
 
+/* PIECES AREA */
+#pieces{
+    margin-top:20px;
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:10px;
+}
+
+/* PIECE */
 .piece{
-    position:absolute;
+    width:26vmin;
+    height:26vmin;
+    max-width:120px;
+    max-height:120px;
+    background-size:cover;
+    border-radius:8px;
     cursor:grab;
-    border-radius:6px;
     box-shadow:0 10px 25px rgba(0,0,0,.6);
-    transition:.25s;
 }
 
 .piece.locked{
     cursor:default;
-    box-shadow:0 0 30px rgba(0,255,150,.9);
+    box-shadow:0 0 25px rgba(0,255,150,.9);
 }
 
+/* WIN */
 #win{
     position:fixed;
     inset:0;
-    background:rgba(0,0,0,.85);
+    background:rgba(0,0,0,.9);
     display:none;
     justify-content:center;
     align-items:center;
-    flex-direction:column;
     z-index:10;
 }
 
 #win h1{
+    color:white;
     font-size:64px;
-    color:#fff;
     text-shadow:0 0 30px #ff2e9a;
-    animation:pulse 1.4s infinite;
+    animation:pulse 1.5s infinite;
 }
 
 @keyframes pulse{
@@ -85,6 +101,7 @@ html,body{
 
 <div id="game">
     <div id="board"></div>
+    <div id="pieces"></div>
 </div>
 
 <div id="win">
@@ -94,98 +111,95 @@ html,body{
 <img id="img" src="image.jpg" hidden>
 
 <script>
-const ROWS = 3;
-const COLS = 3;
+const ROWS=3, COLS=3;
+const board=document.getElementById("board");
+const piecesBox=document.getElementById("pieces");
+const img=document.getElementById("img");
+let lockedCount=0;
 
-const board = document.getElementById("board");
-const img = document.getElementById("img");
-let placed = 0;
-
-img.onload = () => init();
+img.onload=init;
 
 function init(){
-    const size = board.clientWidth;
-    const pw = size / COLS;
-    const ph = size / ROWS;
+    const size=board.clientWidth;
+    const pw=size/COLS;
+    const ph=size/ROWS;
 
-    // slots
-    let slots = [];
+    // create slots
     for(let y=0;y<ROWS;y++){
         for(let x=0;x<COLS;x++){
-            const s = document.createElement("div");
+            const s=document.createElement("div");
             s.className="slot";
             s.style.width=pw+"px";
             s.style.height=ph+"px";
             s.style.left=x*pw+"px";
             s.style.top=y*ph+"px";
             board.appendChild(s);
-            slots.push(s);
         }
     }
 
-    // pieces
-    let indices=[...Array(ROWS*COLS).keys()];
-    indices.sort(()=>Math.random()-0.5);
+    // piece order shuffled
+    let order=[...Array(ROWS*COLS).keys()];
+    order.sort(()=>Math.random()-0.5);
 
-    indices.forEach(i=>{
+    order.forEach(i=>{
         const x=i%COLS;
         const y=Math.floor(i/COLS);
 
         const p=document.createElement("div");
         p.className="piece";
         p.dataset.index=i;
-        p.style.width=pw+"px";
-        p.style.height=ph+"px";
-        p.style.background=`url(image.jpg)`;
+        p.style.backgroundImage="url(image.jpg)";
         p.style.backgroundSize=`${size}px ${size}px`;
         p.style.backgroundPosition=`-${x*pw}px -${y*ph}px`;
 
-        p.style.left=Math.random()*(window.innerWidth-pw)+"px";
-        p.style.top=Math.random()*(window.innerHeight-ph)+"px";
-
-        drag(p,pw,ph,slots);
-        document.body.appendChild(p);
+        enableDrag(p,pw,ph);
+        piecesBox.appendChild(p);
     });
 }
 
-function drag(el,pw,ph,slots){
+function enableDrag(el,pw,ph){
     let dx,dy;
 
     el.addEventListener("pointerdown",e=>{
         if(el.classList.contains("locked")) return;
-        dx=e.clientX-el.offsetLeft;
-        dy=e.clientY-el.offsetTop;
-        el.setPointerCapture(e.pointerId);
+        dx=e.clientX-el.getBoundingClientRect().left;
+        dy=e.clientY-el.getBoundingClientRect().top;
+        el.style.position="fixed";
         el.style.zIndex=5;
     });
 
     el.addEventListener("pointermove",e=>{
-        if(!el.hasPointerCapture(e.pointerId)) return;
+        if(el.classList.contains("locked")) return;
         el.style.left=e.clientX-dx+"px";
         el.style.top=e.clientY-dy+"px";
     });
 
     el.addEventListener("pointerup",e=>{
-        el.releasePointerCapture(e.pointerId);
-        el.style.zIndex=1;
+        if(el.classList.contains("locked")) return;
 
         const i=+el.dataset.index;
-        const slot=slots[i];
+        const slot=board.children[i];
         const r1=el.getBoundingClientRect();
         const r2=slot.getBoundingClientRect();
 
-        const close =
-            Math.abs(r1.left-r2.left)<20 &&
-            Math.abs(r1.top-r2.top)<20;
+        const ok=Math.abs(r1.left-r2.left)<25 &&
+                 Math.abs(r1.top-r2.top)<25;
 
-        if(close){
+        if(ok){
+            el.classList.add("locked");
             el.style.left=r2.left+"px";
             el.style.top=r2.top+"px";
-            el.classList.add("locked");
-            placed++;
-            if(placed===ROWS*COLS){
+            el.style.width=r2.width+"px";
+            el.style.height=r2.height+"px";
+            el.style.position="fixed";
+            lockedCount++;
+
+            if(lockedCount===ROWS*COLS){
                 document.getElementById("win").style.display="flex";
             }
+        }else{
+            // geri alt hissəyə
+            el.style.position="static";
         }
     });
 }
