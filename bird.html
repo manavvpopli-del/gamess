@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8" />
+<title>Flappy Elnur - Çılğın Uçuş 😈</title>
+<style>
+  body { margin:0; background:#000; font-family:Arial, sans-serif; overflow:hidden; }
+  canvas { display:block; margin:0 auto; background:#71c5cf; }
+  #info { position:absolute; top:10px; left:50%; transform:translateX(-50%); color:white; font-size:24px; text-shadow:2px 2px 4px black; pointer-events:none; }
+  #restart { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(0,0,0,0.7); color:white; padding:20px 40px; font-size:30px; border:none; border-radius:10px; cursor:pointer; display:none; }
+</style>
+</head>
+<body>
+
+<div id="info">Skor: <span id="score">0</span></div>
+<button id="restart">Yenidən Başla 🔥</button>
+
+<canvas id="c"></canvas>
+
+<script>
+// ================== OYUN KODU ==================
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const scoreEl = document.getElementById('score');
+const restartBtn = document.getElementById('restart');
+
+canvas.width = 400;
+canvas.height = 600;
+
+let bird = {
+  x: 100,
+  y: 300,
+  size: 30,
+  velocity: 0,
+  gravity: 0.5,
+  jump: -10
+};
+
+let pipes = [];
+let frame = 0;
+let score = 0;
+let gameOver = false;
+let started = false;
+
+function spawnPipe() {
+  const gap = 150;
+  const minHeight = 100;
+  const maxHeight = canvas.height - gap - minHeight;
+  const height = Math.random() * (maxHeight - minHeight) + minHeight;
+  
+  pipes.push({
+    x: canvas.width,
+    top: height,
+    bottom: canvas.height - (height + gap),
+    passed: false
+  });
+}
+
+function update() {
+  if (!started || gameOver) return;
+
+  bird.velocity += bird.gravity;
+  bird.y += bird.velocity;
+
+  // Yerdə və ya tavanda çarpma
+  if (bird.y + bird.size/2 > canvas.height || bird.y - bird.size/2 < 0) {
+    gameOver = true;
+  }
+
+  // Borular hərəkət
+  pipes.forEach(pipe => {
+    pipe.x -= 2;
+
+    // Skor artırma
+    if (!pipe.passed && pipe.x + 60 < bird.x) {
+      pipe.passed = true;
+      score++;
+      scoreEl.textContent = score;
+    }
+
+    // Çarpışma yoxlaması
+    if (
+      bird.x + bird.size/2 > pipe.x &&
+      bird.x - bird.size/2 < pipe.x + 60 &&
+      (bird.y - bird.size/2 < pipe.top || bird.y + bird.size/2 > canvas.height - pipe.bottom)
+    ) {
+      gameOver = true;
+    }
+  });
+
+  // Köhnə boruları sil
+  if (pipes.length > 0 && pipes[0].x < -60) {
+    pipes.shift();
+  }
+
+  // Yeni boru əlavə et
+  frame++;
+  if (frame % 100 === 0) spawnPipe();
+}
+
+function draw() {
+  // Fon təmizlə
+  ctx.fillStyle = '#71c5cf';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Yer
+  ctx.fillStyle = '#5c8c4e';
+  ctx.fillRect(0, canvas.height - 50, canvas.width, 50);
+
+  // Quş (sarı dairə + göz)
+  ctx.fillStyle = '#ffcc00';
+  ctx.beginPath();
+  ctx.arc(bird.x, bird.y, bird.size/2, 0, Math.PI*2);
+  ctx.fill();
+
+  ctx.fillStyle = '#000';
+  ctx.beginPath();
+  ctx.arc(bird.x + 10, bird.y - 5, 6, 0, Math.PI*2);
+  ctx.fill(); // göz
+
+  // Borular
+  pipes.forEach(pipe => {
+    // Üst boru
+    ctx.fillStyle = '#569454';
+    ctx.fillRect(pipe.x, 0, 60, pipe.top);
+    ctx.fillStyle = '#3e7a3d';
+    ctx.fillRect(pipe.x - 10, pipe.top - 30, 80, 30);
+
+    // Alt boru
+    ctx.fillStyle = '#569454';
+    ctx.fillRect(pipe.x, canvas.height - pipe.bottom, 60, pipe.bottom);
+    ctx.fillStyle = '#3e7a3d';
+    ctx.fillRect(pipe.x - 10, canvas.height - pipe.bottom, 80, 30);
+  });
+
+  // Game Over yazısı
+  if (gameOver) {
+    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 50px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('GAME OVER 😈', canvas.width/2, canvas.height/2 - 30);
+    
+    ctx.font = '30px Arial';
+    ctx.fillText('Skor: ' + score, canvas.width/2, canvas.height/2 + 20);
+    
+    restartBtn.style.display = 'block';
+  }
+}
+
+function loop() {
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+
+// Inputlar
+document.addEventListener('keydown', e => {
+  if (e.code === 'Space' || e.code === 'ArrowUp') {
+    if (!started) started = true;
+    if (!gameOver) bird.velocity = bird.jump;
+  }
+});
+
+canvas.addEventListener('click', () => {
+  if (!started) started = true;
+  if (!gameOver) bird.velocity = bird.jump;
+});
+
+restartBtn.addEventListener('click', () => {
+  bird.y = 300;
+  bird.velocity = 0;
+  pipes = [];
+  score = 0;
+  frame = 0;
+  gameOver = false;
+  started = false;
+  scoreEl.textContent = '0';
+  restartBtn.style.display = 'none';
+});
+
+// İlk boru
+setTimeout(spawnPipe, 2000);
+
+loop();
+</script>
+</body>
+</html>
