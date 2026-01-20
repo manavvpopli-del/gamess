@@ -16,7 +16,6 @@
     padding:0;
     box-sizing:border-box;
     font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial;
-    -webkit-tap-highlight-color:transparent;
 }
 
 html,body{
@@ -47,7 +46,6 @@ html,body{
 h1{
     text-align:center;
     color:var(--pink);
-    font-size:28px;
 }
 
 .subtitle{
@@ -67,19 +65,38 @@ input{
 
 button{
     width:100%;
-    height:68px;
+    height:60px;
     border-radius:40px;
     border:none;
     background:var(--green);
     color:#fff;
+    font-size:20px;
     font-weight:700;
+    margin-top:12px;
 }
 
-.btn-top{font-size:14px}
-.btn-main{font-size:26px;letter-spacing:2px}
+.question{
+    font-size:18px;
+    margin-bottom:14px;
+    text-align:center;
+}
+
+.option{
+    background:#f2f2f2;
+    padding:14px;
+    border-radius:14px;
+    margin-bottom:10px;
+    text-align:center;
+    cursor:pointer;
+    transition:.2s;
+}
+
+.option:active{
+    transform:scale(.96);
+    background:#e0e0e0;
+}
 
 #result{
-    margin-top:24px;
     display:none;
     text-align:center;
 }
@@ -102,7 +119,6 @@ button{
 }
 
 .desc{
-    color:#444;
     font-size:18px;
     font-weight:600;
 }
@@ -111,66 +127,134 @@ button{
 
 <body>
 <div id="app">
-    <div class="card">
-        <h1>❤️ Sevgi Ölçər</h1>
-        <div class="subtitle">Onu nə qədər sevirsən?</div>
+<div class="card" id="card">
 
-        <input id="you" placeholder="Sənin adın">
-        <input id="lover" placeholder="Sevdiyin şəxsin adı">
+<h1>❤️ Sevgi Ölçər</h1>
+<div class="subtitle">Onu nə qədər sevirsən?</div>
 
-        <button onclick="measure()">
-            <div class="btn-top">Onu nə qədər sevirsən?</div>
-            <div class="btn-main">ÖLÇ</div>
-        </button>
+<div id="start">
+    <input id="you" placeholder="Sənin adın">
+    <input id="lover" placeholder="Sevdiyin şəxsin adı">
+    <button onclick="start()">BAŞLA</button>
+</div>
 
-        <div id="result">
-            <div class="circle">
-                <div class="percent" id="percent">0%</div>
-            </div>
-            <div class="desc" id="desc"></div>
-        </div>
+<div id="quiz" style="display:none;">
+    <div class="question" id="question"></div>
+    <div id="options"></div>
+</div>
+
+<div id="result">
+    <div class="circle">
+        <div class="percent" id="percent">0%</div>
     </div>
+    <div class="desc" id="desc"></div>
+</div>
+
+</div>
 </div>
 
 <script>
-function animateTo(el, target, speed = 15, callback){
-    let c = 0;
-    el.textContent = "0%";
-    const i = setInterval(()=>{
-        c++;
-        el.textContent = c + "%";
-        if(c >= target){
-            clearInterval(i);
-            if(callback) callback();
-        }
-    }, speed);
+const questions = [
+    {
+        q:"Onu düşünmədən bir gün keçə bilər?",
+        a:[
+            {t:"Asanlıqla",v:0},
+            {t:"Çətin",v:10},
+            {t:"Qətiyyən yox",v:20}
+        ]
+    },
+    {
+        q:"Onun üçün nədən vaz keçərdin?",
+        a:[
+            {t:"Heç nədən",v:0},
+            {t:"Bəzi şeylərdən",v:10},
+            {t:"Hər şeydən",v:20}
+        ]
+    },
+    {
+        q:"Onun xoşbəxtliyi sənin üçün?",
+        a:[
+            {t:"Adi şeydir",v:0},
+            {t:"Vacibdir",v:10},
+            {t:"Hər şeydən önəmlidir",v:20}
+        ]
+    },
+    {
+        q:"Onu başqası ilə görsən?",
+        a:[
+            {t:"Vecimə olmaz",v:0},
+            {t:"Pis olar",v:10},
+            {t:"Dağlar yıxılar",v:20}
+        ]
+    },
+    {
+        q:"Gələcək planlarında o varmı?",
+        a:[
+            {t:"Yox",v:0},
+            {t:"Bəlkə",v:10},
+            {t:"Mütləq",v:20}
+        ]
+    }
+];
+
+let index=0;
+let score=0;
+let loverName="";
+
+function start(){
+    loverName=document.getElementById("lover").value.trim().toLowerCase();
+    if(!loverName) return alert("Adları daxil et");
+    document.getElementById("start").style.display="none";
+    document.getElementById("quiz").style.display="block";
+    showQ();
 }
 
-function measure(){
-    const you = document.getElementById("you").value.trim();
-    const lover = document.getElementById("lover").value.trim().toLowerCase();
+function showQ(){
+    const q=questions[index];
+    document.getElementById("question").textContent=q.q;
+    const opt=document.getElementById("options");
+    opt.innerHTML="";
+    q.a.forEach(o=>{
+        const d=document.createElement("div");
+        d.className="option";
+        d.textContent=o.t;
+        d.onclick=()=>answer(o.v);
+        opt.appendChild(d);
+    });
+}
 
-    if(!you || !lover){
-        alert("Adları daxil et");
-        return;
-    }
+function answer(v){
+    score+=v;
+    index++;
+    if(index<questions.length) showQ();
+    else finish();
+}
 
-    const result = document.getElementById("result");
-    const percent = document.getElementById("percent");
-    const desc = document.getElementById("desc");
+function animate(target){
+    let c=0;
+    const el=document.getElementById("percent");
+    const i=setInterval(()=>{
+        c++;
+        el.textContent=c+"%";
+        if(c>=target) clearInterval(i);
+    },15);
+}
 
-    result.style.display = "block";
+function finish(){
+    document.getElementById("quiz").style.display="none";
+    document.getElementById("result").style.display="block";
 
-    if(lover === "kamal"){
-        animateTo(percent,70,15,()=>{
-            setTimeout(()=>{
-                percent.textContent="0%";
-                desc.textContent="Sən onu sevdiyini sanırsan... 💔";
-            },400);
-        });
+    if(loverName==="kamal"){
+        animate(70);
+        setTimeout(()=>{
+            document.getElementById("percent").textContent="0%";
+            document.getElementById("desc").textContent="Sən onu sevdiyini sanırsan... 💔";
+        },1600);
     }else{
-        animateTo(percent,100);
-        desc.textContent="Sən ona aşiqsən ❤️";
+        const percent=Math.min(100,score);
+        animate(percent);
+        document.getElementById("desc").textContent=
+            percent>=70?"Sən ona aşiqsən ❤️":"Bu sevgi hələ tam deyil 💭";
     }
 }
 </script>
