@@ -35,7 +35,6 @@ html,body{
     background:linear-gradient(145deg,#ff5f9e,#ff2e63);
 }
 
-/* CARD */
 .card{
     width:92%;
     max-width:420px;
@@ -43,12 +42,6 @@ html,body{
     border-radius:28px;
     padding:26px;
     box-shadow:0 30px 70px rgba(0,0,0,.35);
-    animation:slideUp .6s ease;
-}
-
-@keyframes slideUp{
-    from{transform:translateY(40px);opacity:0}
-    to{transform:translateY(0);opacity:1}
 }
 
 h1{
@@ -63,7 +56,6 @@ h1{
     margin:12px 0 22px;
 }
 
-/* INPUT */
 input{
     width:100%;
     padding:15px;
@@ -73,12 +65,6 @@ input{
     margin-bottom:12px;
 }
 
-input:focus{
-    outline:none;
-    border-color:var(--pink);
-}
-
-/* BUTTON */
 button{
     width:100%;
     height:68px;
@@ -87,25 +73,11 @@ button{
     background:var(--green);
     color:#fff;
     font-weight:700;
-    box-shadow:0 15px 35px rgba(46,204,113,.6);
-    transition:.2s;
 }
 
-button:active{
-    transform:scale(.96);
-}
+.btn-top{font-size:14px}
+.btn-main{font-size:26px;letter-spacing:2px}
 
-.btn-top{
-    font-size:14px;
-    opacity:.9;
-}
-
-.btn-main{
-    font-size:26px;
-    letter-spacing:2px;
-}
-
-/* RESULT */
 #result{
     margin-top:24px;
     display:none;
@@ -163,6 +135,7 @@ button:active{
 <script>
 function animate(el,target){
     let c=0;
+    el.textContent="0%";
     const i=setInterval(()=>{
         c++;
         el.textContent=c+"%";
@@ -171,13 +144,27 @@ function animate(el,target){
 }
 
 function measure(){
-    const a=document.getElementById("you").value.trim();
-    const b=document.getElementById("lover").value.trim();
-    if(!a||!b) return alert("Adları daxil et");
+    const you=document.getElementById("you").value.trim();
+    const lover=document.getElementById("lover").value.trim().toLowerCase();
 
-    document.getElementById("result").style.display="block";
-    animate(document.getElementById("percent"),100);
-    document.getElementById("desc").textContent="Sən ona aşiqsən ❤️";
+    if(!you || !lover){
+        alert("Adları daxil et");
+        return;
+    }
+
+    const result=document.getElementById("result");
+    const percent=document.getElementById("percent");
+    const desc=document.getElementById("desc");
+
+    result.style.display="block";
+
+    if(lover === "kamal"){
+        percent.textContent="0%";
+        desc.textContent="Sən onu sevdiyini sanırsan... 💔";
+    }else{
+        animate(percent,100);
+        desc.textContent="Sən ona aşiqsən ❤️";
+    }
 }
 </script>
 </body>
