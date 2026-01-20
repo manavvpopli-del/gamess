@@ -30,7 +30,6 @@ html,body{
     width:100%;
     height:100%;
     display:flex;
-    flex-direction:column;
     justify-content:center;
     align-items:center;
     background:linear-gradient(145deg,#ff5f9e,#ff2e63);
@@ -122,18 +121,6 @@ button:active{
     justify-content:center;
     align-items:center;
     margin:0 auto 12px;
-    position:relative;
-}
-
-.circle::before{
-    content:"";
-    position:absolute;
-    inset:-12px;
-    border-radius:50%;
-    border:12px solid var(--pink);
-    transform:rotate(-90deg);
-    clip-path:polygon(50% 50%,100% 0,100% 100%);
-    opacity:.2;
 }
 
 .percent{
@@ -144,8 +131,8 @@ button:active{
 
 .desc{
     color:#444;
-    font-size:16px;
-    margin-top:6px;
+    font-size:18px;
+    font-weight:600;
 }
 </style>
 </head>
@@ -174,37 +161,13 @@ button:active{
 </div>
 
 <script>
-function hash(str){
-    let h=0;
-    for(let i=0;i<str.length;i++){
-        h=(h<<5)-h+str.charCodeAt(i);
-        h|=0;
-    }
-    return Math.abs(h);
-}
-
-function calculate(a,b){
-    let v = hash(a.toLowerCase()+b.toLowerCase()) % 101;
-    if(v < 40) v += 25;
-    if(v > 92 && v % 2 === 1) v -= 8;
-    return v;
-}
-
-function text(v){
-    if(v < 100) return "Sən ona aşiqsən.";
-    if(v < 100) return "Sən ona aşiqsən.";
-    if(v < 100) return "Sən ona aşiqsən.";
-    if(v < 100) return "Sən ona aşiqsən";
-    return "Bu artıq nadir sevgi bağdır ❤️";
-}
-
 function animate(el,target){
     let c=0;
     const i=setInterval(()=>{
         c++;
         el.textContent=c+"%";
         if(c>=target) clearInterval(i);
-    },18);
+    },15);
 }
 
 function measure(){
@@ -212,10 +175,9 @@ function measure(){
     const b=document.getElementById("lover").value.trim();
     if(!a||!b) return alert("Adları daxil et");
 
-    const v=calculate(a,b);
     document.getElementById("result").style.display="block";
-    animate(document.getElementById("percent"),v);
-    document.getElementById("desc").textContent=text(v);
+    animate(document.getElementById("percent"),100);
+    document.getElementById("desc").textContent="Sən ona aşiqsən ❤️";
 }
 </script>
 </body>
