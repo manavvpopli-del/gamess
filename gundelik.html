@@ -133,36 +133,43 @@ button{
 </div>
 
 <script>
-function animate(el,target){
-    let c=0;
-    el.textContent="0%";
-    const i=setInterval(()=>{
+function animateTo(el, target, speed = 15, callback){
+    let c = 0;
+    el.textContent = "0%";
+    const i = setInterval(()=>{
         c++;
-        el.textContent=c+"%";
-        if(c>=target) clearInterval(i);
-    },15);
+        el.textContent = c + "%";
+        if(c >= target){
+            clearInterval(i);
+            if(callback) callback();
+        }
+    }, speed);
 }
 
 function measure(){
-    const you=document.getElementById("you").value.trim();
-    const lover=document.getElementById("lover").value.trim().toLowerCase();
+    const you = document.getElementById("you").value.trim();
+    const lover = document.getElementById("lover").value.trim().toLowerCase();
 
     if(!you || !lover){
         alert("Adları daxil et");
         return;
     }
 
-    const result=document.getElementById("result");
-    const percent=document.getElementById("percent");
-    const desc=document.getElementById("desc");
+    const result = document.getElementById("result");
+    const percent = document.getElementById("percent");
+    const desc = document.getElementById("desc");
 
-    result.style.display="block";
+    result.style.display = "block";
 
     if(lover === "kamal"){
-        percent.textContent="0%";
-        desc.textContent="Sən onu sevdiyini sanırsan... 💔";
+        animateTo(percent,70,15,()=>{
+            setTimeout(()=>{
+                percent.textContent="0%";
+                desc.textContent="Sən onu sevdiyini sanırsan... 💔";
+            },400);
+        });
     }else{
-        animate(percent,100);
+        animateTo(percent,100);
         desc.textContent="Sən ona aşiqsən ❤️";
     }
 }
