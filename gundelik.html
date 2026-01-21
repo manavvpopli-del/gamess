@@ -2,248 +2,212 @@
 <html lang="az">
 <head>
     <meta charset="UTF-8">
-    <title>3D Pro Racing - Admin Dashboard</title>
+    <title>3D Racer Pro</title>
+
+    <!-- Three.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+
     <style>
-        body { margin: 0; overflow: hidden; font-family: 'Segoe UI', sans-serif; background: #000; }
-        
-        /* Oyun İnterfeysi */
-        #ui-overlay { position: absolute; top: 20px; left: 20px; color: white; pointer-events: none; }
-        .stat { font-size: 24px; font-weight: bold; text-shadow: 2px 2px 5px rgba(0,0,0,0.5); margin-bottom: 5px; }
+        body { margin:0; overflow:hidden; background:#000; font-family:Segoe UI, sans-serif; }
 
-        /* Admin Panel */
-        #admin-panel { 
-            position: fixed; right: 20px; top: 20px; width: 260px; 
-            background: rgba(20, 20, 20, 0.9); border: 2px solid #ff0044; 
-            color: white; padding: 20px; border-radius: 12px; z-index: 1000;
-            box-shadow: 0 0 20px rgba(255, 0, 68, 0.4);
+        #ui {
+            position:fixed; top:20px; left:20px; color:#fff;
+            font-size:22px; font-weight:bold;
+            text-shadow:0 0 10px #000;
         }
-        #admin-panel h2 { color: #ff0044; margin-top: 0; font-size: 1.2rem; text-align: center; }
-        .admin-btn { width: 100%; padding: 10px; margin: 10px 0; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; color: white; transition: 0.3s; }
-        .btn-cash { background: #27ae60; }
-        .btn-unlock { background: #2980b9; }
-        input { width: 100%; padding: 8px; background: #333; border: 1px solid #555; color: white; margin-top: 5px; box-sizing: border-box; }
 
-        /* Market */
-        #market-overlay { 
-            position: absolute; inset: 0; background: rgba(0,0,0,0.8); 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 500; 
+        #admin {
+            position:fixed; right:20px; top:20px; width:250px;
+            background:rgba(20,20,20,.9);
+            border:2px solid #ff0044;
+            border-radius:10px;
+            padding:15px; color:#fff; z-index:10;
         }
-        .market-container { display: flex; gap: 20px; }
-        .car-card { background: #1a1a1a; padding: 20px; border: 2px solid #444; text-align: center; border-radius: 10px; color: white; }
-        .buy-btn { background: #00f2ff; border: none; padding: 10px 20px; margin-top: 10px; cursor: pointer; font-weight: bold; }
-        .hidden { display: none !important; }
+
+        button,input {
+            width:100%; padding:10px; margin-top:10px;
+            background:#333; color:#fff; border:none;
+            border-radius:5px; font-weight:bold;
+        }
+
+        button { cursor:pointer; }
+        .green { background:#27ae60; }
+        .blue { background:#2980b9; }
+
+        #start {
+            position:fixed; inset:0; background:rgba(0,0,0,.9);
+            display:flex; flex-direction:column;
+            justify-content:center; align-items:center;
+            z-index:20;
+        }
+
+        #start h1 { color:#fff; font-size:48px; margin-bottom:30px; }
     </style>
 </head>
 <body>
 
-    <div id="ui-overlay">
-        <div class="stat">Balans: $<span id="balance">0</span></div>
-        <div class="stat">Xal: <span id="score">0</span></div>
-    </div>
+<div id="ui">
+    Balans: $<span id="balance">0</span><br>
+    Xal: <span id="score">0</span>
+</div>
 
-    <div id="admin-panel">
-        <h2>ADMIN CONTROL</h2>
-        <label>Məbləğ:</label>
-        <input type="number" id="admin-cash-amount" value="1000">
-        <button class="admin-btn btn-cash" onclick="adminAddMoney()">Pul Əlavə Et</button>
-        <button class="admin-btn btn-unlock" onclick="adminUnlockEverything()">Bütün Maşınları Aç</button>
-        <p style="font-size: 11px; color: #888;">*Admin panel oyunçudan gizli tutula bilər.</p>
-    </div>
+<div id="admin">
+    <h3 style="color:#ff0044;text-align:center;">ADMIN</h3>
+    <input type="number" id="cash" value="1000">
+    <button class="green" onclick="addMoney()">Pul əlavə et</button>
+</div>
 
-    <div id="market-overlay" class="hidden">
-        <h1 style="color: white; margin-bottom: 30px;">MAŞIN MARKÉTI</h1>
-        <div class="market-container" id="market-list"></div>
-        <button class="buy-btn" style="background: #ff0044; margin-top: 40px;" onclick="closeMarket()">BAĞLA</button>
-    </div>
+<div id="start">
+    <h1>3D RACER PRO</h1>
+    <button class="blue" onclick="startGame()">OYUNA BAŞLA</button>
+</div>
 
-    <div id="start-screen" style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; background:rgba(0,0,0,0.9); z-index:100;">
-        <h1 style="color:white; font-size: 50px;">3D RACER PRO</h1>
-        <button class="buy-btn" style="font-size: 24px; padding: 15px 50px;" onclick="startGame()">OYUNA BAŞLA</button>
-        <button class="buy-btn" style="background:#555;" onclick="openMarket()">MARKET</button>
-    </div>
+<script>
+/* ================= DATA ================= */
 
-    <script>
-        // --- OYUN DATA SİSTEMİ ---
-        let player = JSON.parse(localStorage.getItem('3dCarData')) || {
-            balance: 500,
-            ownedCars: [0],
-            selectedCar: 0
-        };
+let player = JSON.parse(localStorage.getItem("racerData")) || {
+    balance: 500
+};
 
-        const carSpecs = [
-            { name: "Şəhər Maşını", color: 0xff0000, speed: 0.15, price: 0 },
-            { name: "Sport GT", color: 0x00f2ff, speed: 0.25, price: 2000 },
-            { name: "Super Veloce", color: 0xffd700, speed: 0.35, price: 5000 }
-        ];
+let score = 0;
+let gameRunning = false;
 
-        // --- 3D ENGINE ---
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        document.body.appendChild(renderer.domElement);
+/* ================= THREE.JS ================= */
 
-        // İşıqlandırma
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-        scene.add(ambientLight);
-        const sunLight = new THREE.DirectionalLight(0xffffff, 1);
-        sunLight.position.set(5, 10, 5);
-        scene.add(sunLight);
+const scene = new THREE.Scene();
+scene.fog = new THREE.Fog(0x000000, 10, 80);
 
-        // Yol
-        const roadGeo = new THREE.PlaneGeometry(10, 1000);
-        const roadMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
-        const road = new THREE.Mesh(roadGeo, roadMat);
-        road.rotation.x = -Math.PI / 2;
-        scene.add(road);
+const camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 200);
+camera.position.set(0, 3, 6);
 
-        // Oyunçu Maşını Yaradan Funksiya
-        function create3DCar(color) {
-            const group = new THREE.Group();
-            // Gövdə
-            const body = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.4, 1.6), new THREE.MeshStandardMaterial({ color: color }));
-            body.position.y = 0.3;
-            group.add(body);
-            // Kabina
-            const cabin = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.3, 0.8), new THREE.MeshStandardMaterial({ color: 0x333333 }));
-            cabin.position.y = 0.6;
-            cabin.position.z = -0.1;
-            group.add(cabin);
-            // Təkərlər
-            const wheelGeo = new THREE.CylinderGeometry(0.2, 0.2, 0.1, 12);
-            const wheelMat = new THREE.MeshStandardMaterial({ color: 0x000000 });
-            for(let i=0; i<4; i++) {
-                const w = new THREE.Mesh(wheelGeo, wheelMat);
-                w.rotation.z = Math.PI / 2;
-                w.position.set(i < 2 ? 0.45 : -0.45, 0.2, i % 2 === 0 ? 0.5 : -0.5);
-                group.add(w);
-            }
-            return group;
-        }
+const renderer = new THREE.WebGLRenderer({ antialias:true });
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(devicePixelRatio);
+document.body.appendChild(renderer.domElement);
 
-        let playerCar = create3DCar(carSpecs[player.selectedCar].color);
-        scene.add(playerCar);
+/* LIGHT */
+scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+const sun = new THREE.DirectionalLight(0xffffff, 1);
+sun.position.set(5,10,5);
+scene.add(sun);
 
-        camera.position.set(0, 3, 5);
-        camera.lookAt(0, 0, 0);
+/* ROAD */
+const road = new THREE.Mesh(
+    new THREE.PlaneGeometry(12, 500),
+    new THREE.MeshStandardMaterial({ color:0x222222 })
+);
+road.rotation.x = -Math.PI / 2;
+scene.add(road);
 
-        // --- OYUN MƏNTİQİ ---
-        let enemies = [];
-        let score = 0;
-        let gameRunning = false;
+/* ================= PLAYER CAR ================= */
 
-        function spawnEnemy() {
-            if(!gameRunning) return;
-            const enemyColor = Math.random() * 0xffffff;
-            const enemy = create3DCar(enemyColor);
-            enemy.position.set((Math.random() - 0.5) * 8, 0, -50);
-            scene.add(enemy);
-            enemies.push(enemy);
-            setTimeout(spawnEnemy, 1500 - Math.min(score, 1000));
-        }
+let playerCar;
+const loader = new THREE.GLTFLoader();
 
-        function update() {
-            if(gameRunning) {
-                // Yolun sonsuz görünməsi üçün hərəkət (sadələşdirilmiş)
-                playerCar.position.z -= 0.01; 
-                camera.position.z -= 0.01;
-
-                enemies.forEach((en, index) => {
-                    en.position.z += 0.2; // Düşmən sənə tərəf gəlir
-
-                    // Toqquşma
-                    if(Math.abs(en.position.z - playerCar.position.z) < 1.5 && Math.abs(en.position.x - playerCar.position.x) < 0.8) {
-                        gameOver();
-                    }
-
-                    if(en.position.z > playerCar.position.z + 10) {
-                        scene.remove(en);
-                        enemies.splice(index, 1);
-                        score += 50;
-                        player.balance += 10;
-                        updateUI();
-                    }
-                });
-            }
-            renderer.render(scene, camera);
-            requestAnimationFrame(update);
-        }
-
-        // --- İDARƏETMƏ ---
-        window.addEventListener('keydown', (e) => {
-            if(!gameRunning) return;
-            if(e.key === "ArrowLeft" && playerCar.position.x > -4) playerCar.position.x -= 0.5;
-            if(e.key === "ArrowRight" && playerCar.position.x < 4) playerCar.position.x += 0.5;
-        });
-
-        // --- MARKET VƏ ADMİN FUNKSİYALARI ---
-        function updateUI() {
-            document.getElementById('balance').innerText = player.balance;
-            document.getElementById('score').innerText = score;
-            localStorage.setItem('3dCarData', JSON.stringify(player));
-        }
-
-        function openMarket() {
-            document.getElementById('market-overlay').classList.remove('hidden');
-            const list = document.getElementById('market-list');
-            list.innerHTML = "";
-            carSpecs.forEach((car, i) => {
-                const isOwned = player.ownedCars.includes(i);
-                list.innerHTML += `
-                    <div class="car-card">
-                        <h3>${car.name}</h3>
-                        <p>Qiymət: $${car.price}</p>
-                        ${isOwned ? 
-                        `<button class="buy-btn" onclick="selectCar(${i})">${player.selectedCar == i ? 'SEÇİLİ' : 'SEÇ'}</button>` : 
-                        `<button class="buy-btn" onclick="buyCar(${i})">SATIN AL</button>`}
-                    </div>
-                `;
-            });
-        }
-
-        function buyCar(i) {
-            if(player.balance >= carSpecs[i].price) {
-                player.balance -= carSpecs[i].price;
-                player.ownedCars.push(i);
-                updateUI(); openMarket();
-            }
-        }
-
-        function selectCar(i) {
-            player.selectedCar = i;
-            scene.remove(playerCar);
-            playerCar = create3DCar(carSpecs[i].color);
+function loadPlayerCar() {
+    loader.load(
+        "Caliburn.glb",
+        gltf => {
+            playerCar = gltf.scene;
+            playerCar.scale.set(0.6, 0.6, 0.6);
+            playerCar.position.set(0, 0, 0);
             scene.add(playerCar);
-            updateUI(); openMarket();
-        }
+        },
+        undefined,
+        err => console.error("GLB error:", err)
+    );
+}
 
-        function closeMarket() { document.getElementById('market-overlay').classList.add('hidden'); }
-        function startGame() { 
-            document.getElementById('start-screen').classList.add('hidden');
-            gameRunning = true; score = 0; spawnEnemy(); 
-        }
+/* ================= ENEMIES ================= */
 
-        function gameOver() {
-            gameRunning = false;
-            alert("Qəza! Topladığınız xal: " + score);
-            location.reload();
-        }
+let enemies = [];
 
-        // Admin
-        function adminAddMoney() {
-            player.balance += parseInt(document.getElementById('admin-cash-amount').value);
-            updateUI();
-        }
+function spawnEnemy() {
+    if (!gameRunning) return;
 
-        function adminUnlockEverything() {
-            player.ownedCars = [0, 1, 2];
-            updateUI();
-            alert("Bütün maşınlar açıldı!");
-        }
+    loader.load("Caliburn.glb", gltf => {
+        const enemy = gltf.scene;
+        enemy.scale.set(0.6,0.6,0.6);
+        enemy.position.set((Math.random()-0.5)*8,0,-80);
+        scene.add(enemy);
+        enemies.push(enemy);
+    });
 
-        updateUI();
-        update();
-    </script>
+    setTimeout(spawnEnemy, 2000);
+}
+
+/* ================= CONTROLS ================= */
+
+window.addEventListener("keydown", e => {
+    if (!playerCar || !gameRunning) return;
+    if (e.key === "ArrowLeft" && playerCar.position.x > -4) playerCar.position.x -= 0.6;
+    if (e.key === "ArrowRight" && playerCar.position.x < 4) playerCar.position.x += 0.6;
+});
+
+/* ================= GAME LOOP ================= */
+
+function animate() {
+    requestAnimationFrame(animate);
+
+    if (gameRunning && playerCar) {
+        playerCar.position.z -= 0.15;
+        camera.position.z -= 0.15;
+
+        enemies.forEach((e,i) => {
+            e.position.z += 0.4;
+
+            if (Math.abs(e.position.z - playerCar.position.z) < 1.5 &&
+                Math.abs(e.position.x - playerCar.position.x) < 1) {
+                gameOver();
+            }
+
+            if (e.position.z > camera.position.z + 5) {
+                scene.remove(e);
+                enemies.splice(i,1);
+                score += 50;
+                player.balance += 10;
+                updateUI();
+            }
+        });
+    }
+
+    renderer.render(scene, camera);
+}
+
+/* ================= UI ================= */
+
+function updateUI() {
+    document.getElementById("balance").innerText = player.balance;
+    document.getElementById("score").innerText = score;
+    localStorage.setItem("racerData", JSON.stringify(player));
+}
+
+function startGame() {
+    document.getElementById("start").style.display = "none";
+    gameRunning = true;
+    score = 0;
+    loadPlayerCar();
+    spawnEnemy();
+}
+
+function gameOver() {
+    alert("Qəza! Xal: " + score);
+    location.reload();
+}
+
+/* ================= ADMIN ================= */
+
+function addMoney() {
+    player.balance += parseInt(document.getElementById("cash").value);
+    updateUI();
+}
+
+/* ================= INIT ================= */
+
+updateUI();
+animate();
+
+</script>
 </body>
 </html>
