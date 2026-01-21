@@ -2,217 +2,248 @@
 <html lang="az">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pro Car Racing & Admin Panel</title>
+    <title>3D Pro Racing - Admin Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
-        :root { --neon-blue: #00f2ff; --neon-red: #ff0044; }
-        body { margin: 0; background: #0a0a0a; color: white; font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
+        body { margin: 0; overflow: hidden; font-family: 'Segoe UI', sans-serif; background: #000; }
         
-        /* Oyun Sahəsi */
-        #game-wrapper { position: relative; border: 4px solid var(--neon-blue); box-shadow: 0 0 20px var(--neon-blue); }
-        canvas { background: #111; display: block; }
-
-        /* UI Elementləri */
-        .stats { position: absolute; top: 10px; left: 10px; display: flex; gap: 15px; z-index: 5; }
-        .stat-box { background: rgba(0,0,0,0.7); padding: 5px 15px; border: 1px solid var(--neon-blue); border-radius: 5px; }
+        /* Oyun İnterfeysi */
+        #ui-overlay { position: absolute; top: 20px; left: 20px; color: white; pointer-events: none; }
+        .stat { font-size: 24px; font-weight: bold; text-shadow: 2px 2px 5px rgba(0,0,0,0.5); margin-bottom: 5px; }
 
         /* Admin Panel */
-        #admin-sidebar { position: fixed; right: 20px; top: 20px; width: 250px; background: rgba(15, 15, 15, 0.95); border: 2px solid var(--neon-red); padding: 20px; border-radius: 10px; box-shadow: 0 0 15px var(--neon-red); z-index: 100; }
-        #admin-sidebar h2 { color: var(--neon-red); margin-top: 0; text-align: center; font-size: 1.2rem; }
-        .admin-btn { width: 100%; padding: 8px; margin: 5px 0; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        .btn-add { background: #27ae60; color: white; }
-        .btn-unlock { background: #2980b9; color: white; }
-        input { width: 100%; padding: 8px; margin-bottom: 10px; background: #222; border: 1px solid #444; color: white; box-sizing: border-box; }
+        #admin-panel { 
+            position: fixed; right: 20px; top: 20px; width: 260px; 
+            background: rgba(20, 20, 20, 0.9); border: 2px solid #ff0044; 
+            color: white; padding: 20px; border-radius: 12px; z-index: 1000;
+            box-shadow: 0 0 20px rgba(255, 0, 68, 0.4);
+        }
+        #admin-panel h2 { color: #ff0044; margin-top: 0; font-size: 1.2rem; text-align: center; }
+        .admin-btn { width: 100%; padding: 10px; margin: 10px 0; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; color: white; transition: 0.3s; }
+        .btn-cash { background: #27ae60; }
+        .btn-unlock { background: #2980b9; }
+        input { width: 100%; padding: 8px; background: #333; border: 1px solid #555; color: white; margin-top: 5px; box-sizing: border-box; }
 
-        /* Market Menyu */
-        .overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.85); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 50; }
-        .market-grid { display: flex; gap: 15px; margin-bottom: 20px; }
-        .car-card { border: 1px solid #444; padding: 15px; text-align: center; background: #1a1a1a; transition: 0.3s; width: 120px; }
-        .car-card.selected { border-color: var(--neon-blue); box-shadow: 0 0 10px var(--neon-blue); }
-        .buy-btn { background: var(--neon-blue); border: none; padding: 5px 10px; cursor: pointer; margin-top: 10px; }
-        .hidden { display: none; }
+        /* Market */
+        #market-overlay { 
+            position: absolute; inset: 0; background: rgba(0,0,0,0.8); 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 500; 
+        }
+        .market-container { display: flex; gap: 20px; }
+        .car-card { background: #1a1a1a; padding: 20px; border: 2px solid #444; text-align: center; border-radius: 10px; color: white; }
+        .buy-btn { background: #00f2ff; border: none; padding: 10px 20px; margin-top: 10px; cursor: pointer; font-weight: bold; }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-    <div id="admin-sidebar">
-        <h2>Admin Panel</h2>
-        <p style="font-size: 12px; color: #aaa;">Oyunçu: <span id="adm-user" style="color:lawngreen">Online</span></p>
-        <label>Balans Artır:</label>
-        <input type="number" id="cashInput" value="5000">
-        <button class="admin-btn btn-add" onclick="adminAddCash()">Balans Əlavə Et</button>
-        <button class="admin-btn btn-unlock" onclick="adminUnlockAll()">Bütün Maşınları Aç</button>
-        <hr style="border: 0.5px solid #333; margin: 15px 0;">
-        <button class="admin-btn" style="background:#555; color:white;" onclick="resetGame()">Data-nı Sıfırla</button>
+    <div id="ui-overlay">
+        <div class="stat">Balans: $<span id="balance">0</span></div>
+        <div class="stat">Xal: <span id="score">0</span></div>
     </div>
 
-    <div id="game-wrapper">
-        <div class="stats">
-            <div class="stat-box">Balans: $<span id="balance">0</span></div>
-            <div class="stat-box">Xal: <span id="score">0</span></div>
-        </div>
-
-        <canvas id="gameCanvas"></canvas>
-
-        <div id="menu" class="overlay">
-            <h1 id="menu-title">Sürət Yarışı</h1>
-            <button class="buy-btn" style="padding: 15px 40px; font-size: 20px;" onclick="startGame()">BAŞLA</button>
-            <button class="buy-btn" style="background:#444; margin-top: 10px;" onclick="toggleMarket(true)">MARKET</button>
-        </div>
-
-        <div id="market" class="overlay hidden">
-            <h2>Maşın Marketi</h2>
-            <div class="market-grid" id="market-list"></div>
-            <button class="buy-btn" style="background:var(--neon-red)" onclick="toggleMarket(false)">GERİ</button>
-        </div>
+    <div id="admin-panel">
+        <h2>ADMIN CONTROL</h2>
+        <label>Məbləğ:</label>
+        <input type="number" id="admin-cash-amount" value="1000">
+        <button class="admin-btn btn-cash" onclick="adminAddMoney()">Pul Əlavə Et</button>
+        <button class="admin-btn btn-unlock" onclick="adminUnlockEverything()">Bütün Maşınları Aç</button>
+        <p style="font-size: 11px; color: #888;">*Admin panel oyunçudan gizli tutula bilər.</p>
     </div>
 
-<script>
-    const canvas = document.getElementById("gameCanvas");
-    const ctx = canvas.getContext("2d");
-    canvas.width = 450;
-    canvas.height = 650;
+    <div id="market-overlay" class="hidden">
+        <h1 style="color: white; margin-bottom: 30px;">MAŞIN MARKÉTI</h1>
+        <div class="market-container" id="market-list"></div>
+        <button class="buy-btn" style="background: #ff0044; margin-top: 40px;" onclick="closeMarket()">BAĞLA</button>
+    </div>
 
-    // DATA
-    let player = JSON.parse(localStorage.getItem('proCarData')) || {
-        balance: 100,
-        ownedCars: [0],
-        selectedCar: 0
-    };
+    <div id="start-screen" style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; background:rgba(0,0,0,0.9); z-index:100;">
+        <h1 style="color:white; font-size: 50px;">3D RACER PRO</h1>
+        <button class="buy-btn" style="font-size: 24px; padding: 15px 50px;" onclick="startGame()">OYUNA BAŞLA</button>
+        <button class="buy-btn" style="background:#555;" onclick="openMarket()">MARKET</button>
+    </div>
 
-    const carModels = [
-        { name: "Köhnə", color: "#e74c3c", speed: 5, price: 0 },
-        { name: "Sport Blue", color: "#3498db", speed: 8, price: 1500 },
-        { name: "Hyper Gold", color: "#f1c40f", speed: 12, price: 5000 }
-    ];
+    <script>
+        // --- OYUN DATA SİSTEMİ ---
+        let player = JSON.parse(localStorage.getItem('3dCarData')) || {
+            balance: 500,
+            ownedCars: [0],
+            selectedCar: 0
+        };
 
-    let gameActive = false;
-    let score = 0;
-    let carPos = { x: 200, y: 530 };
-    let enemies = [];
-    let frame = 0;
+        const carSpecs = [
+            { name: "Şəhər Maşını", color: 0xff0000, speed: 0.15, price: 0 },
+            { name: "Sport GT", color: 0x00f2ff, speed: 0.25, price: 2000 },
+            { name: "Super Veloce", color: 0xffd700, speed: 0.35, price: 5000 }
+        ];
 
-    // MAŞIN ÇİZMƏ FUNKSİYASI (Kvadrat deyil, detallı)
-    function drawCar(x, y, color, isPlayer = false) {
-        ctx.fillStyle = color;
-        // Gövdə
-        ctx.fillRect(x + 5, y + 5, 30, 60); 
-        // Təkərlər
-        ctx.fillStyle = "#000";
-        ctx.fillRect(x, y + 10, 8, 15); ctx.fillRect(x + 32, y + 10, 8, 15);
-        ctx.fillRect(x, y + 45, 8, 15); ctx.fillRect(x + 32, y + 45, 8, 15);
-        // Şüşə
-        ctx.fillStyle = isPlayer ? "rgba(0,242,255,0.6)" : "rgba(255,255,255,0.3)";
-        ctx.fillRect(x + 10, y + 15, 20, 15);
-        // Spoiler (əgər idman maşınıdırsa)
-        ctx.fillStyle = color;
-        ctx.fillRect(x, y + 60, 40, 5);
-    }
+        // --- 3D ENGINE ---
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
 
-    // Oyunçu hərəkəti
-    window.addEventListener("keydown", (e) => {
-        if(e.key === "ArrowLeft" && carPos.x > 20) carPos.x -= 25;
-        if(e.key === "ArrowRight" && carPos.x < canvas.width - 60) carPos.x += 25;
-    });
+        // İşıqlandırma
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+        const sunLight = new THREE.DirectionalLight(0xffffff, 1);
+        sunLight.position.set(5, 10, 5);
+        scene.add(sunLight);
 
-    function save() {
-        localStorage.setItem('proCarData', JSON.stringify(player));
-        document.getElementById("balance").innerText = player.balance;
-    }
+        // Yol
+        const roadGeo = new THREE.PlaneGeometry(10, 1000);
+        const roadMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
+        const road = new THREE.Mesh(roadGeo, roadMat);
+        road.rotation.x = -Math.PI / 2;
+        scene.add(road);
 
-    function toggleMarket(show) {
-        document.getElementById("market").classList.toggle("hidden", !show);
-        if(show) renderMarket();
-    }
+        // Oyunçu Maşını Yaradan Funksiya
+        function create3DCar(color) {
+            const group = new THREE.Group();
+            // Gövdə
+            const body = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.4, 1.6), new THREE.MeshStandardMaterial({ color: color }));
+            body.position.y = 0.3;
+            group.add(body);
+            // Kabina
+            const cabin = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.3, 0.8), new THREE.MeshStandardMaterial({ color: 0x333333 }));
+            cabin.position.y = 0.6;
+            cabin.position.z = -0.1;
+            group.add(cabin);
+            // Təkərlər
+            const wheelGeo = new THREE.CylinderGeometry(0.2, 0.2, 0.1, 12);
+            const wheelMat = new THREE.MeshStandardMaterial({ color: 0x000000 });
+            for(let i=0; i<4; i++) {
+                const w = new THREE.Mesh(wheelGeo, wheelMat);
+                w.rotation.z = Math.PI / 2;
+                w.position.set(i < 2 ? 0.45 : -0.45, 0.2, i % 2 === 0 ? 0.5 : -0.5);
+                group.add(w);
+            }
+            return group;
+        }
 
-    function renderMarket() {
-        const list = document.getElementById("market-list");
-        list.innerHTML = "";
-        carModels.forEach((car, i) => {
-            const owned = player.ownedCars.includes(i);
-            list.innerHTML += `
-                <div class="car-card ${player.selectedCar == i ? 'selected' : ''}">
-                    <div style="color:${car.color}; font-weight:bold">${car.name}</div>
-                    <div style="font-size:12px">Sürət: ${car.speed}</div>
-                    ${owned ? 
+        let playerCar = create3DCar(carSpecs[player.selectedCar].color);
+        scene.add(playerCar);
+
+        camera.position.set(0, 3, 5);
+        camera.lookAt(0, 0, 0);
+
+        // --- OYUN MƏNTİQİ ---
+        let enemies = [];
+        let score = 0;
+        let gameRunning = false;
+
+        function spawnEnemy() {
+            if(!gameRunning) return;
+            const enemyColor = Math.random() * 0xffffff;
+            const enemy = create3DCar(enemyColor);
+            enemy.position.set((Math.random() - 0.5) * 8, 0, -50);
+            scene.add(enemy);
+            enemies.push(enemy);
+            setTimeout(spawnEnemy, 1500 - Math.min(score, 1000));
+        }
+
+        function update() {
+            if(gameRunning) {
+                // Yolun sonsuz görünməsi üçün hərəkət (sadələşdirilmiş)
+                playerCar.position.z -= 0.01; 
+                camera.position.z -= 0.01;
+
+                enemies.forEach((en, index) => {
+                    en.position.z += 0.2; // Düşmən sənə tərəf gəlir
+
+                    // Toqquşma
+                    if(Math.abs(en.position.z - playerCar.position.z) < 1.5 && Math.abs(en.position.x - playerCar.position.x) < 0.8) {
+                        gameOver();
+                    }
+
+                    if(en.position.z > playerCar.position.z + 10) {
+                        scene.remove(en);
+                        enemies.splice(index, 1);
+                        score += 50;
+                        player.balance += 10;
+                        updateUI();
+                    }
+                });
+            }
+            renderer.render(scene, camera);
+            requestAnimationFrame(update);
+        }
+
+        // --- İDARƏETMƏ ---
+        window.addEventListener('keydown', (e) => {
+            if(!gameRunning) return;
+            if(e.key === "ArrowLeft" && playerCar.position.x > -4) playerCar.position.x -= 0.5;
+            if(e.key === "ArrowRight" && playerCar.position.x < 4) playerCar.position.x += 0.5;
+        });
+
+        // --- MARKET VƏ ADMİN FUNKSİYALARI ---
+        function updateUI() {
+            document.getElementById('balance').innerText = player.balance;
+            document.getElementById('score').innerText = score;
+            localStorage.setItem('3dCarData', JSON.stringify(player));
+        }
+
+        function openMarket() {
+            document.getElementById('market-overlay').classList.remove('hidden');
+            const list = document.getElementById('market-list');
+            list.innerHTML = "";
+            carSpecs.forEach((car, i) => {
+                const isOwned = player.ownedCars.includes(i);
+                list.innerHTML += `
+                    <div class="car-card">
+                        <h3>${car.name}</h3>
+                        <p>Qiymət: $${car.price}</p>
+                        ${isOwned ? 
                         `<button class="buy-btn" onclick="selectCar(${i})">${player.selectedCar == i ? 'SEÇİLİ' : 'SEÇ'}</button>` : 
-                        `<button class="buy-btn" onclick="buyCar(${i})">$${car.price}</button>`}
-                </div>`;
-        });
-    }
-
-    function buyCar(i) {
-        if(player.balance >= carModels[i].price) {
-            player.balance -= carModels[i].price;
-            player.ownedCars.push(i);
-            save(); renderMarket();
-        }
-    }
-
-    function selectCar(i) { player.selectedCar = i; save(); renderMarket(); }
-
-    // ADMIN FUNKSİYALARI
-    function adminAddCash() {
-        player.balance += parseInt(document.getElementById("cashInput").value);
-        save();
-    }
-    function adminUnlockAll() {
-        player.ownedCars = [0, 1, 2];
-        save(); renderMarket();
-    }
-    function resetGame() {
-        localStorage.removeItem('proCarData');
-        location.reload();
-    }
-
-    function startGame() {
-        document.getElementById("menu").classList.add("hidden");
-        gameActive = true; score = 0; enemies = []; carPos.x = 200;
-        loop();
-    }
-
-    function loop() {
-        if(!gameActive) return;
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        // Yol xətləri
-        ctx.strokeStyle = "#444"; ctx.setLineDash([20, 20]);
-        ctx.beginPath(); ctx.moveTo(canvas.width/2, 0); ctx.lineTo(canvas.width/2, canvas.height); ctx.stroke();
-
-        // Oyunçu Maşını
-        drawCar(carPos.x, carPos.y, carModels[player.selectedCar].color, true);
-
-        // Maneələr (Düşmən maşınlar)
-        if(frame % 60 === 0) {
-            enemies.push({ x: Math.random() * (canvas.width - 50), y: -100, color: "#95a5a6" });
+                        `<button class="buy-btn" onclick="buyCar(${i})">SATIN AL</button>`}
+                    </div>
+                `;
+            });
         }
 
-        enemies.forEach((en, i) => {
-            en.y += 5 + (score/100);
-            drawCar(en.x, en.y, en.color);
-
-            // Toqquşma
-            if(en.y > 480 && en.y < 590 && en.x < carPos.x + 35 && en.x + 35 > carPos.x) {
-                gameActive = false;
-                document.getElementById("menu").classList.remove("hidden");
-                document.getElementById("menu-title").innerText = "OYUN BİTDİ!";
-                save();
+        function buyCar(i) {
+            if(player.balance >= carSpecs[i].price) {
+                player.balance -= carSpecs[i].price;
+                player.ownedCars.push(i);
+                updateUI(); openMarket();
             }
+        }
 
-            if(en.y > canvas.height) {
-                enemies.splice(i, 1);
-                score += 10;
-                player.balance += 20;
-                document.getElementById("score").innerText = score;
-                document.getElementById("balance").innerText = player.balance;
-            }
-        });
+        function selectCar(i) {
+            player.selectedCar = i;
+            scene.remove(playerCar);
+            playerCar = create3DCar(carSpecs[i].color);
+            scene.add(playerCar);
+            updateUI(); openMarket();
+        }
 
-        frame++;
-        requestAnimationFrame(loop);
-    }
+        function closeMarket() { document.getElementById('market-overlay').classList.add('hidden'); }
+        function startGame() { 
+            document.getElementById('start-screen').classList.add('hidden');
+            gameRunning = true; score = 0; spawnEnemy(); 
+        }
 
-    save(); // İlk yüklənişdə balansı göstər
-</script>
+        function gameOver() {
+            gameRunning = false;
+            alert("Qəza! Topladığınız xal: " + score);
+            location.reload();
+        }
+
+        // Admin
+        function adminAddMoney() {
+            player.balance += parseInt(document.getElementById('admin-cash-amount').value);
+            updateUI();
+        }
+
+        function adminUnlockEverything() {
+            player.ownedCars = [0, 1, 2];
+            updateUI();
+            alert("Bütün maşınlar açıldı!");
+        }
+
+        updateUI();
+        update();
+    </script>
 </body>
 </html>
