@@ -1,213 +1,191 @@
 <!DOCTYPE html>
 <html lang="az">
 <head>
-    <meta charset="UTF-8">
-    <title>3D Racer Pro</title>
+<meta charset="UTF-8">
+<title>3D Racer Pro - Optimized</title>
 
-    <!-- Three.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<!-- Three.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 
-    <style>
-        body { margin:0; overflow:hidden; background:#000; font-family:Segoe UI, sans-serif; }
+<style>
+body { margin:0; overflow:hidden; background:#000; font-family:Segoe UI,sans-serif; }
 
-        #ui {
-            position:fixed; top:20px; left:20px; color:#fff;
-            font-size:22px; font-weight:bold;
-            text-shadow:0 0 10px #000;
-        }
+#ui {
+    position:fixed; top:20px; left:20px; color:#fff;
+    font-size:22px; font-weight:bold; text-shadow:0 0 10px #000;
+}
 
-        #admin {
-            position:fixed; right:20px; top:20px; width:250px;
-            background:rgba(20,20,20,.9);
-            border:2px solid #ff0044;
-            border-radius:10px;
-            padding:15px; color:#fff; z-index:10;
-        }
+#admin {
+    position:fixed; right:20px; top:20px; width:250px;
+    background:rgba(20,20,20,.9);
+    border:2px solid #ff0044; border-radius:10px;
+    padding:15px; color:#fff; z-index:10;
+}
 
-        button,input {
-            width:100%; padding:10px; margin-top:10px;
-            background:#333; color:#fff; border:none;
-            border-radius:5px; font-weight:bold;
-        }
+button,input { width:100%; padding:10px; margin-top:10px; background:#333; color:#fff; border:none; border-radius:5px; font-weight:bold; }
+button { cursor:pointer; }
 
-        button { cursor:pointer; }
-        .green { background:#27ae60; }
-        .blue { background:#2980b9; }
-
-        #start {
-            position:fixed; inset:0; background:rgba(0,0,0,.9);
-            display:flex; flex-direction:column;
-            justify-content:center; align-items:center;
-            z-index:20;
-        }
-
-        #start h1 { color:#fff; font-size:48px; margin-bottom:30px; }
-    </style>
+#start {
+    position:fixed; inset:0; background:rgba(0,0,0,.9);
+    display:flex; flex-direction:column; justify-content:center; align-items:center;
+    z-index:20;
+}
+#start h1 { color:#fff; font-size:48px; margin-bottom:30px; }
+</style>
 </head>
 <body>
 
 <div id="ui">
-    Balans: $<span id="balance">0</span><br>
-    Xal: <span id="score">0</span>
+Balans: $<span id="balance">0</span><br>
+Xal: <span id="score">0</span>
 </div>
 
 <div id="admin">
-    <h3 style="color:#ff0044;text-align:center;">ADMIN</h3>
-    <input type="number" id="cash" value="1000">
-    <button class="green" onclick="addMoney()">Pul əlavə et</button>
+<h3 style="color:#ff0044;text-align:center;">ADMIN</h3>
+<input type="number" id="cash" value="1000">
+<button style="background:#27ae60;" onclick="addMoney()">Pul əlavə et</button>
 </div>
 
 <div id="start">
-    <h1>3D RACER PRO</h1>
-    <button class="blue" onclick="startGame()">OYUNA BAŞLA</button>
+<h1>3D RACER PRO</h1>
+<button style="background:#2980b9;" onclick="startGame()">OYUNA BAŞLA</button>
 </div>
 
 <script>
-/* ================= DATA ================= */
-
-let player = JSON.parse(localStorage.getItem("racerData")) || {
-    balance: 500
-};
-
+/* ======= DATA ======= */
+let player = JSON.parse(localStorage.getItem("racerData")) || { balance:500 };
 let score = 0;
 let gameRunning = false;
 
-/* ================= THREE.JS ================= */
-
+/* ======= THREE.JS ======= */
 const scene = new THREE.Scene();
-scene.fog = new THREE.Fog(0x000000, 10, 80);
+scene.fog = new THREE.Fog(0x000000,10,80);
 
-const camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 200);
-camera.position.set(0, 3, 6);
+const camera = new THREE.PerspectiveCamera(75, innerWidth/innerHeight,0.1,200);
+camera.position.set(0,3,6);
 
-const renderer = new THREE.WebGLRenderer({ antialias:true });
-renderer.setSize(innerWidth, innerHeight);
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(innerWidth,innerHeight);
 renderer.setPixelRatio(devicePixelRatio);
 document.body.appendChild(renderer.domElement);
 
 /* LIGHT */
-scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-const sun = new THREE.DirectionalLight(0xffffff, 1);
+scene.add(new THREE.AmbientLight(0xffffff,0.6));
+const sun = new THREE.DirectionalLight(0xffffff,1);
 sun.position.set(5,10,5);
 scene.add(sun);
 
 /* ROAD */
 const road = new THREE.Mesh(
-    new THREE.PlaneGeometry(12, 500),
-    new THREE.MeshStandardMaterial({ color:0x222222 })
+    new THREE.PlaneGeometry(12,200),
+    new THREE.MeshStandardMaterial({color:0x222222})
 );
-road.rotation.x = -Math.PI / 2;
+road.rotation.x = -Math.PI/2;
+road.position.z = -100;
 scene.add(road);
 
-/* ================= PLAYER CAR ================= */
-
+/* ======= PLAYER CAR ======= */
 let playerCar;
 const loader = new THREE.GLTFLoader();
+let enemyTemplate;
 
-function loadPlayerCar() {
-    loader.load(
-        "Caliburn.glb",
-        gltf => {
-            playerCar = gltf.scene;
-            playerCar.scale.set(0.6, 0.6, 0.6);
-            playerCar.position.set(0, 0, 0);
-            scene.add(playerCar);
-        },
-        undefined,
-        err => console.error("GLB error:", err)
-    );
-}
-
-/* ================= ENEMIES ================= */
-
-let enemies = [];
-
-function spawnEnemy() {
-    if (!gameRunning) return;
-
+function loadPlayerCar(callback){
     loader.load("Caliburn.glb", gltf => {
-        const enemy = gltf.scene;
-        enemy.scale.set(0.6,0.6,0.6);
-        enemy.position.set((Math.random()-0.5)*8,0,-80);
-        scene.add(enemy);
-        enemies.push(enemy);
-    });
+        playerCar = gltf.scene;
+        playerCar.scale.set(0.6,0.6,0.6);
+        playerCar.position.set(0,0,0);
+        scene.add(playerCar);
 
-    setTimeout(spawnEnemy, 2000);
+        // ENEMY TEMPLATE PRELOAD
+        enemyTemplate = gltf.scene.clone();
+        enemyTemplate.scale.set(0.6,0.6,0.6);
+
+        if(callback) callback();
+    },
+    undefined,
+    err => console.error("GLB error:",err));
 }
 
-/* ================= CONTROLS ================= */
+/* ======= ENEMIES ======= */
+let enemies = [];
+function spawnEnemy(){
+    if(!gameRunning || !enemyTemplate) return;
 
-window.addEventListener("keydown", e => {
-    if (!playerCar || !gameRunning) return;
-    if (e.key === "ArrowLeft" && playerCar.position.x > -4) playerCar.position.x -= 0.6;
-    if (e.key === "ArrowRight" && playerCar.position.x < 4) playerCar.position.x += 0.6;
+    const enemy = enemyTemplate.clone();
+    enemy.position.set((Math.random()-0.5)*8,0,-80);
+    scene.add(enemy);
+    enemies.push(enemy);
+
+    setTimeout(spawnEnemy,2000);
+}
+
+/* ======= CONTROLS ======= */
+window.addEventListener("keydown", e=>{
+    if(!playerCar || !gameRunning) return;
+    if(e.key==="ArrowLeft" && playerCar.position.x>-4) playerCar.position.x -= 0.6;
+    if(e.key==="ArrowRight" && playerCar.position.x<4) playerCar.position.x += 0.6;
 });
 
-/* ================= GAME LOOP ================= */
-
-function animate() {
+/* ======= GAME LOOP ======= */
+function animate(){
     requestAnimationFrame(animate);
 
-    if (gameRunning && playerCar) {
+    if(gameRunning && playerCar){
         playerCar.position.z -= 0.15;
         camera.position.z -= 0.15;
 
-        enemies.forEach((e,i) => {
+        enemies.forEach((e,i)=>{
             e.position.z += 0.4;
 
-            if (Math.abs(e.position.z - playerCar.position.z) < 1.5 &&
-                Math.abs(e.position.x - playerCar.position.x) < 1) {
+            if(Math.abs(e.position.z-playerCar.position.z)<1.5 &&
+               Math.abs(e.position.x-playerCar.position.x)<1){
                 gameOver();
             }
 
-            if (e.position.z > camera.position.z + 5) {
+            if(e.position.z>camera.position.z+5){
                 scene.remove(e);
                 enemies.splice(i,1);
-                score += 50;
-                player.balance += 10;
+                score+=50;
+                player.balance+=10;
                 updateUI();
             }
         });
     }
 
-    renderer.render(scene, camera);
+    renderer.render(scene,camera);
 }
 
-/* ================= UI ================= */
-
-function updateUI() {
+/* ======= UI ======= */
+function updateUI(){
     document.getElementById("balance").innerText = player.balance;
     document.getElementById("score").innerText = score;
-    localStorage.setItem("racerData", JSON.stringify(player));
+    localStorage.setItem("racerData",JSON.stringify(player));
 }
 
-function startGame() {
-    document.getElementById("start").style.display = "none";
-    gameRunning = true;
-    score = 0;
-    loadPlayerCar();
-    spawnEnemy();
+function startGame(){
+    document.getElementById("start").style.display="none";
+    gameRunning=true;
+    score=0;
+    loadPlayerCar(()=>{
+        spawnEnemy();
+    });
 }
 
-function gameOver() {
-    alert("Qəza! Xal: " + score);
+function gameOver(){
+    alert("Qəza! Xal: "+score);
     location.reload();
 }
 
-/* ================= ADMIN ================= */
-
-function addMoney() {
+/* ======= ADMIN ======= */
+function addMoney(){
     player.balance += parseInt(document.getElementById("cash").value);
     updateUI();
 }
 
-/* ================= INIT ================= */
-
+/* ======= INIT ======= */
 updateUI();
 animate();
-
 </script>
 </body>
 </html>
