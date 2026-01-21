@@ -1,83 +1,213 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="az">
 <head>
     <meta charset="UTF-8">
-    <title>Bina Kurma Oyunu</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sürət Yarışı & Admin Panel</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; }
-        canvas { border: 1px solid #000; background-color: #f0f0f0; }
-        button { margin: 10px; padding: 10px; }
+        body { margin: 0; font-family: sans-serif; background: #222; color: white; overflow: hidden; }
+        #ui-layer { position: absolute; top: 10px; left: 10px; z-index: 10; }
+        #game-container { position: relative; width: 100vw; height: 100vh; background: #333; display: flex; justify-content: center; align-items: center; }
+        canvas { background: #444; border: 2px solid #555; display: block; }
+        
+        /* Menyu və Market */
+        .menu-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 20; }
+        .hidden { display: none !important; }
+        .btn { padding: 10px 20px; margin: 10px; cursor: pointer; background: #27ae60; border: none; color: white; font-size: 18px; border-radius: 5px; }
+        .btn:hover { background: #2ecc71; }
+        .market-item { border: 1px solid #555; padding: 10px; margin: 5px; width: 200px; text-align: center; background: #111; }
+
+        /* Admin Panel */
+        #admin-panel { position: absolute; right: 10px; top: 10px; background: rgba(0,0,0,0.9); border: 1px solid red; padding: 15px; z-index: 100; font-size: 12px; }
+        input { width: 60px; }
     </style>
 </head>
 <body>
-    <h1>Bina Kurma Oyunu</h1>
-    <p>Fareyle tuvale tıklayarak blok yerleştirin. Bloklar üst üste yığılarak bina kurun!</p>
-    <canvas id="gameCanvas" width="600" height="400"></canvas>
-    <br>
-    <button id="resetBtn">Sıfırla</button>
-    
-    <script>
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const resetBtn = document.getElementById('resetBtn');
-        
-        let blocks = []; // Blokların listesi
-        
-        // Blok sınıfı
-        class Block {
-            constructor(x, y, width, height) {
-                this.x = x;
-                this.y = y;
-                this.width = width;
-                this.height = height;
-            }
-            
-            draw() {
-                ctx.fillStyle = '#8B4513'; // Kahverengi renk
-                ctx.fillRect(this.x, this.y, this.width, this.height);
-                ctx.strokeRect(this.x, this.y, this.width, this.height);
-            }
+
+<div id="ui-layer">
+    <div>Balans: $<span id="balance-display">0</span></div>
+    <div>Xal: <span id="score-display">0</span></div>
+</div>
+
+<div id="admin-panel">
+    <h3 style="color: red; margin-top: 0;">Admin Panel</h3>
+    <label>Balans Artır:</label>
+    <input type="number" id="admin-cash" value="1000">
+    <button onclick="adminAddCash()">Əlavə Et</button>
+    <br><br>
+    <button onclick="adminUnlockAll()">Bütün Maşınları Aç</button>
+    <p>Oyunçu: <span id="admin-status">Aktiv</span></p>
+</div>
+
+<div id="start-menu" class="menu-overlay">
+    <h1>Sürət Yarışı</h1>
+    <button class="btn" onclick="startGame()">Oyuna Başla</button>
+    <button class="btn" style="background:#2980b9" onclick="toggleMarket()">Market</button>
+</div>
+
+<div id="market-menu" class="menu-overlay hidden">
+    <h2>Maşın Marketi</h2>
+    <div id="market-list" style="display: flex; flex-wrap: wrap; justify-content: center;"></div>
+    <button class="btn" onclick="toggleMarket()">Geri</button>
+</div>
+
+<div id="game-container">
+    <canvas id="gameCanvas"></canvas>
+</div>
+
+<script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    canvas.width = 400;
+    canvas.height = 600;
+
+    // Oyunçu Məlumatları (Local Storage ilə yadda saxlanılır)
+    let player = JSON.parse(localStorage.getItem('carGamePlayer')) || {
+        balance: 0,
+        ownedCars: [0], // İlk maşın indexi
+        selectedCar: 0
+    };
+
+    const carsData = [
+        { name: "Köhnə Maşın", color: "#e74c3c", speed: 5, price: 0 },
+        { name: "Sürətli Göy", color: "#3498db", speed: 7, price: 500 },
+        { name: "Qızıl Yarışçı", color: "#f1c40f", speed: 10, price: 2000 }
+    ];
+
+    let gameActive = false;
+    let score = 0;
+    let carX = 180;
+    let obstacles = [];
+    let frame = 0;
+
+    // İdarəetmə
+    window.addEventListener("keydown", (e) => {
+        if(e.key === "ArrowLeft" && carX > 0) carX -= 20;
+        if(e.key === "ArrowRight" && carX < canvas.width - 40) carX += 20;
+    });
+
+    function savePlayerData() {
+        localStorage.setItem('carGamePlayer', JSON.stringify(player));
+        document.getElementById("balance-display").innerText = player.balance;
+    }
+
+    function startGame() {
+        document.getElementById("start-menu").classList.add("hidden");
+        gameActive = true;
+        score = 0;
+        obstacles = [];
+        carX = 180;
+        update();
+    }
+
+    function toggleMarket() {
+        const market = document.getElementById("market-menu");
+        market.classList.toggle("hidden");
+        renderMarket();
+    }
+
+    function renderMarket() {
+        const list = document.getElementById("market-list");
+        list.innerHTML = "";
+        carsData.forEach((car, index) => {
+            const isOwned = player.ownedCars.includes(index);
+            list.innerHTML += `
+                <div class="market-item">
+                    <h4 style="color:${car.color}">${car.name}</h4>
+                    <p>Sürət: ${car.speed}</p>
+                    <p>Qiymət: $${car.price}</p>
+                    ${isOwned ? 
+                        `<button class="btn" style="background:gray" onclick="selectCar(${index})">${player.selectedCar == index ? 'Seçilib' : 'Seç'}</button>` : 
+                        `<button class="btn" onclick="buyCar(${index})">Satın Al</button>`
+                    }
+                </div>
+            `;
+        });
+    }
+
+    function buyCar(index) {
+        if(player.balance >= carsData[index].price) {
+            player.balance -= carsData[index].price;
+            player.ownedCars.push(index);
+            savePlayerData();
+            renderMarket();
+        } else {
+            alert("Pulunuz çatmır!");
         }
+    }
+
+    function selectCar(index) {
+        player.selectedCar = index;
+        savePlayerData();
+        renderMarket();
+    }
+
+    // Admin Panel Funksiyaları
+    function adminAddCash() {
+        const amount = parseInt(document.getElementById("admin-cash").value);
+        player.balance += amount;
+        savePlayerData();
+    }
+
+    function adminUnlockAll() {
+        player.ownedCars = [0, 1, 2];
+        savePlayerData();
+        renderMarket();
+    }
+
+    // Oyun Döngüsü (Logic)
+    function update() {
+        if(!gameActive) return;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        // Tuvali çiz
-        function drawCanvas() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            blocks.forEach(block => block.draw());
+        // Yolu çək
+        ctx.fillStyle = "#555";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Oyunçu maşını
+        ctx.fillStyle = carsData[player.selectedCar].color;
+        ctx.fillRect(carX, 500, 40, 70);
+
+        // Maneələr
+        if(frame % 50 === 0) {
+            obstacles.push({ x: Math.random() * (canvas.width - 40), y: -70 });
         }
-        
-        // Tıklama olayı
-        canvas.addEventListener('click', (e) => {
-            const rect = canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            
-            // Yeni blok ekle (alt kısma yerleştir)
-            const blockWidth = 50;
-            const blockHeight = 30;
-            let baseY = canvas.height - blockHeight;
-            
-            // Mevcut blokların üzerine mi koyulacak kontrol et
-            for (let block of blocks) {
-                if (x >= block.x && x <= block.x + block.width && y >= block.y - blockHeight && y <= block.y) {
-                    baseY = block.y - blockHeight;
-                    break;
-                }
+
+        obstacles.forEach((obs, index) => {
+            obs.y += 5;
+            ctx.fillStyle = "white";
+            ctx.fillRect(obs.x, obs.y, 40, 70);
+
+            // Toqquşma
+            if(obs.y > 430 && obs.y < 570 && obs.x < carX + 40 && obs.x + 40 > carX) {
+                gameOver();
             }
-            
-            if (baseY >= 0) {
-                blocks.push(new Block(x - blockWidth / 2, baseY, blockWidth, blockHeight));
-                drawCanvas();
+
+            // Xal və Pul qazanma
+            if(obs.y > canvas.height) {
+                obstacles.splice(index, 1);
+                score += 10;
+                player.balance += 5;
+                document.getElementById("score-display").innerText = score;
+                document.getElementById("balance-display").innerText = player.balance;
             }
         });
-        
-        // Sıfırla butonu
-        resetBtn.addEventListener('click', () => {
-            blocks = [];
-            drawCanvas();
-        });
-        
-        // Başlangıç çizimi
-        drawCanvas();
-    </script>
+
+        frame++;
+        requestAnimationFrame(update);
+    }
+
+    function gameOver() {
+        gameActive = false;
+        savePlayerData();
+        alert("Qəza etdiniz! Toplanan xal: " + score);
+        document.getElementById("start-menu").classList.remove("hidden");
+    }
+
+    // İlk yüklənmə
+    savePlayerData();
+</script>
+
 </body>
 </html>
