@@ -358,27 +358,29 @@
         const data = snapshot.val();
         if (!data) return;
 
-        // Host üçün qoşulan gələndə dərhal başla
-        if (myRole === 'host' && data.guestConnected === true && currentQuestionIndex === -1) {
-          console.log('Guest qoşuldu, host tərəfdə oyun başlasın');
-          status.innerHTML = 'Qarşı tərəf qoşuldu! Oyun başlayır...';
-          currentQuestionIndex = -1;
-          nextQuestion();
+        // Host üçün: guest qoşulubsa və sual hələ başlamayıbsa – başla!
+        if (myRole === 'host') {
+          if (data.guestConnected === true && data.currentQuestion === -1) {
+            console.log('[HOST] Guest qoşuldu → sual 0 başlanır');
+            status.innerHTML = 'Qarşı tərəf qoşuldu! Oyun başlayır...';
+            nextQuestion(); // host tərəfdə də başlasın
+          }
         }
 
-        // Sual sinxronizasiyası
+        // Hər iki tərəf üçün sual sinxronizasiyası
         if (data.currentQuestion !== undefined && data.currentQuestion !== currentQuestionIndex) {
+          console.log('Sual dəyişdi → ' + data.currentQuestion);
           currentQuestionIndex = data.currentQuestion;
           myAnswered = false;
           opponentAnswered = false;
           showQuestion();
-          console.log('Yeni sual: ' + currentQuestionIndex);
         }
 
         // Cavab sinxronizasiyası
         if (data.answers) {
           const opponentKey = myRole === 'host' ? 'guest' : 'host';
           if (data.answers[opponentKey] !== undefined && !opponentAnswered) {
+            console.log('Rəqib cavab verdi');
             opponentAnswered = true;
             checkBothAnswered();
           }
@@ -386,6 +388,7 @@
 
         // Restart sinxronizasiyası
         if (data.restartRequested && !opponentRestartRequested) {
+          console.log('Rəqib restart istədi');
           opponentRestartRequested = true;
           checkRestart();
         }
@@ -394,7 +397,10 @@
 
     function nextQuestion() {
       currentQuestionIndex++;
+      console.log('nextQuestion çağırıldı → yeni sual: ' + currentQuestionIndex);
+
       if (currentQuestionIndex >= questions.length) {
+        console.log('Oyun bitdi');
         showEndScreen();
         db.ref('rooms/' + roomId).update({ currentQuestion: -2 });
         return;
@@ -402,6 +408,10 @@
 
       db.ref('rooms/' + roomId).update({
         currentQuestion: currentQuestionIndex
+      }).then(() => {
+        console.log('Serverə yazıldı: currentQuestion = ' + currentQuestionIndex);
+      }).catch(err => {
+        console.error('Serverə yazma xətası: ', err);
       });
     }
 
