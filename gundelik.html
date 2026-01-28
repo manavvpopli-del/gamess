@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Online Sevgili Quiz</title>
+  <title>Sevgilini Nə Qədər Tanıyırsan? — Online</title>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
     body {
@@ -36,6 +36,7 @@
     button:hover { background: #ff1ab3; transform: scale(1.06); }
     #copyBtn { background: #00dd99; margin-left: 12px; }
     #copyBtn:hover { background: #00ffbb; }
+    #restartBtn { background: #00cc88; margin: 1.5rem; padding: 1rem 2rem; font-size: 1.6rem; }
     #game { display: none; width: 100%; height: 100%; flex-direction: column; justify-content: space-between; padding: 1.5rem; }
     #question { font-size: 2.4rem; margin: 1rem 0 1.5rem; text-align: center; line-height: 1.35; min-height: 100px; }
     #qEmoji { font-size: 5rem; margin-bottom: 0.8rem; }
@@ -52,7 +53,6 @@
     }
     .option:hover { background: #4400aa; transform: translateY(-6px); }
     .option.selected { border-color: #ffcc00; background: #003311; }
-    .option.correct { border-color: #00ff99; background: #002211; }
     #timer { font-size: 4.8rem; font-weight: bold; color: #ff3366; margin: 1rem; }
     #scores { font-size: 1.9rem; margin: 1.5rem 0; color: #33ffaa; }
     #end { 
@@ -61,31 +61,12 @@
       height: 100%; 
       flex-direction: column; 
       align-items: center; 
+      justify-content: center; 
       padding: 2rem; 
-      overflow-y: auto;
     }
-    #end h2 { font-size: 3.2rem; margin-bottom: 1.5rem; color: #ffdd44; }
-    #result { font-size: 2.2rem; margin-bottom: 2rem; text-align: center; }
-    #answersList {
-      width: 90%;
-      max-width: 900px;
-      background: rgba(20,0,50,0.7);
-      border-radius: 12px;
-      padding: 1.5rem;
-      font-size: 1.4rem;
-      line-height: 1.6;
-      overflow-y: auto;
-      max-height: 65vh;
-    }
-    #answersList div { 
-      margin: 1rem 0; 
-      padding: 1rem; 
-      background: rgba(40,0,80,0.5); 
-      border-radius: 10px; 
-    }
-    #answersList .qnum { font-weight: bold; color: #ff99ff; }
-    #answersList .correct { color: #00ff99; }
-    #answersList .wrong { color: #ff6666; }
+    #end h2 { font-size: 3.5rem; margin-bottom: 1.5rem; color: #ffdd44; }
+    #result { font-size: 2.4rem; margin-bottom: 1.5rem; text-align: center; }
+    #waiting { font-size: 1.8rem; color: #ffcc00; margin-top: 1rem; }
   </style>
 </head>
 <body>
@@ -109,8 +90,8 @@
   <div id="end">
     <h2>Oyun Bitdi!</h2>
     <div id="result"></div>
-    <div id="answersList"></div>
-    <button onclick="location.reload()" style="margin-top:2rem;">Yenidən Başla</button>
+    <button id="restartBtn" onclick="requestRestart()">Yenidən Başlat</button>
+    <div id="waiting"></div>
   </div>
 
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
@@ -126,7 +107,7 @@
     const scoresEl = document.getElementById('scores');
     const endDiv = document.getElementById('end');
     const resultEl = document.getElementById('result');
-    const answersList = document.getElementById('answersList');
+    const waitingEl = document.getElementById('waiting');
 
     let peer = null;
     let conn = null;
@@ -138,28 +119,30 @@
     let myScore = 0;
     let opponentScore = 0;
     let myAnswers = [];
+    let restartRequested = false;
+    let opponentRestartRequested = false;
 
     const questions = [
-      { q: "Sevgilinin ən sevdiyi 'seks' mövqeyi hansıdır?", options: ["Missionary", "Doggy", "Cowgirl", "69"], correct: 2, emoji: "🔥😈" },
-      { q: "Onun telefon kilid şifrəsi nədir?", options: ["Sənin adın", "1111", "Doğum tarixi", "Bilmirəm"], correct: 0, emoji: "🔒❤️" },
-      { q: "Ən çox hansı yerdə seks etmək istəyir?", options: ["Maşında", "Mətbəxdə", "Kinoda", "Meşədə"], correct: 1, emoji: "🍳🚗" },
-      { q: "Onun ən sevdiyi porno janrı hansıdır?", options: ["Amateur", "Lesbian", "MILF", "BDSM"], correct: 3, emoji: "🍆🎥" },
-      { q: "Sənin haqqında ən çox nəyi bəyənir (bədən)?", options: ["Dodaqlar", "Popo", "Sinə", "Əllər"], correct: 1, emoji: "🍑😏" },
-      { q: "Onun uşaqlıqda ən utandırıcı ləqəbi nə idi?", options: ["Şişko", "Ağlamaq", "Tənbəl", "Qorxaq"], correct: 0, emoji: "😳👶" },
-      { q: "Ən çox hansı fantaziyanı gizlədir?", options: ["Üçlük", "Rol oyunu", "Açıq havada", "Bağlanma"], correct: 2, emoji: "🌳🔗" },
-      { q: "Onun ən pis vərdişi nədir (seksdə)?", options: ["Çox tez bitirmək", "Danışmamaq", "Çox səs çıxarmaq", "Yorğunluq"], correct: 0, emoji: "😅💦" },
-      { q: "Sevgilin səni ilk dəfə nə vaxt öpmək istəyib?", options: ["İlk görüşdə", "2-ci görüşdə", "Mesajdan sonra", "Heç vaxt deməyib"], correct: 1, emoji: "💋📱" },
-      { q: "Onun ən sevdiyi orgazm səsi hansıdır?", options: ["Sənin adını çəkmək", "Uğultu", "Qışqırıq", "Susmaq"], correct: 2, emoji: "😩🔊" },
-      { q: "Ən çox hansı alt paltarını sevir sənə?", options: ["String", "Lace", "Heç nə geyinməmək", "Boxer"], correct: 0, emoji: "🩲😍" },
-      { q: "Onun gizli sevdiyi seks oyuncağı varmı?", options: ["Vibrator", "Plugs", "Handcuffs", "Yoxdur"], correct: 3, emoji: "🪢🔥" },
-      { q: "Səninlə ilk dəfə nə vaxt seks etmək istəyib?", options: ["İlk görüşdə", "1 həftə sonra", "1 ay sonra", "Evli olanda"], correct: 1, emoji: "⏳❤️" },
-      { q: "Onun ən çox qısqandığı şey nədir?", options: ["Keçmiş sevgililər", "Dostların", "Telefonun", "İşin"], correct: 0, emoji: "😠💔" },
-      { q: "Ən sevdiyi öpüş yeri haradır (bədən)?", options: ["Boyun", "Sinə", "Qulaq", "Dodaq"], correct: 0, emoji: "💋🧣" },
-      { q: "Onun ən pis breakup səbəbi nə olub?", options: ["Aldatma", "Məsafə", "Para", "Ailə"], correct: 0, emoji: "💔😢" },
-      { q: "Səninlə seksdə ən çox nəyi bəyənir?", options: ["Oral", "Sürətli", "Yavaş-romantik", "Sərt"], correct: 2, emoji: "🌹💦" },
-      { q: "Onun ən utandırıcı seks xəyali nədir?", options: ["Public place", "Ex ilə", "Mənim dostumla", "Heç deməyib"], correct: 0, emoji: "😳🏙️" },
-      { q: "Sevgilin səni nə qədər tez-tez düşünür (gün ərzində)?", options: ["Hər saat", "Yalnız gecə", "Yemək yeyəndə", "Heç vaxt"], correct: 0, emoji: "🧠❤️" },
-      { q: "Ən son nə vaxt sənə 'səni sevirəm' deyib?", options: ["Bu gün", "Dünən", "1 həftə əvvəl", "Unutub"], correct: 0, emoji: "💕🗓️" }
+      { q: "Sevgilinin ən sevdiyi 'seks' mövqeyi hansıdır?", options: ["Missionary", "Doggy", "Cowgirl", "69"], emoji: "🔥😈" },
+      { q: "Onun telefon kilid şifrəsi nədir?", options: ["Sənin adın", "1111", "Doğum tarixi", "Bilmirəm"], emoji: "🔒❤️" },
+      { q: "Ən çox hansı yerdə seks etmək istəyir?", options: ["Maşında", "Mətbəxdə", "Kinoda", "Meşədə"], emoji: "🍳🚗" },
+      { q: "Onun ən sevdiyi porno janrı hansıdır?", options: ["Amateur", "Lesbian", "MILF", "BDSM"], emoji: "🍆🎥" },
+      { q: "Sənin haqqında ən çox nəyi bəyənir (bədən)?", options: ["Dodaqlar", "Popo", "Sinə", "Əllər"], emoji: "🍑😏" },
+      { q: "Onun uşaqlıqda ən utandırıcı ləqəbi nə idi?", options: ["Şişko", "Ağlamaq", "Tənbəl", "Qorxaq"], emoji: "😳👶" },
+      { q: "Ən çox hansı fantaziyanı gizlədir?", options: ["Üçlük", "Rol oyunu", "Açıq havada", "Bağlanma"], emoji: "🌳🔗" },
+      { q: "Onun ən pis vərdişi nədir (seksdə)?", options: ["Çox tez bitirmək", "Danışmamaq", "Çox səs çıxarmaq", "Yorğunluq"], emoji: "😅💦" },
+      { q: "Sevgilin səni ilk dəfə nə vaxt öpmək istəyib?", options: ["İlk görüşdə", "2-ci görüşdə", "Mesajdan sonra", "Heç vaxt deməyib"], emoji: "💋📱" },
+      { q: "Onun ən sevdiyi orgazm səsi hansıdır?", options: ["Sənin adını çəkmək", "Uğultu", "Qışqırıq", "Susmaq"], emoji: "😩🔊" },
+      { q: "Ən çox hansı alt paltarını sevir sənə?", options: ["String", "Lace", "Heç nə geyinməmək", "Boxer"], emoji: "🩲😍" },
+      { q: "Onun gizli sevdiyi seks oyuncağı varmı?", options: ["Vibrator", "Plugs", "Handcuffs", "Yoxdur"], emoji: "🪢🔥" },
+      { q: "Səninlə ilk dəfə nə vaxt seks etmək istəyib?", options: ["İlk görüşdə", "1 həftə sonra", "1 ay sonra", "Evli olanda"], emoji: "⏳❤️" },
+      { q: "Onun ən çox qısqandığı şey nədir?", options: ["Keçmiş sevgililər", "Dostların", "Telefonun", "İşin"], emoji: "😠💔" },
+      { q: "Ən sevdiyi öpüş yeri haradır (bədən)?", options: ["Boyun", "Sinə", "Qulaq", "Dodaq"], emoji: "💋🧣" },
+      { q: "Onun ən pis breakup səbəbi nə olub?", options: ["Aldatma", "Məsafə", "Para", "Ailə"], emoji: "💔😢" },
+      { q: "Səninlə seksdə ən çox nəyi bəyənir?", options: ["Oral", "Sürətli", "Yavaş-romantik", "Sərt"], emoji: "🌹💦" },
+      { q: "Onun ən utandırıcı seks xəyali nədir?", options: ["Public place", "Ex ilə", "Mənim dostumla", "Heç deməyib"], emoji: "😳🏙️" },
+      { q: "Sevgilin səni nə qədər tez-tez düşünür (gün ərzində)?", options: ["Hər saat", "Yalnız gecə", "Yemək yeyəndə", "Heç vaxt"], emoji: "🧠❤️" },
+      { q: "Ən son nə vaxt sənə 'səni sevirəm' deyib?", options: ["Bu gün", "Dünən", "1 həftə əvvəl", "Unutub"], emoji: "💕🗓️" }
     ];
 
     function goFullscreen() {
@@ -178,9 +161,7 @@
         const copyBtn = document.createElement('button');
         copyBtn.id = 'copyBtn';
         copyBtn.textContent = 'Kopyala';
-        copyBtn.onclick = () => {
-          navigator.clipboard.writeText(myId).then(() => alert('ID kopyalandı!'));
-        };
+        copyBtn.onclick = () => navigator.clipboard.writeText(myId).then(() => alert('ID kopyalandı!'));
         status.appendChild(copyBtn);
         lobby.querySelector('button[onclick="createHost()"]').disabled = true;
       });
@@ -192,10 +173,7 @@
           lobby.style.display = 'none';
           gameDiv.style.display = 'flex';
           goFullscreen();
-          setTimeout(() => {
-            currentQuestionIndex = -1;
-            nextQuestion();  // Avtomatik başla
-          }, 800);  // Kiçik delay ki status görünsün
+          setTimeout(() => nextQuestion(), 800);
         });
         conn.on('data', handleData);
       });
@@ -223,14 +201,17 @@
         showQuestion();
       } else if (data.type === 'answer') {
         if (data.player !== myRole) {
-          opponentScore += data.correct ? 1 : 0;
+          opponentScore += 1;  // sadəcə cavab veribsə +1
           updateScores();
         }
       } else if (data.type === 'timeoutBoth') {
         if (currentQuestionIndex === data.index) {
-          timerEl.textContent = "VAQT BİTDİ – HƏR İKİSİ UDZUU!";
+          timerEl.textContent = "VAQT BİTDİ!";
           setTimeout(nextQuestion, 2200);
         }
+      } else if (data.type === 'restart') {
+        opponentRestartRequested = true;
+        checkRestart();
       }
     }
 
@@ -273,9 +254,7 @@
       if (timeLeft <= 0) {
         clearInterval(timerInterval);
         timerEl.textContent = "VAQT BİTDİ!";
-        if (myRole === 'host') {
-          conn.send({ type: 'timeoutBoth', index: currentQuestionIndex });
-        }
+        if (myRole === 'host') conn.send({ type: 'timeoutBoth', index: currentQuestionIndex });
         setTimeout(nextQuestion, 2200);
       }
     }
@@ -283,22 +262,11 @@
     function selectAnswer(index) {
       if (myAnswers[currentQuestionIndex] !== -1) return;
       myAnswers[currentQuestionIndex] = index;
-
-      const q = questions[currentQuestionIndex];
-      const isCorrect = index === q.correct;
-      if (isCorrect) myScore++;
-
+      myScore++;  // cavab verdiyi üçün +1 (düz/səhv yoxdur)
       updateScores();
-      conn.send({ type: 'answer', player: myRole, correct: isCorrect });
-      highlightOptions(index, q.correct);
-    }
-
-    function highlightOptions(myIdx, correctIdx) {
+      conn.send({ type: 'answer', player: myRole });
       const opts = optionsEl.children;
-      for (let i = 0; i < opts.length; i++) {
-        if (i === myIdx) opts[i].classList.add('selected');
-        if (i === correctIdx) opts[i].classList.add('correct');
-      }
+      for (let opt of opts) opt.classList.add('selected');  // sadəcə seçildiyini göstər
     }
 
     function updateScores() {
@@ -310,23 +278,35 @@
       gameDiv.style.display = 'none';
       endDiv.style.display = 'flex';
 
-      let msg = myScore > opponentScore ? "Sən uddun! 🔥" :
-                myScore < opponentScore ? "O səni yedi... 😏" : "Bərabər qaldınız! 😂";
-      resultEl.innerHTML = `${msg}<br><br>Sən: ${myScore} / ${questions.length}<br>O: ${opponentScore} / ${questions.length}`;
+      let msg = myScore > opponentScore ? "Sən daha çox tanıyırsan! 🔥" :
+                myScore < opponentScore ? "O səndən daha çox bilir... 😏" : "Eyni səviyyədəsiniz! 😂";
+      resultEl.innerHTML = `${msg}<br><br>Sən: ${myScore} cavab verdin<br>O: ${opponentScore} cavab verdi`;
+    }
 
-      answersList.innerHTML = '<h3 style="text-align:center; color:#ff99ff; margin-bottom:1rem;">Sənin cavabların:</h3>';
-      questions.forEach((q, i) => {
-        const div = document.createElement('div');
-        const yourAns = myAnswers[i] === -1 ? "Cavab vermədin" : q.options[myAnswers[i]];
-        const isCorrect = myAnswers[i] === q.correct;
+    function requestRestart() {
+      restartRequested = true;
+      if (myRole === 'host') {
+        conn.send({ type: 'restart' });
+      }
+      checkRestart();
+    }
 
-        div.innerHTML = `
-          <span class="qnum">${i+1}.</span> ${q.q}<br>
-          <strong>Düzgün cavab:</strong> <span class="correct">${q.options[q.correct]}</span><br>
-          <strong>Sənin cavabın:</strong> \( {isCorrect ? '<span class="correct">' : '<span class="wrong">'} \){yourAns}</span>
-        `;
-        answersList.appendChild(div);
-      });
+    function checkRestart() {
+      if (restartRequested && opponentRestartRequested) {
+        // Yenidən başla
+        myScore = 0;
+        opponentScore = 0;
+        myAnswers = [];
+        currentQuestionIndex = -1;
+        endDiv.style.display = 'none';
+        gameDiv.style.display = 'flex';
+        waitingEl.textContent = '';
+        nextQuestion();
+      } else {
+        waitingEl.textContent = opponentRestartRequested 
+          ? "Rəqib yenidən başlamağı istəyir... Sən də bas!" 
+          : "Yenidən başlamaq üçün rəqibin də basmasını gözləyirik...";
+      }
     }
 
     status.innerHTML = 'Host ol və ya dostunun ID-sini yazaraq qoşul!';
