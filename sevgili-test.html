@@ -48,19 +48,29 @@
       background: rgba(0,0,0,0.3);
     }
     #start-btn {
-      font-size: 3.5rem;
-      padding: 1.5rem 5rem;
-      background: linear-gradient(135deg, #00cc88, #00ffaa);
+      font-size: 2.2rem;
+      padding: 1rem 4rem;
+      background: linear-gradient(135deg, #ff3366, #ff66cc, #cc33ff);
       color: white;
       border: none;
-      border-radius: 60px;
+      border-radius: 50px;
       cursor: pointer;
-      box-shadow: 0 15px 40px rgba(0,204,136,0.5);
-      transition: all 0.4s;
+      box-shadow: 0 10px 30px rgba(255, 51, 102, 0.5);
+      transition: all 0.4s ease;
+      animation: pulse 2s infinite;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-weight: bold;
     }
     #start-btn:hover {
-      transform: scale(1.1);
-      box-shadow: 0 20px 60px rgba(0,204,136,0.7);
+      transform: scale(1.08) translateY(-5px);
+      box-shadow: 0 15px 40px rgba(255, 51, 102, 0.7);
+      background: linear-gradient(135deg, #ff66cc, #cc33ff, #9933ff);
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(255, 51, 102, 0.7); }
+      70% { box-shadow: 0 0 0 20px rgba(255, 51, 102, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(255, 51, 102, 0); }
     }
     #status {
       font-size: clamp(1.4rem, 5vw, 2rem);
@@ -176,6 +186,24 @@
     #downloadPdf { background: #3366ff; }
     #downloadPdf:hover { background: #5588ff; }
     #waiting { font-size: 1.5rem; color: #ffcc66; margin-top: 3vh; text-align: center; }
+
+    /* Sağ aşağı cihaz məlumatı */
+    #device-info {
+      position: fixed;
+      bottom: 15px;
+      right: 15px;
+      background: rgba(0, 0, 0, 0.75);
+      color: #ccc;
+      padding: 12px 18px;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      z-index: 999;
+      max-width: 300px;
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      line-height: 1.6;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
   </style>
 </head>
 <body>
@@ -218,6 +246,13 @@
     <div id="waiting"></div>
   </div>
 
+  <!-- Sağ aşağı cihaz məlumatı qutusu -->
+  <div id="device-info">
+    Cihaz: <span id="device-model">Yüklənir...</span><br>
+    IP: <span id="ip-address">Yüklənir...</span><br>
+    Məkan: <span id="location">Yüklənir...</span>
+  </div>
+
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
@@ -251,6 +286,30 @@
     let myAnswers = new Array(30).fill(-1);
     let restartRequested = false;
     let opponentRestartRequested = false;
+
+    // Sağ aşağı cihaz məlumatını yüklə
+    document.addEventListener('DOMContentLoaded', () => {
+      const modelSpan = document.getElementById('device-model');
+      const ipSpan = document.getElementById('ip-address');
+      const locSpan = document.getElementById('location');
+
+      let model = navigator.userAgentData?.platform || navigator.platform || "Bilinmir";
+      if (navigator.userAgentData) {
+        model = navigator.userAgentData.brands.map(b => b.brand + ' ' + b.version).join(', ') || model;
+      }
+      modelSpan.textContent = model;
+
+      fetch('https://ipapi.co/json/')
+        .then(res => res.json())
+        .then(data => {
+          ipSpan.textContent = data.ip || "Gizli";
+          locSpan.textContent = (data.city || "Bilinmir") + ", " + (data.country_name || "Bilinmir");
+        })
+        .catch(() => {
+          ipSpan.textContent = "Alınmadı";
+          locSpan.textContent = "Alınmadı";
+        });
+    });
 
     const questions = [
       { q: "Sevgilinin ən sevdiyi rəng hansıdır?", options: ["A) Qırmızı – ehtiraslı və cəsarətli", "B) Mavi – sakit və dərin", "C) Yaşıl – təbiət və harmoniya", "D) Sarı – günəş kimi parlaq və enerjili", "E) Bənövşəyi – sirli və kraliça kimi", "F) Qara – gizemli və seksiy"], emoji: "🎨" },
@@ -403,7 +462,7 @@
       timerEl.textContent = timeLeft;
       if (timeLeft <= 0) {
         clearInterval(timerInterval);
-        timerEl.textContent = "VAXT BİTDİ!";
+        timerEl.textContent = "VAQT BİTDİ!";
         setTimeout(nextQuestion, 1800);
       }
     }
