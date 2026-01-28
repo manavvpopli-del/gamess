@@ -169,8 +169,8 @@
   <button id="start-btn">Davam et</button>
 
   <div id="lobby">
-    <button onclick="createHost()">Host ol (ID yarat)</button>
-    <input id="peerIdInput" placeholder="Dostunun ID-sini yaz" />
+    <button onclick="createHost()">KOD Yarat</button>
+    <input id="peerIdInput" placeholder="Dostunun Kodunu Yaz" />
     <button onclick="joinGame()">Qoşul</button>
   </div>
 
@@ -229,7 +229,7 @@
       { q: "Ən sevdiyi yemək hansıdır?", options: ["A) Plov – anasının plovu əvəzedilməz", "B) Pizza – gecələr ən yaxşı dostu", "C) Dolma – ailə yeməyi, emosional", "D) Lavaş – hər şeyə yaraşır", "E) Kabab – odun qoxusu ilə", "F) Sushi – zövqlü və ekzotik"], emoji: "🍲" },
       { q: "Səhər tezdən ilk nə edir?", options: ["A) Telefonuna baxır – ilk iş sosial media", "B) Kofe/çay içir – günə onsuz başlamaz", "C) İdman edir – enerjini boşaldır", "D) Yenidən yatır – səhər onun düşmənidir", "E) Duş alır – təzəlik vacibdir", "F) Kitab oxuyur – günə intellektlə başlayır"], emoji: "☕" },
       { q: "Ən çox sevdiyi musiqi janrı hansıdır?", options: ["A) Pop – hər yerdə oxuyur", "B) Rap – sözlərə vurulub", "C) Rock – emosiyanı boşaldır", "D) Klassik – ruhu sakitləşdirir", "E) Xalq musiqisi – köklərə bağlıdır", "F) Elektronika – gecələrə uyğundur"], emoji: "🎵" },
-      { q: "Uşaqlıq ləqəbi nə olub?", options: ["A) Balaca – həmişə kiçik qalırdı", "B) Şirin – hamı qucaqlayırdı", "C) Tülkü – hiyləgər idi", "D) Şişko – yumşaq və sevimli", "E) Yaramaz – evdə başı-başına qalırdı", "F) Heç ləqəbi olmayıb – ciddi uşaq idi"], emoji: "😄" },
+      { q: "Uşaqlıq ləqəbi nə olub?", options: ["A) Balaca – həmişə kiçik qalırdı", "B) Şirin – hamı qucaqlayırdı", "C) Tülkü – hiyləgər idi", "D) Özünəməxsus ləqəbi var idi", "E) Yaramaz – evdə başı-başına qalırdı", "F) Heç ləqəbi olmayıb – ciddi uşaq idi"], emoji: "😄" },
       { q: "Ən böyük qorxusu nədir?", options: ["A) Hündürlük – damdan aşağı baxa bilmir", "B) Qaranlıq – işıq sönəndə panika olur", "C) Hörümçək – görəndə qışqırır", "D) Tək qalmaq – yalnılıqdan qorxur", "E) İynə – həkimə getməkdən yayınır", "F) Dəniz – dərin sudan qorxur"], emoji: "😱" },
       { q: "Ən sevdiyi film janrı hansıdır?", options: ["A) Komediya – gülüş vacibdir", "B) Romantika – sevgi hekayələrinə inanır", "C) Dram – emosional filmləri sevir", "D) Aksiya – adrenalin vurur", "E) Fantastika – xəyallara qaçır", "F) Dəhşət – qorxunu sevir"], emoji: "🎬" },
       { q: "Ən çox sevdiyi mövsüm hansıdır?", options: ["A) Yay – dəniz, günəş, istirahət", "B) Payız – yarpaqlar və romantika", "C) Qış – qar və isti yorğan", "D) Yaz – təzəlik və çiçəklər"], emoji: "🍂" },
@@ -374,7 +374,7 @@
       timerEl.textContent = timeLeft;
       if (timeLeft <= 0) {
         clearInterval(timerInterval);
-        timerEl.textContent = "VAQT BİTDİ!";
+        timerEl.textContent = "VAXT BİTDİ!";
         setTimeout(nextQuestion, 1800);
       }
     }
