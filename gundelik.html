@@ -18,7 +18,7 @@
       align-items: center;
       user-select: none;
     }
-    #status { font-size: 1.6rem; margin: 1.5rem; color: #ffcc00; text-align: center; max-width: 90%; }
+    #status { font-size: 1.7rem; margin: 1.5rem; color: #ffcc00; text-align: center; max-width: 90%; }
     #lobby { text-align: center; }
     input, button {
       font-size: 1.4rem;
@@ -36,15 +36,8 @@
     button:hover { background: #ff1ab3; transform: scale(1.06); }
     #copyBtn { background: #00dd99; margin-left: 12px; }
     #copyBtn:hover { background: #00ffbb; }
-    #nameInput { width: 340px; }
     #game { display: none; width: 100%; height: 100%; flex-direction: column; justify-content: space-between; padding: 1.5rem; }
-    #question {
-      font-size: 2.4rem;
-      margin: 1rem 0 1.5rem;
-      text-align: center;
-      line-height: 1.35;
-      min-height: 100px;
-    }
+    #question { font-size: 2.4rem; margin: 1rem 0 1.5rem; text-align: center; line-height: 1.35; min-height: 100px; }
     #qEmoji { font-size: 5rem; margin-bottom: 0.8rem; }
     .options { display: grid; grid-template-columns: 1fr 1fr; gap: 1.3rem; max-width: 1000px; width: 92%; margin: 0 auto; }
     .option {
@@ -100,7 +93,6 @@
   <div id="status">Hazırlanır...</div>
 
   <div id="lobby">
-    <input id="nameInput" placeholder="Öz adını yaz (məcburidir)" /><br><br>
     <button onclick="createHost()">Host ol (ID yarat)</button><br><br>
     <input id="peerIdInput" placeholder="Dostunun ID-sini yaz" style="width:340px;"/>
     <button onclick="joinGame()">Qoşul</button>
@@ -111,7 +103,7 @@
     <div id="qEmoji"></div>
     <div id="question"></div>
     <div class="options" id="options"></div>
-    <div id="scores">Sən (<span id="myName"></span>): 0  –  <span id="oppName">Rəqib</span>: 0</div>
+    <div id="scores">Sən: 0  –  O: 0</div>
   </div>
 
   <div id="end">
@@ -132,8 +124,6 @@
     const optionsEl = document.getElementById('options');
     const timerEl = document.getElementById('timer');
     const scoresEl = document.getElementById('scores');
-    const myNameSpan = document.getElementById('myName');
-    const oppNameSpan = document.getElementById('oppName');
     const endDiv = document.getElementById('end');
     const resultEl = document.getElementById('result');
     const answersList = document.getElementById('answersList');
@@ -142,8 +132,6 @@
     let conn = null;
     let myRole = null;
     let myId = '';
-    let myName = '';
-    let opponentName = 'Rəqib';
     let currentQuestionIndex = -1;
     let timerInterval = null;
     let timeLeft = 15;
@@ -181,24 +169,12 @@
       else if (elem.msRequestFullscreen) elem.msRequestFullscreen();
     }
 
-    function getMyName() {
-      const name = document.getElementById('nameInput').value.trim();
-      if (!name) {
-        alert("Adını yazmadan davam edə bilməzsən!");
-        return null;
-      }
-      return name;
-    }
-
     function createHost() {
-      myName = getMyName();
-      if (!myName) return;
-
       peer = new Peer();
       peer.on('open', id => {
         myId = id;
         myRole = 'host';
-        status.innerHTML = `Host ID: <strong>${id}</strong><br>Dostuna göndər!<br>Sənin adın: ${myName}`;
+        status.innerHTML = `Host ID: <strong>${id}</strong><br>Dostuna göndər!`;
         const copyBtn = document.createElement('button');
         copyBtn.id = 'copyBtn';
         copyBtn.textContent = 'Kopyala';
@@ -212,20 +188,20 @@
       peer.on('connection', connection => {
         conn = connection;
         conn.on('open', () => {
-          conn.send({ type: 'name', name: myName });
-          status.innerHTML = `Bağlantı quruldu! Rəqibin adı: ${opponentName}<br>Oyun başlayır...`;
+          status.innerHTML = 'Bağlantı quruldu! Oyun başlayır...';
+          lobby.style.display = 'none';
+          gameDiv.style.display = 'flex';
           goFullscreen();
-          currentQuestionIndex = -1;
-          nextQuestion();
+          setTimeout(() => {
+            currentQuestionIndex = -1;
+            nextQuestion();  // Avtomatik başla
+          }, 800);  // Kiçik delay ki status görünsün
         });
         conn.on('data', handleData);
       });
     }
 
     function joinGame() {
-      myName = getMyName();
-      if (!myName) return;
-
       const hostId = document.getElementById('peerIdInput').value.trim();
       if (!hostId) return alert('ID yaz!');
 
@@ -233,57 +209,35 @@
       peer.on('open', () => {
         conn = peer.connect(hostId);
         conn.on('open', () => {
-          conn.send({ type: 'name', name: myName });
-          status.innerHTML = 'Qoşuldun! Gözlə...';
+          status.innerHTML = 'Qoşuldun! Oyun başlayır...';
           lobby.style.display = 'none';
+          gameDiv.style.display = 'flex';
         });
         conn.on('data', handleData);
       });
     }
 
     function handleData(data) {
-      if (data.type === 'name') {
-        opponentName = data.name;
-        oppNameSpan.textContent = opponentName;
-        if (myRole === 'host') {
-          status.innerHTML = `Bağlantı quruldu! Rəqibin adı: ${opponentName}<br>Oyun başlayır...`;
-        } else {
-          status.innerHTML = `Qoşuldun! Rəqibin adı: ${opponentName}<br>Oyun başlayır...`;
-        }
-      }
-      else if (data.type === 'next') {
+      if (data.type === 'next') {
         currentQuestionIndex = data.index;
         showQuestion();
-      }
-      else if (data.type === 'answer') {
+      } else if (data.type === 'answer') {
         if (data.player !== myRole) {
           opponentScore += data.correct ? 1 : 0;
           updateScores();
         }
-      }
-      else if (data.type === 'timeoutBoth') {
+      } else if (data.type === 'timeoutBoth') {
         if (currentQuestionIndex === data.index) {
           timerEl.textContent = "VAQT BİTDİ – HƏR İKİSİ UDZUU!";
           setTimeout(nextQuestion, 2200);
         }
-      }
-      else if (data.type === 'finalMyAnswers') {
-        // Guest-dən gələn cavablar (host üçün)
-        showEndScreen(data.answers);
       }
     }
 
     function nextQuestion() {
       currentQuestionIndex++;
       if (currentQuestionIndex >= questions.length) {
-        if (myRole === 'host') {
-          // Host guest-dən cavabları istəyir
-          conn.send({ type: 'requestAnswers' });
-        } else {
-          // Guest host-a cavablarını göndərir
-          conn.send({ type: 'finalMyAnswers', answers: myAnswers });
-        }
-        showEndScreen(myAnswers); // Öz cavablarını göstər
+        showEndScreen();
         return;
       }
 
@@ -319,9 +273,6 @@
       if (timeLeft <= 0) {
         clearInterval(timerInterval);
         timerEl.textContent = "VAQT BİTDİ!";
-        if (myAnswers[currentQuestionIndex] === -1) {
-          // Cavab verməyibsə 0
-        }
         if (myRole === 'host') {
           conn.send({ type: 'timeoutBoth', index: currentQuestionIndex });
         }
@@ -351,23 +302,23 @@
     }
 
     function updateScores() {
-      scoresEl.innerHTML = `Sən (<span style="color:#ff99ff">${myName}</span>): \( {myScore}  –  <span style="color:#ff99ff"> \){opponentName}</span>: ${opponentScore}`;
+      scoresEl.textContent = `Sən: ${myScore}  –  O: ${opponentScore}`;
     }
 
-    function showEndScreen(answers = myAnswers) {
+    function showEndScreen() {
       clearInterval(timerInterval);
       gameDiv.style.display = 'none';
       endDiv.style.display = 'flex';
 
       let msg = myScore > opponentScore ? "Sən uddun! 🔥" :
-                myScore < opponentScore ? "O səni yedi... 😏" : "Bərabər – eyni səviyyədəsiniz! 😂";
-      resultEl.innerHTML = `\( {msg}<br><br>Sən ( \){myName}): ${myScore} / \( {questions.length}<br> \){opponentName}: ${opponentScore} / ${questions.length}`;
+                myScore < opponentScore ? "O səni yedi... 😏" : "Bərabər qaldınız! 😂";
+      resultEl.innerHTML = `${msg}<br><br>Sən: ${myScore} / ${questions.length}<br>O: ${opponentScore} / ${questions.length}`;
 
       answersList.innerHTML = '<h3 style="text-align:center; color:#ff99ff; margin-bottom:1rem;">Sənin cavabların:</h3>';
       questions.forEach((q, i) => {
         const div = document.createElement('div');
-        const yourAns = answers[i] === -1 ? "Cavab vermədin" : q.options[answers[i]];
-        const isCorrect = answers[i] === q.correct;
+        const yourAns = myAnswers[i] === -1 ? "Cavab vermədin" : q.options[myAnswers[i]];
+        const isCorrect = myAnswers[i] === q.correct;
 
         div.innerHTML = `
           <span class="qnum">${i+1}.</span> ${q.q}<br>
@@ -378,7 +329,7 @@
       });
     }
 
-    status.innerHTML = 'Adını yaz, sonra Host ol və ya ID ilə qoşul!';
+    status.innerHTML = 'Host ol və ya dostunun ID-sini yazaraq qoşul!';
   </script>
 </body>
 </html>
