@@ -11,33 +11,33 @@
       background: linear-gradient(135deg, #0d001a, #220033);
       color: #f0e0ff;
       min-height: 100vh;
-      padding: 2vh 4vw;
+      padding: 3vh 5vw;
       display: flex;
       flex-direction: column;
       align-items: center;
     }
     h1 { 
-      font-size: clamp(2rem, 6vw, 3.2rem); 
-      margin: 3vh 0 2vh; 
+      font-size: clamp(2.2rem, 7vw, 3.5rem); 
+      margin: 4vh 0 3vh; 
       color: #ff66cc; 
-      text-shadow: 0 0 12px #ff66cc80; 
+      text-shadow: 0 0 15px #ff66cc80; 
     }
     #status {
-      font-size: clamp(1.3rem, 4vw, 1.8rem);
-      margin: 2vh 0 4vh;
+      font-size: clamp(1.4rem, 5vw, 2rem);
+      margin: 3vh 0 5vh;
       color: #ffcc66;
       text-align: center;
       max-width: 90%;
     }
-    #lobby { text-align: center; width: 100%; max-width: 500px; }
+    #lobby { text-align: center; width: 100%; max-width: 520px; }
     input, button {
-      font-size: 1.3rem;
-      padding: 0.9rem 1.8rem;
-      margin: 1rem 0.5rem;
+      font-size: 1.4rem;
+      padding: 1rem 2rem;
+      margin: 1.2rem 0.6rem;
       border: none;
-      border-radius: 12px;
+      border-radius: 14px;
       width: 100%;
-      max-width: 380px;
+      max-width: 400px;
     }
     button {
       background: #ff33cc;
@@ -45,93 +45,93 @@
       cursor: pointer;
       transition: all 0.3s;
     }
-    button:hover { background: #ff1ab3; transform: translateY(-3px); }
+    button:hover { background: #ff1ab3; transform: translateY(-4px); }
     #copyBtn { background: #00cc88; }
     #copyBtn:hover { background: #00ffaa; }
 
     #game {
       display: none;
       width: 100%;
-      max-width: 1000px;
+      max-width: 1100px;
       flex-direction: column;
       align-items: center;
-      padding: 2vh 0;
+      padding: 3vh 0;
     }
     #timer {
-      font-size: clamp(4rem, 12vw, 6rem);
+      font-size: clamp(5rem, 14vw, 7rem);
       font-weight: bold;
       color: #ff3366;
-      margin: 2vh 0;
+      margin: 3vh 0;
     }
-    #qEmoji { font-size: clamp(5rem, 15vw, 8rem); margin: 2vh 0; }
+    #qEmoji { font-size: clamp(6rem, 18vw, 9rem); margin: 3vh 0; }
     #question {
-      font-size: clamp(1.6rem, 5vw, 2.4rem);
+      font-size: clamp(1.8rem, 6vw, 2.8rem);
       text-align: center;
-      line-height: 1.4;
-      margin: 3vh 0 5vh;
+      line-height: 1.45;
+      margin: 4vh 0 6vh;
       max-width: 90%;
     }
     .options {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 2vh;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2.5vh;
       width: 100%;
-      max-width: 900px;
+      max-width: 1000px;
     }
     .option {
-      background: rgba(50,0,100,0.7);
-      padding: 2.5vh 4vw;
-      border-radius: 16px;
-      font-size: clamp(1.2rem, 4vw, 1.6rem);
+      background: rgba(60,0,110,0.75);
+      padding: 3vh 5vw;
+      border-radius: 18px;
+      font-size: clamp(1.3rem, 4.5vw, 1.8rem);
       cursor: pointer;
-      transition: all 0.3s ease;
+      transition: all 0.35s ease;
       border: 3px solid transparent;
       text-align: center;
-      backdrop-filter: blur(4px);
+      backdrop-filter: blur(5px);
     }
     .option:hover {
-      background: rgba(90,0,150,0.9);
-      transform: translateY(-6px);
+      background: rgba(100,0,160,0.9);
+      transform: translateY(-8px);
       border-color: #ff99ff;
     }
     .option.selected {
       border-color: #00ffcc;
-      background: rgba(0,70,50,0.6);
+      background: rgba(0,80,60,0.65);
     }
     #scores {
-      font-size: clamp(1.5rem, 5vw, 2rem);
-      margin: 5vh 0 3vh;
+      font-size: clamp(1.7rem, 5.5vw, 2.3rem);
+      margin: 6vh 0 4vh;
       color: #33ffcc;
     }
 
     #end {
       display: none;
       width: 100%;
-      max-width: 900px;
+      max-width: 1000px;
       flex-direction: column;
       align-items: center;
-      padding: 4vh 0;
+      padding: 5vh 0;
     }
-    #end h2 { font-size: clamp(2.5rem, 7vw, 3.8rem); color: #ffdd44; margin-bottom: 3vh; }
-    #result { font-size: clamp(1.6rem, 5vw, 2.2rem); text-align: center; margin-bottom: 4vh; }
+    #end h2 { font-size: clamp(3rem, 8vw, 4.2rem); color: #ffdd44; margin-bottom: 4vh; }
+    #result { font-size: clamp(1.8rem, 5.5vw, 2.4rem); text-align: center; margin-bottom: 5vh; }
     #answersList {
       width: 100%;
-      background: rgba(30,0,60,0.6);
-      border-radius: 16px;
-      padding: 3vh;
-      font-size: clamp(1.1rem, 3.5vw, 1.4rem);
-      line-height: 1.7;
-      margin-bottom: 4vh;
+      background: rgba(40,0,70,0.65);
+      border-radius: 18px;
+      padding: 4vh;
+      font-size: clamp(1.2rem, 4vw, 1.5rem);
+      line-height: 1.8;
+      margin-bottom: 5vh;
     }
-    #answersList div { margin: 2vh 0; padding: 2vh; background: rgba(50,0,90,0.5); border-radius: 12px; }
+    #answersList div { margin: 2.5vh 0; padding: 2.5vh; background: rgba(60,0,100,0.55); border-radius: 14px; }
     button#downloadPdf, button#restartBtn {
-      font-size: 1.4rem;
-      padding: 1rem 2.5rem;
-      margin: 1.5vh;
+      font-size: 1.5rem;
+      padding: 1.2rem 3rem;
+      margin: 2vh;
     }
     #downloadPdf { background: #3366ff; }
     #downloadPdf:hover { background: #5588ff; }
-    #waiting { font-size: 1.4rem; color: #ffcc66; margin-top: 2vh; text-align: center; }
+    #waiting { font-size: 1.5rem; color: #ffcc66; margin-top: 3vh; text-align: center; }
   </style>
 </head>
 <body>
@@ -196,10 +196,27 @@
     let restartRequested = false;
     let opponentRestartRequested = false;
 
-    const questions = [ /* əvvəlki 20 sual eynidir, yer tutmasın deyə burda qısaldıram */ 
-      { q: "Sevgilinin ən sevdiyi 'seks' mövqeyi hansıdır?", options: ["Missionary", "Doggy", "Cowgirl", "69"], emoji: "🔥😈" },
-      // ... qalan 19 sual da eynidir
-      { q: "Ən son nə vaxt sənə 'səni sevirəm' deyib?", options: ["Bu gün", "Dünən", "1 həftə əvvəl", "Unutub"], emoji: "💕🗓️" }
+    const questions = [
+      { q: "Sevgilinin ən sevdiyi rəng hansıdır?", options: ["Qırmızı", "Mavi", "Yaşıl", "Sarı"], emoji: "🎨" },
+      { q: "Uşaqlıqda ən çox sevdiyi oyuncaq nə idi?", options: ["Ayı balası", "Maşın", "Kukla", "Lego"], emoji: "🧸" },
+      { q: "Ən sevdiyi yemək hansıdır?", options: ["Plov", "Pizza", "Dolma", "Şirniyyat"], emoji: "🍲" },
+      { q: "Səhər tezdən ilk nə edir?", options: ["Telefonuna baxır", "Kofe/çay içir", "İdman edir", "Yenidən yatır"], emoji: "☕" },
+      { q: "Ən çox sevdiyi musiqi janrı hansıdır?", options: ["Pop", "Rap", "Rock", "Klassik"], emoji: "🎵" },
+      { q: "Uşaqlıq ləqəbi nə olub?", options: ["Balaca", "Şirin", "Tülkü", "Heç ləqəbi olmayıb"], emoji: "😄" },
+      { q: "Ən böyük qorxusu nədir?", options: ["Hündürlük", "Qaranlıq", "Hörümçək", "Tək qalmaq"], emoji: "😱" },
+      { q: "Ən sevdiyi film janrı hansıdır?", options: ["Komediya", "Romantika", "Dram", "Aksiya"], emoji: "🎬" },
+      { q: "Ən çox sevdiyi mövsüm hansıdır?", options: ["Yay", "Payız", "Qış", "Yaz"], emoji: "🍂" },
+      { q: "Telefonunun arxa fonunda nə var?", options: ["Selfi", "Mənzərə", "Heyvan", "Qara ekran"], emoji: "📱" },
+      { q: "Ən sevdiyi heyvan hansıdır?", options: ["Pişik", "İt", "Quş", "At"], emoji: "🐱" },
+      { q: "Ən çox sevdiyi içki nədir?", options: ["Kola", "Çay", "Kofe", "Şirə"], emoji: "🥤" },
+      { q: "Uşaqlıqda hansı idman növü ilə məşğul olub?", options: ["Futbol", "Üzgüçülük", "Rəqs", "Heç biri"], emoji: "⚽" },
+      { q: "Ən sevdiyi tətil yeri haradır?", options: ["Dəniz", "Dağ", "Şəhər", "Kənd"], emoji: "🏖️" },
+      { q: "Ən böyük xəyalı nədir?", options: ["Səyahət", "Zənginlik", "Ailə qurmaq", "Şöhrət"], emoji: "🌟" },
+      { q: "Ən pis vərdişi nədir?", options: ["Gec yatmaq", "Çox telefon istifadəsi", "Unutqanlıq", "Dırnaq yemək"], emoji: "😅" },
+      { q: "Ən çox sevdiyi emoji hansıdır?", options: ["😂", "❤️", "🔥", "😈"], emoji: "😏" },
+      { q: "Səhər yuxudan oyananda ilk nə düşünür?", options: ["Kofe", "Telefon", "Sən", "Yenidən yatmaq"], emoji: "🛌" },
+      { q: "Ən sevdiyi zarafat növü hansıdır?", options: ["Qara yumor", "Sarkazm", "Klassik", "Zarafat sevmir"], emoji: "🤡" },
+      { q: "Onun ideal həftəsonu necə keçir?", options: ["Evde film izləmək", "Çölə çıxmaq", "Yuxu çəkmək", "Dostlarla görüş"], emoji: "🛋️" }
     ];
 
     function createHost() {
@@ -296,7 +313,7 @@
     }
 
     function updateTimer() {
-      if (myAnswered && opponentAnswered) return; // ← əsas düzəliş burdadır
+      if (myAnswered && opponentAnswered) return;
       timeLeft--;
       timerEl.textContent = timeLeft;
       if (timeLeft <= 0) {
