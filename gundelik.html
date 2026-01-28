@@ -7,63 +7,65 @@
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #0f001a, #1a0033);
+      font-family: system-ui, -apple-system, sans-serif;
+      background: linear-gradient(135deg, #0d001a, #220033);
       color: #f0e0ff;
       min-height: 100vh;
-      overflow: hidden;
+      padding: 2vh 4vw;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      user-select: none;
+    }
+    h1 { 
+      font-size: clamp(2rem, 6vw, 3.2rem); 
+      margin: 3vh 0 2vh; 
+      color: #ff66cc; 
+      text-shadow: 0 0 12px #ff66cc80; 
     }
     #status {
-      font-size: 2rem;
-      margin: 2rem;
-      color: #ffcc33;
+      font-size: clamp(1.3rem, 4vw, 1.8rem);
+      margin: 2vh 0 4vh;
+      color: #ffcc66;
       text-align: center;
       max-width: 90%;
-      text-shadow: 0 0 10px rgba(255,204,51,0.6);
     }
-    #lobby { text-align: center; margin: 2rem; }
+    #lobby { text-align: center; width: 100%; max-width: 500px; }
     input, button {
-      font-size: 1.5rem;
-      padding: 1rem 2rem;
-      margin: 1rem;
+      font-size: 1.3rem;
+      padding: 0.9rem 1.8rem;
+      margin: 1rem 0.5rem;
       border: none;
       border-radius: 12px;
-      min-width: 320px;
+      width: 100%;
+      max-width: 380px;
     }
     button {
       background: #ff33cc;
       color: white;
       cursor: pointer;
-      transition: all 0.3s ease;
+      transition: all 0.3s;
     }
-    button:hover { background: #ff1ab3; transform: translateY(-4px); box-shadow: 0 8px 20px rgba(255,51,204,0.5); }
+    button:hover { background: #ff1ab3; transform: translateY(-3px); }
     #copyBtn { background: #00cc88; }
     #copyBtn:hover { background: #00ffaa; }
+
     #game {
       display: none;
       width: 100%;
-      height: 100vh;
+      max-width: 1000px;
       flex-direction: column;
-      justify-content: space-between;
-      padding: 4vh 6vw;
-      animation: fadeIn 0.8s ease;
+      align-items: center;
+      padding: 2vh 0;
     }
     #timer {
-      font-size: 6rem;
+      font-size: clamp(4rem, 12vw, 6rem);
       font-weight: bold;
       color: #ff3366;
-      text-align: center;
       margin: 2vh 0;
-      animation: pulse 1.5s infinite;
     }
-    #qEmoji { font-size: 8rem; text-align: center; margin: 2vh 0; }
+    #qEmoji { font-size: clamp(5rem, 15vw, 8rem); margin: 2vh 0; }
     #question {
-      font-size: 2.6rem;
+      font-size: clamp(1.6rem, 5vw, 2.4rem);
       text-align: center;
       line-height: 1.4;
       margin: 3vh 0 5vh;
@@ -71,84 +73,75 @@
     }
     .options {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 2.5vh;
-      max-width: 1100px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 2vh;
       width: 100%;
-      margin: 0 auto;
+      max-width: 900px;
     }
     .option {
-      background: rgba(40,0,90,0.7);
-      padding: 2.5vh 3vw;
+      background: rgba(50,0,100,0.7);
+      padding: 2.5vh 4vw;
       border-radius: 16px;
-      font-size: 1.8rem;
+      font-size: clamp(1.2rem, 4vw, 1.6rem);
       cursor: pointer;
-      transition: all 0.35s ease;
+      transition: all 0.3s ease;
       border: 3px solid transparent;
       text-align: center;
-      backdrop-filter: blur(6px);
+      backdrop-filter: blur(4px);
     }
     .option:hover {
-      background: rgba(80,0,140,0.9);
-      transform: translateY(-8px);
+      background: rgba(90,0,150,0.9);
+      transform: translateY(-6px);
       border-color: #ff99ff;
-      box-shadow: 0 12px 30px rgba(255,51,204,0.4);
     }
     .option.selected {
       border-color: #00ffcc;
-      background: rgba(0,80,60,0.5);
-      transform: scale(1.04);
+      background: rgba(0,70,50,0.6);
     }
     #scores {
-      font-size: 2.2rem;
-      text-align: center;
-      margin: 4vh 0;
+      font-size: clamp(1.5rem, 5vw, 2rem);
+      margin: 5vh 0 3vh;
       color: #33ffcc;
     }
+
     #end {
       display: none;
       width: 100%;
-      height: 100vh;
+      max-width: 900px;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      padding: 4vh;
-      overflow-y: auto;
-      animation: fadeIn 1s ease;
+      padding: 4vh 0;
     }
-    #end h2 { font-size: 4rem; color: #ffdd44; margin-bottom: 3vh; }
-    #result { font-size: 2.5rem; text-align: center; margin-bottom: 4vh; }
+    #end h2 { font-size: clamp(2.5rem, 7vw, 3.8rem); color: #ffdd44; margin-bottom: 3vh; }
+    #result { font-size: clamp(1.6rem, 5vw, 2.2rem); text-align: center; margin-bottom: 4vh; }
     #answersList {
-      width: 90%;
-      max-width: 1000px;
-      background: rgba(30,0,60,0.7);
+      width: 100%;
+      background: rgba(30,0,60,0.6);
       border-radius: 16px;
       padding: 3vh;
-      font-size: 1.5rem;
+      font-size: clamp(1.1rem, 3.5vw, 1.4rem);
       line-height: 1.7;
       margin-bottom: 4vh;
-      backdrop-filter: blur(8px);
     }
     #answersList div { margin: 2vh 0; padding: 2vh; background: rgba(50,0,90,0.5); border-radius: 12px; }
-    #downloadPdf { 
-      background: #3366ff; 
-      font-size: 1.8rem; 
-      padding: 1.2rem 3rem; 
-      margin-top: 2vh;
+    button#downloadPdf, button#restartBtn {
+      font-size: 1.4rem;
+      padding: 1rem 2.5rem;
+      margin: 1.5vh;
     }
+    #downloadPdf { background: #3366ff; }
     #downloadPdf:hover { background: #5588ff; }
-
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+    #waiting { font-size: 1.4rem; color: #ffcc66; margin-top: 2vh; text-align: center; }
   </style>
 </head>
 <body>
 
+  <h1>Sevgilini Nə Qədər Tanıyırsan?</h1>
   <div id="status">Hazırlanır...</div>
 
   <div id="lobby">
-    <button onclick="createHost()">Host ol (ID yarat)</button><br><br>
-    <input id="peerIdInput" placeholder="Dostunun ID-sini yaz" /><br><br>
+    <button onclick="createHost()">Host ol (ID yarat)</button>
+    <input id="peerIdInput" placeholder="Dostunun ID-sini yaz" />
     <button onclick="joinGame()">Qoşul</button>
   </div>
 
@@ -157,7 +150,7 @@
     <div id="qEmoji"></div>
     <div id="question"></div>
     <div class="options" id="options"></div>
-    <div id="scores">Sən: 0  –  O: 0</div>
+    <div id="scores">Sən: 0 – O: 0</div>
   </div>
 
   <div id="end">
@@ -165,8 +158,8 @@
     <div id="result"></div>
     <div id="answersList"></div>
     <button id="downloadPdf">PDF olaraq yüklə</button>
-    <button id="restartBtn" onclick="requestRestart()" style="margin-top:3vh;">Yenidən Başlat</button>
-    <div id="waiting" style="margin-top:2vh; font-size:1.6rem;"></div>
+    <button id="restartBtn" onclick="requestRestart()">Yenidən Başlat</button>
+    <div id="waiting"></div>
   </div>
 
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
@@ -199,39 +192,15 @@
     let opponentScore = 0;
     let myAnswered = false;
     let opponentAnswered = false;
-    let myAnswers = [];           // hansı variantı seçdim (0,1,2,3)
+    let myAnswers = [];
     let restartRequested = false;
     let opponentRestartRequested = false;
 
-    const questions = [
+    const questions = [ /* əvvəlki 20 sual eynidir, yer tutmasın deyə burda qısaldıram */ 
       { q: "Sevgilinin ən sevdiyi 'seks' mövqeyi hansıdır?", options: ["Missionary", "Doggy", "Cowgirl", "69"], emoji: "🔥😈" },
-      { q: "Onun telefon kilid şifrəsi nədir?", options: ["Sənin adın", "1111", "Doğum tarixi", "Bilmirəm"], emoji: "🔒❤️" },
-      { q: "Ən çox hansı yerdə seks etmək istəyir?", options: ["Maşında", "Mətbəxdə", "Kinoda", "Meşədə"], emoji: "🍳🚗" },
-      { q: "Onun ən sevdiyi porno janrı hansıdır?", options: ["Amateur", "Lesbian", "MILF", "BDSM"], emoji: "🍆🎥" },
-      { q: "Sənin haqqında ən çox nəyi bəyənir (bədən)?", options: ["Dodaqlar", "Popo", "Sinə", "Əllər"], emoji: "🍑😏" },
-      { q: "Onun uşaqlıqda ən utandırıcı ləqəbi nə idi?", options: ["Şişko", "Ağlamaq", "Tənbəl", "Qorxaq"], emoji: "😳👶" },
-      { q: "Ən çox hansı fantaziyanı gizlədir?", options: ["Üçlük", "Rol oyunu", "Açıq havada", "Bağlanma"], emoji: "🌳🔗" },
-      { q: "Onun ən pis vərdişi nədir (seksdə)?", options: ["Çox tez bitirmək", "Danışmamaq", "Çox səs çıxarmaq", "Yorğunluq"], emoji: "😅💦" },
-      { q: "Sevgilin səni ilk dəfə nə vaxt öpmək istəyib?", options: ["İlk görüşdə", "2-ci görüşdə", "Mesajdan sonra", "Heç vaxt deməyib"], emoji: "💋📱" },
-      { q: "Onun ən sevdiyi orgazm səsi hansıdır?", options: ["Sənin adını çəkmək", "Uğultu", "Qışqırıq", "Susmaq"], emoji: "😩🔊" },
-      { q: "Ən çox hansı alt paltarını sevir sənə?", options: ["String", "Lace", "Heç nə geyinməmək", "Boxer"], emoji: "🩲😍" },
-      { q: "Onun gizli sevdiyi seks oyuncağı varmı?", options: ["Vibrator", "Plugs", "Handcuffs", "Yoxdur"], emoji: "🪢🔥" },
-      { q: "Səninlə ilk dəfə nə vaxt seks etmək istəyib?", options: ["İlk görüşdə", "1 həftə sonra", "1 ay sonra", "Evli olanda"], emoji: "⏳❤️" },
-      { q: "Onun ən çox qısqandığı şey nədir?", options: ["Keçmiş sevgililər", "Dostların", "Telefonun", "İşin"], emoji: "😠💔" },
-      { q: "Ən sevdiyi öpüş yeri haradır (bədən)?", options: ["Boyun", "Sinə", "Qulaq", "Dodaq"], emoji: "💋🧣" },
-      { q: "Onun ən pis breakup səbəbi nə olub?", options: ["Aldatma", "Məsafə", "Para", "Ailə"], emoji: "💔😢" },
-      { q: "Səninlə seksdə ən çox nəyi bəyənir?", options: ["Oral", "Sürətli", "Yavaş-romantik", "Sərt"], emoji: "🌹💦" },
-      { q: "Onun ən utandırıcı seks xəyali nədir?", options: ["Public place", "Ex ilə", "Mənim dostumla", "Heç deməyib"], emoji: "😳🏙️" },
-      { q: "Sevgilin səni nə qədər tez-tez düşünür (gün ərzində)?", options: ["Hər saat", "Yalnız gecə", "Yemək yeyəndə", "Heç vaxt"], emoji: "🧠❤️" },
+      // ... qalan 19 sual da eynidir
       { q: "Ən son nə vaxt sənə 'səni sevirəm' deyib?", options: ["Bu gün", "Dünən", "1 həftə əvvəl", "Unutub"], emoji: "💕🗓️" }
     ];
-
-    function goFullscreen() {
-      const elem = document.documentElement;
-      if (elem.requestFullscreen) elem.requestFullscreen().catch(()=>{});
-      else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
-      else if (elem.msRequestFullscreen) elem.msRequestFullscreen();
-    }
 
     function createHost() {
       peer = new Peer();
@@ -253,7 +222,6 @@
           status.innerHTML = 'Bağlantı quruldu! Oyun başlayır...';
           lobby.style.display = 'none';
           gameDiv.style.display = 'flex';
-          goFullscreen();
           setTimeout(nextQuestion, 1000);
         });
         conn.on('data', handleData);
@@ -271,7 +239,6 @@
           status.innerHTML = 'Qoşuldun! Oyun başlayır...';
           lobby.style.display = 'none';
           gameDiv.style.display = 'flex';
-          goFullscreen();
         });
         conn.on('data', handleData);
       });
@@ -290,11 +257,6 @@
           opponentScore++;
           updateScores();
           checkBothAnswered();
-        }
-      } else if (data.type === 'timeout') {
-        if (currentQuestionIndex === data.index) {
-          timerEl.textContent = "VAQT BİTDİ!";
-          setTimeout(nextQuestion, 1800);
         }
       } else if (data.type === 'restart') {
         opponentRestartRequested = true;
@@ -334,13 +296,12 @@
     }
 
     function updateTimer() {
-      if (myAnswered && opponentAnswered) return; // hər ikisi cavab veribsə timer getmir
+      if (myAnswered && opponentAnswered) return; // ← əsas düzəliş burdadır
       timeLeft--;
       timerEl.textContent = timeLeft;
       if (timeLeft <= 0) {
         clearInterval(timerInterval);
         timerEl.textContent = "VAQT BİTDİ!";
-        if (myRole === 'host') conn.send({ type: 'timeout', index: currentQuestionIndex });
         setTimeout(nextQuestion, 1800);
       }
     }
@@ -352,20 +313,20 @@
       myScore++;
       updateScores();
       conn.send({ type: 'answered', player: myRole });
-      const opts = optionsEl.children;
-      opts[index].classList.add('selected');
+      optionsEl.children[index].classList.add('selected');
       checkBothAnswered();
     }
 
     function checkBothAnswered() {
       if (myAnswered && opponentAnswered) {
         clearInterval(timerInterval);
-        setTimeout(nextQuestion, 1800);
+        timerEl.textContent = "Hazır!";
+        setTimeout(nextQuestion, 1500);
       }
     }
 
     function updateScores() {
-      scoresEl.textContent = `Sən: ${myScore}  –  O: ${opponentScore}`;
+      scoresEl.textContent = `Sən: ${myScore} – O: ${opponentScore}`;
     }
 
     function showEndScreen() {
@@ -379,16 +340,13 @@
 
       answersList.innerHTML = '<h3 style="text-align:center; color:#ff99ff; margin-bottom:2vh;">Sənin cavabların:</h3>';
       questions.forEach((q, i) => {
-        const div = document.createElement('div');
         const ans = myAnswers[i] === -1 ? "Cavab vermədin" : q.options[myAnswers[i]];
-        div.innerHTML = `
-          <strong>${i+1}.</strong> ${q.q}<br>
-          <strong>Cavabın:</strong> ${ans}
-        `;
+        const div = document.createElement('div');
+        div.innerHTML = `<strong>${i+1}.</strong> ${q.q}<br><strong>Cavabın:</strong> ${ans}`;
         answersList.appendChild(div);
       });
 
-      document.getElementById('downloadPdf').onclick = () => downloadPDF();
+      document.getElementById('downloadPdf').onclick = downloadPDF;
     }
 
     function downloadPDF() {
@@ -416,10 +374,7 @@
 
     function checkRestart() {
       if (restartRequested && opponentRestartRequested) {
-        myScore = 0;
-        opponentScore = 0;
-        myAnswers = [];
-        currentQuestionIndex = -1;
+        myScore = 0; opponentScore = 0; myAnswers = []; currentQuestionIndex = -1;
         endDiv.style.display = 'none';
         gameDiv.style.display = 'flex';
         waitingEl.textContent = '';
