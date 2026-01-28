@@ -152,7 +152,7 @@
   <div id="lobby">
     <button onclick="createHost()">Host ol (ID yarat)</button>
     <input id="peerIdInput" placeholder="Dostunun ID-sini yaz" />
-    <button onclick="joinGame()">Qoşul</button>
+    <button id="joinBtn" onclick="joinGame()">Qoşul</button>
   </div>
 
   <div id="game">
@@ -190,6 +190,7 @@
     const answersList = document.getElementById('answersList');
     const waitingEl = document.getElementById('waiting');
     const music = document.getElementById('bg-music');
+    const joinBtn = document.getElementById('joinBtn');
 
     let peer = null;
     let conn = null;
@@ -273,7 +274,56 @@
       });
     }
 
-    // qalan funksiyalar (joinGame, handleData, nextQuestion və s.) eynidir, yer tutmasın deyə burda qısaldıram
+    function joinGame() {
+      const hostId = document.getElementById('peerIdInput').value.trim();
+      if (!hostId) return alert('ID yaz!');
+
+      joinBtn.disabled = true;
+      joinBtn.textContent = 'Qoşulur...';
+      status.innerHTML = 'Qoşulma cəhdi...';
+
+      peer = new Peer();
+      peer.on('open', () => {
+        conn = peer.connect(hostId);
+
+        // Retry mexanizmi (2 cəhd)
+        let retryCount = 0;
+        const maxRetries = 2;
+
+        const tryConnect = () => {
+          conn.on('open', () => {
+            status.innerHTML = 'Qoşuldun! Oyun başlayır...';
+            lobby.style.display = 'none';
+            gameDiv.style.display = 'flex';
+            joinBtn.disabled = false;
+            joinBtn.textContent = 'Qoşul';
+          });
+
+          conn.on('error', (err) => {
+            console.log('Qoşulma xətası:', err);
+            if (retryCount < maxRetries) {
+              retryCount++;
+              status.innerHTML = `Qoşulma alınmadı, yenidən cəhd (\( {retryCount}/ \){maxRetries})...`;
+              setTimeout(tryConnect, 2000); // 2 saniyə sonra yenidən cəhd
+            } else {
+              status.innerHTML = 'Qoşulma alınmadı. ID-ni yoxla və ya yenidən cəhd et.';
+              joinBtn.disabled = false;
+              joinBtn.textContent = 'Qoşul';
+            }
+          });
+        };
+
+        tryConnect();
+      });
+
+      peer.on('error', (err) => {
+        status.innerHTML = 'Peer xətası: ' + err.type;
+        joinBtn.disabled = false;
+        joinBtn.textContent = 'Qoşul';
+      });
+    }
+
+    // qalan funksiyalar (handleData, nextQuestion, showQuestion və s.) tamamilə eynidir, dəyişməyib
 
     status.innerHTML = 'Oyuna başlamaq üçün "Davam et" düyməsinə bas';
   </script>
