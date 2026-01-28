@@ -166,17 +166,65 @@
       padding: 5vh 0;
       z-index: 1;
     }
-    #end h2 { font-size: clamp(3rem, 8vw, 4.2rem); color: #ffdd44; margin-bottom: 4vh; }
-    #result { font-size: clamp(1.8rem, 5.5vw, 2.4rem); text-align: center; margin-bottom: 5vh; }
-    button#downloadPdf, button#restartBtn, button#shareResultImage {
+    #end h2 { 
+      font-size: clamp(3rem, 8vw, 4.2rem); 
+      color: #ffdd44; 
+      margin-bottom: 4vh; 
+      text-shadow: 0 0 15px #ffdd44aa;
+    }
+    #result { 
+      font-size: clamp(1.8rem, 5.5vw, 2.4rem); 
+      text-align: center; 
+      margin-bottom: 5vh; 
+      color: #ffcc66;
+    }
+    #answersList {
+      width: 100%;
+      max-width: 900px;
+      background: linear-gradient(135deg, rgba(40,0,70,0.85), rgba(60,0,100,0.85));
+      border-radius: 24px;
+      padding: 5vh 4vw;
+      font-size: clamp(1.2rem, 4vw, 1.5rem);
+      line-height: 1.9;
+      margin-bottom: 5vh;
+      border: 2px solid rgba(255, 102, 204, 0.3);
+      box-shadow: 0 10px 40px rgba(255, 51, 102, 0.3);
+      backdrop-filter: blur(10px);
+    }
+    #answersList h3 {
+      text-align: center;
+      color: #ff66cc;
+      font-size: 1.8rem;
+      margin-bottom: 3vh;
+      text-shadow: 0 0 10px #ff66cc80;
+    }
+    #answersList div {
+      margin: 3vh 0;
+      padding: 3vh 4vw;
+      background: rgba(80,0,120,0.6);
+      border-radius: 16px;
+      border-left: 6px solid #ff66cc;
+      transition: all 0.3s;
+    }
+    #answersList div:hover {
+      transform: translateX(8px);
+      box-shadow: 0 8px 25px rgba(255, 102, 204, 0.4);
+    }
+    #answersList strong {
+      color: #ffcc66;
+    }
+    button#restartBtn, button#shareResultImage {
       font-size: 1.5rem;
       padding: 1.2rem 3rem;
       margin: 1vh;
     }
-    #downloadPdf { background: #3366ff; }
-    #downloadPdf:hover { background: #5588ff; }
-    #shareResultImage { background: #ff3366; }
-    #shareResultImage:hover { background: #ff6699; }
+    #shareResultImage { 
+      background: linear-gradient(135deg, #ff3366, #ff6699); 
+    }
+    #shareResultImage:hover { 
+      background: linear-gradient(135deg, #ff6699, #ff99cc); 
+      transform: translateY(-4px);
+    }
     #waiting { font-size: 1.5rem; color: #ffcc66; margin-top: 3vh; text-align: center; }
   </style>
 </head>
@@ -214,19 +262,16 @@
   <div id="end">
     <h2>Oyun Bitdi!</h2>
     <div id="result">30 sual cavablandı!</div>
-    <button id="downloadPdf">PDF olaraq yüklə</button>
+    <div id="answersList"></div>
     <button id="shareResultImage">Nəticəni paylaş (şəkil)</button>
     <button id="restartBtn" onclick="requestRestart()">Yenidən Başlat</button>
     <div id="waiting"></div>
   </div>
 
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
   <script>
-    const { jsPDF } = window.jspdf;
-
     const status = document.getElementById('status');
     const startScreen = document.getElementById('start-screen');
     const lobby = document.getElementById('lobby');
@@ -238,6 +283,7 @@
     const optionsEl = document.getElementById('options');
     const endDiv = document.getElementById('end');
     const resultEl = document.getElementById('result');
+    const answersList = document.getElementById('answersList');
     const waitingEl = document.getElementById('waiting');
     const music = document.getElementById('bg-music');
 
@@ -434,8 +480,19 @@
 
       resultEl.innerHTML = "30 sual cavablandı!";
 
-      // Cavab siyahısı tamamilə silindi, yalnız nəticə paylaşma düyməsi var
-      document.getElementById('downloadPdf').onclick = downloadPDF;
+      // Premium stil siyahı – sual + cavab
+      answersList.innerHTML = '<h3 style="text-align:center; color:#ff66cc; margin-bottom:3vh; font-size:1.8rem; text-shadow:0 0 10px #ff66cc80;">❤️ Sənin Cavabların ❤️</h3>';
+      questions.forEach((q, i) => {
+        const ans = myAnswers[i] === -1 ? "Cavab vermədin" : q.options[myAnswers[i]];
+        const div = document.createElement('div');
+        div.innerHTML = `
+          <strong style="font-size:1.4rem; color:#ffcc66;">Sual ${i+1}:</strong><br>
+          <span style="color:#e0ccff; font-weight:500;">${q.q}</span><br><br>
+          <strong style="color:#ff99ff;">Cavabın:</strong> <span style="color:#ffffff;">${ans}</span>
+        `;
+        answersList.appendChild(div);
+      });
+
       document.getElementById('shareResultImage').onclick = shareResultImage;
     }
 
@@ -447,15 +504,6 @@
         link.click();
         alert('Nəticə şəkli yükləndi! Paylaşa bilərsən ❤️');
       });
-    }
-
-    function downloadPDF() {
-      const doc = new jsPDF();
-      doc.setFontSize(18);
-      doc.text("Sevgilini Nə Qədər Tanıyırsan?", 20, 20);
-      doc.setFontSize(12);
-      doc.text("30 sual cavablandı!", 20, 35);
-      doc.save("sevgili-testi.pdf");
     }
 
     function requestRestart() {
