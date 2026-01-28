@@ -71,40 +71,6 @@
       70% { box-shadow: 0 0 0 15px rgba(255, 51, 102, 0); }
       100% { box-shadow: 0 0 0 0 rgba(255, 51, 102, 0); }
     }
-    #status {
-      font-size: clamp(1.4rem, 5vw, 2rem);
-      margin: 3vh 0 5vh;
-      color: #ffcc66;
-      text-align: center;
-      max-width: 90%;
-      z-index: 1;
-    }
-    #lobby { 
-      text-align: center; 
-      width: 100%; 
-      max-width: 520px; 
-      z-index: 1; 
-      display: none;
-    }
-    input, button {
-      font-size: 1.4rem;
-      padding: 1rem 2rem;
-      margin: 1.2rem 0.6rem;
-      border: none;
-      border-radius: 14px;
-      width: 100%;
-      max-width: 400px;
-    }
-    button {
-      background: #ff33cc;
-      color: white;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-    button:hover { background: #ff1ab3; transform: translateY(-4px); }
-    #copyBtn { background: #00cc88; }
-    #copyBtn:hover { background: #00ffaa; }
-
     #game {
       display: none;
       width: 100%;
@@ -186,7 +152,6 @@
     #copyAllAnswers:hover { background: #00ffaa; }
     #restartBtn { background: #3366ff; }
     #restartBtn:hover { background: #5588ff; }
-    #waiting { font-size: 1.5rem; color: #ffcc66; margin-top: 3vh; text-align: center; }
   </style>
 </head>
 <body>
@@ -202,15 +167,7 @@
 
   <div id="start-screen">
     <h1>Sevgilini Nə Qədər Tanıyırsan?</h1>
-    <button id="start-btn">Davam et</button>
-  </div>
-
-  <div id="status" style="display:none;">Hazırlanır...</div>
-
-  <div id="lobby">
-    <button onclick="createRoom()">Otaq Yarat (KOD al)</button>
-    <input id="roomIdInput" placeholder="Qarşı Tərəfin Kodunu Yaz" />
-    <button onclick="joinRoom()">Qoşul</button>
+    <button id="start-btn">Başla</button>
   </div>
 
   <div id="game">
@@ -225,31 +182,11 @@
     <div id="result">30 sual cavablandı!</div>
     <div id="answersList"></div>
     <button id="copyAllAnswers">Hamısını Kopyala</button>
-    <button id="restartBtn" onclick="requestRestart()">Yenidən Başlat</button>
-    <div id="waiting"></div>
+    <button id="restartBtn" onclick="restartGame()">Yenidən Başlat</button>
   </div>
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
-
   <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyCM5WdZNSj9oFipNI-J3csHpOIvK8PjoLU",
-      authDomain: "sevgili-testi.firebaseapp.com",
-      databaseURL: "https://sevgili-testi-default-rtdb.firebaseio.com",
-      projectId: "sevgili-testi",
-      storageBucket: "sevgili-testi.firebasestorage.app",
-      messagingSenderId: "399260477557",
-      appId: "1:399260477557:web:584204a698d7bf145bb03c"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
-    const status = document.getElementById('status');
     const startScreen = document.getElementById('start-screen');
-    const lobby = document.getElementById('lobby');
     const gameDiv = document.getElementById('game');
     const startBtn = document.getElementById('start-btn');
     const timerEl = document.getElementById('timer');
@@ -259,19 +196,12 @@
     const endDiv = document.getElementById('end');
     const resultEl = document.getElementById('result');
     const answersList = document.getElementById('answersList');
-    const waitingEl = document.getElementById('waiting');
     const music = document.getElementById('bg-music');
 
-    let roomId = null;
-    let myRole = null;
     let currentQuestionIndex = -1;
     let timerInterval = null;
     let timeLeft = 15;
-    let myAnswered = false;
-    let opponentAnswered = false;
     let myAnswers = new Array(30).fill(-1);
-    let restartRequested = false;
-    let opponentRestartRequested = false;
 
     const questions = [
       { q: "Sevgilinin ən sevdiyi rəng hansıdır?", options: ["A) Qırmızı – ehtiraslı və cəsarətli", "B) Mavi – sakit və dərin", "C) Yaşıl – təbiət və harmoniya", "D) Sarı – günəş kimi parlaq və enerjili", "E) Bənövşəyi – sirli və kraliça kimi", "F) Qara – gizemli və seksiy"], emoji: "🎨" },
@@ -309,115 +239,17 @@
     startBtn.addEventListener('click', () => {
       startScreen.style.display = 'none';
       music.play().catch(e => console.log("Mahnı oxumadı:", e));
-      lobby.style.display = 'block';
-      status.style.display = 'block';
-      status.innerHTML = 'Otaq yarat və ya qarşı tərəfin kodunu yazaraq qoşul!';
+      gameDiv.style.display = 'flex';
+      nextQuestion();
     });
-
-    function createRoom() {
-      roomId = Math.random().toString(36).substring(2, 10).toUpperCase();
-      myRole = 'host';
-      status.innerHTML = `Otaq KODU: <strong>${roomId}</strong><br>Qarşı tərəfə göndər!`;
-      const copyBtn = document.createElement('button');
-      copyBtn.textContent = 'Kopyala';
-      copyBtn.onclick = () => {
-        navigator.clipboard.writeText(roomId).then(() => alert('KOD kopyalandı!'));
-      };
-      status.appendChild(copyBtn);
-
-      db.ref('rooms/' + roomId).set({
-        hostConnected: true,
-        guestConnected: false,
-        currentQuestion: -1,
-        answers: {},
-        restartRequested: false
-      }).then(() => {
-        listenRoom();
-      }).catch(err => alert('Otaq yaradılarkən xəta: ' + err.message));
-    }
-
-    function joinRoom() {
-      roomId = document.getElementById('roomIdInput').value.trim().toUpperCase();
-      if (!roomId) return alert('KOD yaz!');
-
-      myRole = 'guest';
-      db.ref('rooms/' + roomId).once('value').then(snapshot => {
-        if (!snapshot.exists()) return alert('Belə otaq yoxdur!');
-        db.ref('rooms/' + roomId).update({ guestConnected: true });
-        status.innerHTML = 'Qoşuldun! Oyun başlayır...';
-        lobby.style.display = 'none';
-        gameDiv.style.display = 'flex';
-        listenRoom();
-      }).catch(err => alert('Qoşulma xətası: ' + err.message));
-    }
-
-    function listenRoom() {
-      const roomRef = db.ref('rooms/' + roomId);
-
-      roomRef.on('value', snapshot => {
-        const data = snapshot.val();
-        if (!data) return;
-
-        console.log('Firebase data yeniləndi:', data); // debug üçün
-
-        // Host üçün qoşulan gələndə məcburi başla
-        if (myRole === 'host' && data.guestConnected === true && data.currentQuestion === -1) {
-          console.log('[HOST] Guest qoşuldu, oyun başlanır');
-          status.innerHTML = 'Qarşı tərəf qoşuldu! Oyun başlayır...';
-          setTimeout(() => {
-            nextQuestion();
-          }, 500); // 500ms gecikmə – data tam yüklənsin
-        }
-
-        // Hər iki tərəf üçün sual sinxronizasiyası
-        if (data.currentQuestion !== undefined && data.currentQuestion !== currentQuestionIndex) {
-          console.log('Sual sinxronizasiya olundu: ' + data.currentQuestion);
-          currentQuestionIndex = data.currentQuestion;
-          myAnswered = false;
-          opponentAnswered = false;
-          showQuestion();
-        }
-
-        // Cavab sinxronizasiyası
-        if (data.answers) {
-          const opponentKey = myRole === 'host' ? 'guest' : 'host';
-          if (data.answers[opponentKey] !== undefined && !opponentAnswered) {
-            console.log('Rəqib cavab verdi');
-            opponentAnswered = true;
-            checkBothAnswered();
-          }
-        }
-
-        // Restart sinxronizasiyası
-        if (data.restartRequested && !opponentRestartRequested) {
-          console.log('Rəqib restart istədi');
-          opponentRestartRequested = true;
-          checkRestart();
-        }
-      });
-    }
 
     function nextQuestion() {
       currentQuestionIndex++;
-      console.log('nextQuestion çağırıldı, yeni index: ' + currentQuestionIndex);
-
       if (currentQuestionIndex >= questions.length) {
-        console.log('Oyun bitdi');
         showEndScreen();
-        db.ref('rooms/' + roomId).update({ currentQuestion: -2 });
         return;
       }
 
-      db.ref('rooms/' + roomId).update({
-        currentQuestion: currentQuestionIndex
-      }).then(() => {
-        console.log('Serverə yazıldı: currentQuestion = ' + currentQuestionIndex);
-      }).catch(err => {
-        console.error('Serverə yazma xətası: ', err);
-      });
-    }
-
-    function showQuestion() {
       const q = questions[currentQuestionIndex];
       qEmoji.textContent = q.emoji;
       questionEl.textContent = q.q;
@@ -436,7 +268,6 @@
     }
 
     function updateTimer() {
-      if (myAnswered && opponentAnswered) return;
       timeLeft--;
       timerEl.textContent = timeLeft;
       if (timeLeft <= 0) {
@@ -447,23 +278,10 @@
     }
 
     function selectAnswer(index) {
-      if (myAnswered) return;
-      myAnswered = true;
       myAnswers[currentQuestionIndex] = index;
-
-      const playerKey = myRole === 'host' ? 'host' : 'guest';
-      db.ref('rooms/' + roomId + '/answers/' + playerKey).set(index);
-
-      checkBothAnswered();
-    }
-
-    function checkBothAnswered() {
-      db.ref('rooms/' + roomId + '/answers').once('value').then(snapshot => {
-        const answers = snapshot.val() || {};
-        if (Object.keys(answers).length === 2) {
-          setTimeout(nextQuestion, 1500);
-        }
-      });
+      optionsEl.children[index].classList.add('selected');
+      clearInterval(timerInterval);
+      setTimeout(nextQuestion, 1500);
     }
 
     function showEndScreen() {
@@ -493,30 +311,12 @@
       };
     }
 
-    function requestRestart() {
-      restartRequested = true;
-      db.ref('rooms/' + roomId).update({ restartRequested: true });
-      checkRestart();
-    }
-
-    function checkRestart() {
-      if (restartRequested && opponentRestartRequested) {
-        myAnswers = new Array(questions.length).fill(-1);
-        currentQuestionIndex = -1;
-        endDiv.style.display = 'none';
-        gameDiv.style.display = 'flex';
-        waitingEl.textContent = '';
-        db.ref('rooms/' + roomId).update({
-          currentQuestion: -1,
-          answers: {},
-          restartRequested: false
-        });
-        nextQuestion();
-      } else {
-        waitingEl.textContent = opponentRestartRequested 
-          ? "Rəqib yenidən başlamağı istəyir... Sən də bas!" 
-          : "Rəqibin də basmasını gözləyirik...";
-      }
+    function restartGame() {
+      myAnswers = new Array(30).fill(-1);
+      currentQuestionIndex = -1;
+      endDiv.style.display = 'none';
+      gameDiv.style.display = 'flex';
+      nextQuestion();
     }
   </script>
 </body>
