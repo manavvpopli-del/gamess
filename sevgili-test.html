@@ -263,7 +263,7 @@
     const music = document.getElementById('bg-music');
 
     let roomId = null;
-    let myRole = null; // 'host' və ya 'guest'
+    let myRole = null;
     let currentQuestionIndex = -1;
     let timerInterval = null;
     let timeLeft = 15;
@@ -358,18 +358,20 @@
         const data = snapshot.val();
         if (!data) return;
 
-        // Host üçün: guest qoşulubsa və sual hələ başlamayıbsa – başla!
-        if (myRole === 'host') {
-          if (data.guestConnected === true && data.currentQuestion === -1) {
-            console.log('[HOST] Guest qoşuldu → sual 0 başlanır');
-            status.innerHTML = 'Qarşı tərəf qoşuldu! Oyun başlayır...';
-            nextQuestion(); // host tərəfdə də başlasın
-          }
+        console.log('Firebase data yeniləndi:', data); // debug üçün
+
+        // Host üçün qoşulan gələndə məcburi başla
+        if (myRole === 'host' && data.guestConnected === true && data.currentQuestion === -1) {
+          console.log('[HOST] Guest qoşuldu, oyun başlanır');
+          status.innerHTML = 'Qarşı tərəf qoşuldu! Oyun başlayır...';
+          setTimeout(() => {
+            nextQuestion();
+          }, 500); // 500ms gecikmə – data tam yüklənsin
         }
 
         // Hər iki tərəf üçün sual sinxronizasiyası
         if (data.currentQuestion !== undefined && data.currentQuestion !== currentQuestionIndex) {
-          console.log('Sual dəyişdi → ' + data.currentQuestion);
+          console.log('Sual sinxronizasiya olundu: ' + data.currentQuestion);
           currentQuestionIndex = data.currentQuestion;
           myAnswered = false;
           opponentAnswered = false;
@@ -397,7 +399,7 @@
 
     function nextQuestion() {
       currentQuestionIndex++;
-      console.log('nextQuestion çağırıldı → yeni sual: ' + currentQuestionIndex);
+      console.log('nextQuestion çağırıldı, yeni index: ' + currentQuestionIndex);
 
       if (currentQuestionIndex >= questions.length) {
         console.log('Oyun bitdi');
