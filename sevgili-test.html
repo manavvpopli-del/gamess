@@ -30,11 +30,37 @@
       z-index: -1;
     }
     h1 { 
-      font-size: clamp(2.2rem, 7vw, 3.5rem); 
-      margin: 4vh 0 3vh; 
+      font-size: clamp(2.8rem, 8vw, 4.5rem); 
+      margin: 10vh 0 4vh; 
       color: #ff66cc; 
-      text-shadow: 0 0 15px #ff66cc80; 
+      text-shadow: 0 0 20px #ff66ccaa; 
       z-index: 1;
+      text-align: center;
+    }
+    #start-screen {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      background: rgba(0,0,0,0.3);
+    }
+    #start-btn {
+      font-size: 3.5rem;
+      padding: 1.5rem 5rem;
+      background: linear-gradient(135deg, #00cc88, #00ffaa);
+      color: white;
+      border: none;
+      border-radius: 60px;
+      cursor: pointer;
+      box-shadow: 0 15px 40px rgba(0,204,136,0.5);
+      transition: all 0.4s;
+    }
+    #start-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 20px 60px rgba(0,204,136,0.7);
     }
     #status {
       font-size: clamp(1.4rem, 5vw, 2rem);
@@ -49,6 +75,7 @@
       width: 100%; 
       max-width: 520px; 
       z-index: 1; 
+      display: none;
     }
     input, button {
       font-size: 1.4rem;
@@ -162,10 +189,12 @@
     <source src="musiic.mp3" type="audio/mpeg">
   </audio>
 
-  <h1>Sevgilini Nə Qədər Tanıyırsan?</h1>
-  <div id="status">Oyuna başlamaq üçün "Davam et" düyməsinə bas</div>
+  <div id="start-screen">
+    <h1>Sevgilini Nə Qədər Tanıyırsan?</h1>
+    <button id="start-btn">Davam et</button>
+  </div>
 
-  <button id="start-btn">Davam et</button>
+  <div id="status" style="display:none;">Hazırlanır...</div>
 
   <div id="lobby">
     <button onclick="createHost()">KOD Yarat</button>
@@ -196,6 +225,7 @@
     const { jsPDF } = window.jspdf;
 
     const status = document.getElementById('status');
+    const startScreen = document.getElementById('start-screen');
     const lobby = document.getElementById('lobby');
     const gameDiv = document.getElementById('game');
     const startBtn = document.getElementById('start-btn');
@@ -256,10 +286,11 @@
     ];
 
     startBtn.addEventListener('click', () => {
-      startBtn.style.display = 'none';
+      startScreen.style.display = 'none';
       music.play().catch(e => console.log("Mahnı oxumadı:", e));
       lobby.style.display = 'block';
-      status.innerHTML = 'Host ol və ya dostunun ID-sini yazaraq qoşul!';
+      status.style.display = 'block';
+      status.innerHTML = 'Host ol və ya dostunun kodunu yazaraq qoşul!';
     });
 
     function createHost() {
@@ -267,12 +298,12 @@
       peer.on('open', id => {
         myId = id;
         myRole = 'host';
-        status.innerHTML = `Host ID: <strong>${id}</strong><br>Dostuna göndər!`;
+        status.innerHTML = `Host KOD: <strong>${id}</strong><br>Dostuna göndər!`;
         const copyBtn = document.createElement('button');
         copyBtn.id = 'copyBtn';
         copyBtn.textContent = 'Kopyala';
         copyBtn.onclick = () => {
-          navigator.clipboard.writeText(myId).then(() => alert('ID kopyalandı!'));
+          navigator.clipboard.writeText(myId).then(() => alert('KOD kopyalandı!'));
         };
         status.appendChild(copyBtn);
         lobby.querySelector('button[onclick="createHost()"]').disabled = true;
@@ -296,7 +327,7 @@
 
     function joinGame() {
       const hostId = document.getElementById('peerIdInput').value.trim();
-      if (!hostId) return alert('ID yaz!');
+      if (!hostId) return alert('KOD yaz!');
 
       peer = new Peer();
       peer.on('open', () => {
@@ -449,8 +480,6 @@
           : "Rəqibin də basmasını gözləyirik...";
       }
     }
-
-    status.innerHTML = 'Oyuna başlamaq üçün "Davam et" düyməsinə bas';
   </script>
 </body>
 </html>
