@@ -3,70 +3,143 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Sevgilini Nə Qədər Tanıyırsan? — Online</title>
+  <title>Sevgilini Nə Qədər Tanıyırsan?</title>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
     body {
-      font-family: Arial, sans-serif;
-      background: #0a0015;
-      color: #e0e0ff;
-      height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #0f001a, #1a0033);
+      color: #f0e0ff;
+      min-height: 100vh;
       overflow: hidden;
       display: flex;
       flex-direction: column;
-      justify-content: center;
       align-items: center;
+      justify-content: center;
       user-select: none;
     }
-    #status { font-size: 1.7rem; margin: 1.5rem; color: #ffcc00; text-align: center; max-width: 90%; }
-    #lobby { text-align: center; }
+    #status {
+      font-size: 2rem;
+      margin: 2rem;
+      color: #ffcc33;
+      text-align: center;
+      max-width: 90%;
+      text-shadow: 0 0 10px rgba(255,204,51,0.6);
+    }
+    #lobby { text-align: center; margin: 2rem; }
     input, button {
-      font-size: 1.4rem;
-      padding: 0.9rem 1.8rem;
-      margin: 0.7rem;
+      font-size: 1.5rem;
+      padding: 1rem 2rem;
+      margin: 1rem;
       border: none;
-      border-radius: 10px;
+      border-radius: 12px;
+      min-width: 320px;
     }
     button {
       background: #ff33cc;
       color: white;
       cursor: pointer;
-      transition: 0.25s;
+      transition: all 0.3s ease;
     }
-    button:hover { background: #ff1ab3; transform: scale(1.06); }
-    #copyBtn { background: #00dd99; margin-left: 12px; }
-    #copyBtn:hover { background: #00ffbb; }
-    #restartBtn { background: #00cc88; margin: 1.5rem; padding: 1rem 2rem; font-size: 1.6rem; }
-    #game { display: none; width: 100%; height: 100%; flex-direction: column; justify-content: space-between; padding: 1.5rem; }
-    #question { font-size: 2.4rem; margin: 1rem 0 1.5rem; text-align: center; line-height: 1.35; min-height: 100px; }
-    #qEmoji { font-size: 5rem; margin-bottom: 0.8rem; }
-    .options { display: grid; grid-template-columns: 1fr 1fr; gap: 1.3rem; max-width: 1000px; width: 92%; margin: 0 auto; }
-    .option {
-      background: #220066;
-      padding: 1.6rem;
-      border-radius: 12px;
-      font-size: 1.5rem;
-      cursor: pointer;
-      transition: 0.3s;
-      border: 4px solid transparent;
+    button:hover { background: #ff1ab3; transform: translateY(-4px); box-shadow: 0 8px 20px rgba(255,51,204,0.5); }
+    #copyBtn { background: #00cc88; }
+    #copyBtn:hover { background: #00ffaa; }
+    #game {
+      display: none;
+      width: 100%;
+      height: 100vh;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 4vh 6vw;
+      animation: fadeIn 0.8s ease;
+    }
+    #timer {
+      font-size: 6rem;
+      font-weight: bold;
+      color: #ff3366;
       text-align: center;
+      margin: 2vh 0;
+      animation: pulse 1.5s infinite;
     }
-    .option:hover { background: #4400aa; transform: translateY(-6px); }
-    .option.selected { border-color: #ffcc00; background: #003311; }
-    #timer { font-size: 4.8rem; font-weight: bold; color: #ff3366; margin: 1rem; }
-    #scores { font-size: 1.9rem; margin: 1.5rem 0; color: #33ffaa; }
-    #end { 
-      display: none; 
-      width: 100%; 
-      height: 100%; 
-      flex-direction: column; 
-      align-items: center; 
-      justify-content: center; 
-      padding: 2rem; 
+    #qEmoji { font-size: 8rem; text-align: center; margin: 2vh 0; }
+    #question {
+      font-size: 2.6rem;
+      text-align: center;
+      line-height: 1.4;
+      margin: 3vh 0 5vh;
+      max-width: 90%;
     }
-    #end h2 { font-size: 3.5rem; margin-bottom: 1.5rem; color: #ffdd44; }
-    #result { font-size: 2.4rem; margin-bottom: 1.5rem; text-align: center; }
-    #waiting { font-size: 1.8rem; color: #ffcc00; margin-top: 1rem; }
+    .options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2.5vh;
+      max-width: 1100px;
+      width: 100%;
+      margin: 0 auto;
+    }
+    .option {
+      background: rgba(40,0,90,0.7);
+      padding: 2.5vh 3vw;
+      border-radius: 16px;
+      font-size: 1.8rem;
+      cursor: pointer;
+      transition: all 0.35s ease;
+      border: 3px solid transparent;
+      text-align: center;
+      backdrop-filter: blur(6px);
+    }
+    .option:hover {
+      background: rgba(80,0,140,0.9);
+      transform: translateY(-8px);
+      border-color: #ff99ff;
+      box-shadow: 0 12px 30px rgba(255,51,204,0.4);
+    }
+    .option.selected {
+      border-color: #00ffcc;
+      background: rgba(0,80,60,0.5);
+      transform: scale(1.04);
+    }
+    #scores {
+      font-size: 2.2rem;
+      text-align: center;
+      margin: 4vh 0;
+      color: #33ffcc;
+    }
+    #end {
+      display: none;
+      width: 100%;
+      height: 100vh;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 4vh;
+      overflow-y: auto;
+      animation: fadeIn 1s ease;
+    }
+    #end h2 { font-size: 4rem; color: #ffdd44; margin-bottom: 3vh; }
+    #result { font-size: 2.5rem; text-align: center; margin-bottom: 4vh; }
+    #answersList {
+      width: 90%;
+      max-width: 1000px;
+      background: rgba(30,0,60,0.7);
+      border-radius: 16px;
+      padding: 3vh;
+      font-size: 1.5rem;
+      line-height: 1.7;
+      margin-bottom: 4vh;
+      backdrop-filter: blur(8px);
+    }
+    #answersList div { margin: 2vh 0; padding: 2vh; background: rgba(50,0,90,0.5); border-radius: 12px; }
+    #downloadPdf { 
+      background: #3366ff; 
+      font-size: 1.8rem; 
+      padding: 1.2rem 3rem; 
+      margin-top: 2vh;
+    }
+    #downloadPdf:hover { background: #5588ff; }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
   </style>
 </head>
 <body>
@@ -75,7 +148,7 @@
 
   <div id="lobby">
     <button onclick="createHost()">Host ol (ID yarat)</button><br><br>
-    <input id="peerIdInput" placeholder="Dostunun ID-sini yaz" style="width:340px;"/>
+    <input id="peerIdInput" placeholder="Dostunun ID-sini yaz" /><br><br>
     <button onclick="joinGame()">Qoşul</button>
   </div>
 
@@ -90,13 +163,18 @@
   <div id="end">
     <h2>Oyun Bitdi!</h2>
     <div id="result"></div>
-    <button id="restartBtn" onclick="requestRestart()">Yenidən Başlat</button>
-    <div id="waiting"></div>
+    <div id="answersList"></div>
+    <button id="downloadPdf">PDF olaraq yüklə</button>
+    <button id="restartBtn" onclick="requestRestart()" style="margin-top:3vh;">Yenidən Başlat</button>
+    <div id="waiting" style="margin-top:2vh; font-size:1.6rem;"></div>
   </div>
 
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <script>
+    const { jsPDF } = window.jspdf;
+
     const status = document.getElementById('status');
     const lobby = document.getElementById('lobby');
     const gameDiv = document.getElementById('game');
@@ -107,6 +185,7 @@
     const scoresEl = document.getElementById('scores');
     const endDiv = document.getElementById('end');
     const resultEl = document.getElementById('result');
+    const answersList = document.getElementById('answersList');
     const waitingEl = document.getElementById('waiting');
 
     let peer = null;
@@ -120,6 +199,7 @@
     let opponentScore = 0;
     let myAnswered = false;
     let opponentAnswered = false;
+    let myAnswers = [];           // hansı variantı seçdim (0,1,2,3)
     let restartRequested = false;
     let opponentRestartRequested = false;
 
@@ -148,7 +228,7 @@
 
     function goFullscreen() {
       const elem = document.documentElement;
-      if (elem.requestFullscreen) elem.requestFullscreen();
+      if (elem.requestFullscreen) elem.requestFullscreen().catch(()=>{});
       else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
       else if (elem.msRequestFullscreen) elem.msRequestFullscreen();
     }
@@ -174,7 +254,7 @@
           lobby.style.display = 'none';
           gameDiv.style.display = 'flex';
           goFullscreen();
-          setTimeout(() => nextQuestion(), 800);
+          setTimeout(nextQuestion, 1000);
         });
         conn.on('data', handleData);
       });
@@ -191,6 +271,7 @@
           status.innerHTML = 'Qoşuldun! Oyun başlayır...';
           lobby.style.display = 'none';
           gameDiv.style.display = 'flex';
+          goFullscreen();
         });
         conn.on('data', handleData);
       });
@@ -201,6 +282,7 @@
         currentQuestionIndex = data.index;
         myAnswered = false;
         opponentAnswered = false;
+        myAnswers[currentQuestionIndex] = -1;
         showQuestion();
       } else if (data.type === 'answered') {
         if (data.player !== myRole) {
@@ -212,7 +294,7 @@
       } else if (data.type === 'timeout') {
         if (currentQuestionIndex === data.index) {
           timerEl.textContent = "VAQT BİTDİ!";
-          setTimeout(nextQuestion, 2200);
+          setTimeout(nextQuestion, 1800);
         }
       } else if (data.type === 'restart') {
         opponentRestartRequested = true;
@@ -226,9 +308,6 @@
         showEndScreen();
         return;
       }
-
-      myAnswered = false;
-      opponentAnswered = false;
 
       if (myRole === 'host') {
         conn.send({ type: 'next', index: currentQuestionIndex });
@@ -245,7 +324,7 @@
         const div = document.createElement('div');
         div.className = 'option';
         div.textContent = `${String.fromCharCode(65 + i)}) ${opt}`;
-        div.onclick = () => selectAnswer();
+        div.onclick = () => selectAnswer(i);
         optionsEl.appendChild(div);
       });
       timeLeft = 15;
@@ -255,34 +334,33 @@
     }
 
     function updateTimer() {
+      if (myAnswered && opponentAnswered) return; // hər ikisi cavab veribsə timer getmir
       timeLeft--;
       timerEl.textContent = timeLeft;
       if (timeLeft <= 0) {
         clearInterval(timerInterval);
         timerEl.textContent = "VAQT BİTDİ!";
         if (myRole === 'host') conn.send({ type: 'timeout', index: currentQuestionIndex });
-        setTimeout(nextQuestion, 2200);
+        setTimeout(nextQuestion, 1800);
       }
     }
 
-    function selectAnswer() {
+    function selectAnswer(index) {
       if (myAnswered) return;
       myAnswered = true;
+      myAnswers[currentQuestionIndex] = index;
       myScore++;
       updateScores();
       conn.send({ type: 'answered', player: myRole });
-      // Bütün variantları seçilmiş kimi göstər
       const opts = optionsEl.children;
-      for (let opt of opts) {
-        opt.classList.add('selected');
-      }
+      opts[index].classList.add('selected');
       checkBothAnswered();
     }
 
     function checkBothAnswered() {
       if (myAnswered && opponentAnswered) {
         clearInterval(timerInterval);
-        setTimeout(nextQuestion, 1800); // cavabları görmək üçün 1.8 saniyə gözlə
+        setTimeout(nextQuestion, 1800);
       }
     }
 
@@ -298,13 +376,41 @@
       let msg = myScore > opponentScore ? "Sən daha çox tanıyırsan! 🔥" :
                 myScore < opponentScore ? "O səndən daha çox bilir... 😏" : "Eyni səviyyədəsiniz! 😂";
       resultEl.innerHTML = `${msg}<br><br>Sən: ${myScore} cavab verdin<br>O: ${opponentScore} cavab verdi`;
+
+      answersList.innerHTML = '<h3 style="text-align:center; color:#ff99ff; margin-bottom:2vh;">Sənin cavabların:</h3>';
+      questions.forEach((q, i) => {
+        const div = document.createElement('div');
+        const ans = myAnswers[i] === -1 ? "Cavab vermədin" : q.options[myAnswers[i]];
+        div.innerHTML = `
+          <strong>${i+1}.</strong> ${q.q}<br>
+          <strong>Cavabın:</strong> ${ans}
+        `;
+        answersList.appendChild(div);
+      });
+
+      document.getElementById('downloadPdf').onclick = () => downloadPDF();
+    }
+
+    function downloadPDF() {
+      const doc = new jsPDF();
+      doc.setFontSize(18);
+      doc.text("Sevgilini Nə Qədər Tanıyırsan? - Sənin Cavabların", 20, 20);
+      doc.setFontSize(12);
+      let y = 40;
+      questions.forEach((q, i) => {
+        const ans = myAnswers[i] === -1 ? "Cavab vermədin" : q.options[myAnswers[i]];
+        doc.text(`${i+1}. ${q.q}`, 20, y);
+        y += 8;
+        doc.text(`Cavabın: ${ans}`, 30, y);
+        y += 12;
+        if (y > 270) { doc.addPage(); y = 20; }
+      });
+      doc.save("sevgili-testi.pdf");
     }
 
     function requestRestart() {
       restartRequested = true;
-      if (myRole === 'host') {
-        conn.send({ type: 'restart' });
-      }
+      if (myRole === 'host') conn.send({ type: 'restart' });
       checkRestart();
     }
 
@@ -312,6 +418,7 @@
       if (restartRequested && opponentRestartRequested) {
         myScore = 0;
         opponentScore = 0;
+        myAnswers = [];
         currentQuestionIndex = -1;
         endDiv.style.display = 'none';
         gameDiv.style.display = 'flex';
