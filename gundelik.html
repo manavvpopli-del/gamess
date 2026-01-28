@@ -2,203 +2,302 @@
 <html lang="az">
 <head>
   <meta charset="UTF-8" />
-  <title>Online Pong - 2 Player (PeerJS)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sevgilini Nə Qədər Tanıyırsan? — Online 2 Player</title>
   <style>
-    body { margin:0; background:#111; font-family:Arial, sans-serif; color:#0f0; text-align:center; }
-    canvas { border:2px solid #0f0; background:#000; display:block; margin:20px auto; }
-    #controls { margin:20px; }
-    input, button { padding:8px 16px; font-size:16px; margin:5px; }
-    #status { font-size:18px; margin:10px; color:#ff0; }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: #0d001a;
+      color: #e0e0ff;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      user-select: none;
+    }
+    h1 { font-size: 3.2rem; margin-bottom: 1rem; color: #ff4dff; text-shadow: 0 0 15px #ff4dff; }
+    #status { font-size: 1.5rem; margin: 1.5rem; color: #ffcc00; text-align: center; max-width: 90%; }
+    #lobby { text-align: center; }
+    input, button {
+      font-size: 1.3rem;
+      padding: 0.8rem 1.5rem;
+      margin: 0.6rem;
+      border: none;
+      border-radius: 8px;
+    }
+    button {
+      background: #ff4dff;
+      color: white;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    button:hover { background: #ff33ff; transform: scale(1.05); }
+    #game { display: none; width: 100%; height: 100%; flex-direction: column; justify-content: space-between; padding: 2rem; }
+    #question { font-size: 2.4rem; margin-bottom: 2rem; text-align: center; line-height: 1.4; }
+    .options { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; max-width: 900px; width: 90%; margin: 0 auto; }
+    .option {
+      background: #2a004d;
+      padding: 1.5rem;
+      border-radius: 12px;
+      font-size: 1.5rem;
+      cursor: pointer;
+      transition: all 0.25s;
+      border: 3px solid transparent;
+      text-align: center;
+    }
+    .option:hover { background: #440080; transform: translateY(-6px); }
+    .option.selected { border-color: #00ff88; background: #003322; }
+    #timer { font-size: 3.5rem; font-weight: bold; color: #ff4444; margin: 1rem; }
+    #scores { font-size: 1.8rem; margin-top: 2rem; color: #33ff99; }
+    #end { font-size: 3rem; color: #ffdd00; text-align: center; display: none; flex-direction: column; gap: 1.5rem; }
   </style>
 </head>
 <body>
 
-  <h2>Online Pong - İki nəfər</h2>
-  <p id="status">Status: Hazırlanır...</p>
+  <h1>Sevgilini Nə Qədər Tanıyırsan?</h1>
+  <div id="status">Hazırlanır...</div>
 
-  <div id="controls">
-    <button onclick="createHost()">Host ol (ID yarat)</button>
-    <br><br>
-    <input id="peerIdInput" placeholder="Dostunun ID-sini buraya yapışdır" />
+  <div id="lobby">
+    <button onclick="createHost()">Host ol (ID yarat)</button><br><br>
+    <input id="peerIdInput" placeholder="Dostunun ID-sini yaz" style="width:320px;"/>
     <button onclick="joinGame()">Qoşul</button>
   </div>
 
-  <canvas id="game" width="800" height="500"></canvas>
+  <div id="game">
+    <div id="timer">15</div>
+    <div id="question"></div>
+    <div class="options" id="options"></div>
+    <div id="scores">Sənin düzlərin: 0  –  Onun düzləri: 0</div>
+  </div>
 
-  <!-- PeerJS CDN -->
+  <div id="end">
+    <div>Oyun Bitdi!</div>
+    <div id="result"></div>
+    <button onclick="location.reload()">Yenidən Başla</button>
+  </div>
+
+  <!-- PeerJS -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 
   <script>
-    const canvas = document.getElementById('game');
-    const ctx = canvas.getContext('2d');
     const status = document.getElementById('status');
+    const lobby = document.getElementById('lobby');
+    const gameDiv = document.getElementById('game');
+    const questionEl = document.getElementById('question');
+    const optionsEl = document.getElementById('options');
+    const timerEl = document.getElementById('timer');
+    const scoresEl = document.getElementById('scores');
+    const endEl = document.getElementById('end');
+    const resultEl = document.getElementById('result');
 
-    // Oyun dəyişənləri
-    let ball = { x: 400, y: 250, dx: 5, dy: 4, radius: 12 };
-    let paddle1 = { x: 20, y: 200, w: 15, h: 100, speed: 8 };  // Sol (Host)
-    let paddle2 = { x: 765, y: 200, w: 15, h: 100, speed: 8 }; // Sağ
-    let score1 = 0;
-    let score2 = 0;
-
-    let myRole = null;          // 'host' və ya 'guest'
-    let conn = null;            // PeerJS bağlantısı
     let peer = null;
+    let conn = null;
+    let myRole = null;          // 'host' və ya 'guest'
     let myId = '';
+    let currentQuestionIndex = 0;
+    let timerInterval = null;
+    let timeLeft = 15;
+    let myScore = 0;
+    let opponentScore = 0;
+    let answered = false;
 
-    // Klaviatura
-    const keys = {};
-    window.addEventListener('keydown', e => keys[e.key] = true);
-    window.addEventListener('keyup',   e => keys[e.key] = false);
+    // 20 sual (format: {q: "...", options: ["A","B","C","D"], correct: 0=A,1=B,...})
+    const questions = [
+      { q: "Sevgilinin ən sevdiyi rəng hansıdır?", options: ["Qırmızı", "Mavi", "Yaşıl", "Qara"], correct: 1 },
+      { q: "Onun uşaqlıq ləqəbi nə olub?", options: ["Balaca", "Şirin", "Tülkü", "Heç biri"], correct: 2 },
+      { q: "Ən çox sevdiyi yemək nədir?", options: ["Plov", "Pizza", "Suşi", "Döner"], correct: 0 },
+      { q: "Onun ən böyük qorxusu nədir?", options: ["Hündürlük", "Hörümçək", "Qaranlıq", "Dəniz"], correct: 1 },
+      { q: "Sevgilin hansı musiqi janrını daha çox sevir?", options: ["Pop", "Rap", "Rock", "Klassik"], correct: 2 },
+      { q: "Onun ən sevdiyi film janrı hansıdır?", options: ["Komediya", "Dram", "Dəhşət", "Aksiya"], correct: 0 },
+      { q: "Uşaqlıqda hansı idman növü ilə məşğul olub?", options: ["Futbol", "Üzgüçülük", "Rəqs", "Heç biri"], correct: 3 },
+      { q: "Ən çox sevdiyi içki nədir?", options: ["Kola", "Çay", "Kofe", "Şərab"], correct: 1 },
+      { q: "Onun ideal tətil yeri haradır?", options: ["Dəniz", "Dağ", "Şəhər", "Kənd"], correct: 0 },
+      { q: "Sevgilinin ən sevdiyi heyvan hansıdır?", options: ["Pişik", "İt", "At", "Quş"], correct: 1 },
+      { q: "Onun telefonunun arxa fonunda nə var?", options: ["Selfi", "Mənzərə", "Siz birlikdə", "Qara ekran"], correct: 2 },
+      { q: "Ən çox sevdiyi mövsüm hansıdır?", options: ["Yay", "Payız", "Qış", "Yaz"], correct: 3 },
+      { q: "Onun ən böyük xəyalı nədir?", options: ["Səyahət", "Zənginlik", "Ailə", "Şöhrət"], correct: 0 },
+      { q: "Səhər tezdən oyananda ilk nə edir?", options: ["Telefon", "Çay/kofe", "Duş", "Yenidən yatmaq"], correct: 1 },
+      { q: "Onun ən sevdiyi zarafat növü hansıdır?", options: ["Qara yumor", "Sarkazm", "Klassik", "Heç sevmir"], correct: 2 },
+      { q: "Sevgilin hansı super gücə sahib olmaq istəyər?", options: ["Uçmaq", "Görünməzlik", "Oxumaq", "Zamanı dayandırmaq"], correct: 3 },
+      { q: "Onun ən çox sevdiyi emoji hansıdır?", options: ["😂", "❤️", "🔥", "😈"], correct: 1 },
+      { q: "Ən pis vərdişi nədir?", options: ["Gec yatmaq", "Çox danışmaq", "Unutqanlıq", "Dırnaq yemək"], correct: 0 },
+      { q: "Sənin haqqında ən çox nəyi sevir?", options: ["Gülüşünü", "Xarakterini", "Bədənini", "Zəkasını"], correct: 2 },
+      { q: "Birlikdə keçirdiyiniz ən yaxşı gün hansı idi?", options: ["İlk görüş", "Səyahət", "Ev date", "Heç biri xüsusi deyil"], correct: 3 }
+    ];
 
-    // Host yarat
+    function goFullscreen() {
+      const elem = document.documentElement;
+      if (elem.requestFullscreen) elem.requestFullscreen();
+      else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
+      else if (elem.msRequestFullscreen) elem.msRequestFullscreen();
+    }
+
     function createHost() {
-      peer = new Peer();  // avtomatik ID yaradır
-
+      peer = new Peer();
       peer.on('open', id => {
         myId = id;
         myRole = 'host';
-        status.innerHTML = `Host ID: <strong>${id}</strong><br>Dostuna bu ID-ni göndər!`;
-        document.getElementById('controls').style.display = 'none';
+        status.innerHTML = `Host ID: <b>${id}</b><br>Dostuna bu kodu göndər!`;
+        lobby.style.display = 'none';
       });
 
       peer.on('connection', connection => {
         conn = connection;
         conn.on('open', () => {
           status.innerHTML = 'Əlaqə quruldu! Oyun başlayır...';
-          gameLoop();
+          goFullscreen();
+          startGame();
         });
 
-        conn.on('data', data => {
-          if (data.type === 'paddle') {
-            paddle2.y = data.y;
-          }
-        });
+        conn.on('data', handleData);
       });
     }
 
-    // Qoşul
     function joinGame() {
       const hostId = document.getElementById('peerIdInput').value.trim();
-      if (!hostId) return alert('ID yaz!');
+      if (!hostId) return alert('ID-ni yaz!');
 
-      peer = new Peer();  // guest də öz ID-si olur, amma istifadə etmirik
-
-      peer.on('open', myPeerId => {
+      peer = new Peer();
+      peer.on('open', () => {
         conn = peer.connect(hostId);
-
         conn.on('open', () => {
           myRole = 'guest';
-          status.innerHTML = 'Qoşuldun! Oyun başlayır...';
-          document.getElementById('controls').style.display = 'none';
-          gameLoop();
+          status.innerHTML = 'Qoşuldun! Host oyunu başladacaq...';
+          lobby.style.display = 'none';
         });
 
-        conn.on('data', data => {
-          if (data.type === 'paddle') {
-            paddle1.y = data.y;
-          } else if (data.type === 'ball') {
-            ball.x = data.x;
-            ball.y = data.y;
-            ball.dx = data.dx;
-            ball.dy = data.dy;
-          } else if (data.type === 'score') {
-            score1 = data.s1;
-            score2 = data.s2;
-          }
-        });
+        conn.on('data', handleData);
       });
     }
 
-    function sendMyPaddle() {
-      if (!conn || !conn.open) return;
-      const paddle = myRole === 'host' ? paddle1 : paddle2;
-      conn.send({ type: 'paddle', y: paddle.y });
+    function handleData(data) {
+      if (data.type === 'start') {
+        currentQuestionIndex = 0;
+        myScore = 0;
+        opponentScore = 0;
+        goFullscreen();
+        startGame();
+      }
+      else if (data.type === 'answer') {
+        if (data.player !== myRole) {
+          opponentScore += data.correct ? 1 : 0;
+          updateScores();
+        }
+      }
+      else if (data.type === 'next') {
+        currentQuestionIndex = data.index;
+        answered = false;
+        showQuestion();
+      }
+      else if (data.type === 'timeout') {
+        if (data.player !== myRole) {
+          status.innerHTML = "Rəqib vaxtı ötürdü → sən qazandın!";
+        }
+      }
     }
 
-    function gameLoop() {
-      // Klaviatura ilə hərəkət (hər iki tərəf öz raketini idarə edir)
+    function startGame() {
+      gameDiv.style.display = 'flex';
+      lobby.style.display = 'none';
+      status.style.display = 'none';
+
       if (myRole === 'host') {
-        if (keys['w'] || keys['W']) paddle1.y -= paddle1.speed;
-        if (keys['s'] || keys['S']) paddle1.y += paddle1.speed;
-      } else {
-        if (keys['ArrowUp'])    paddle2.y -= paddle2.speed;
-        if (keys['ArrowDown'])  paddle2.y += paddle2.speed;
+        conn.send({ type: 'start' });
       }
-
-      // Sərhədlər
-      paddle1.y = Math.max(0, Math.min(canvas.height - paddle1.h, paddle1.y));
-      paddle2.y = Math.max(0, Math.min(canvas.height - paddle2.h, paddle2.y));
-
-      // Top hərəkəti (yalnız Host hesablayır, sonra guest-ə göndərir)
-      if (myRole === 'host') {
-        ball.x += ball.dx;
-        ball.y += ball.dy;
-
-        // Divarlara dəyəndə
-        if (ball.y <= 0 || ball.y >= canvas.height) ball.dy *= -1;
-
-        // Raketka collision
-        if (ball.x <= paddle1.x + paddle1.w && ball.y > paddle1.y && ball.y < paddle1.y + paddle1.h) {
-          ball.dx *= -1.05;  // sürət artır
-        }
-        if (ball.x >= paddle2.x - paddle2.w && ball.y > paddle2.y && ball.y < paddle2.y + paddle2.h) {
-          ball.dx *= -1.05;
-        }
-
-        // Qol
-        if (ball.x < 0) {
-          score2++;
-          resetBall();
-        }
-        if (ball.x > canvas.width) {
-          score1++;
-          resetBall();
-        }
-
-        // Göndər
-        conn.send({ type: 'ball', x: ball.x, y: ball.y, dx: ball.dx, dy: ball.dy });
-        conn.send({ type: 'score', s1: score1, s2: score2 });
-      }
-
-      sendMyPaddle();
-
-      // Çək
-      ctx.fillStyle = '#000';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      // Orta xətt
-      ctx.strokeStyle = '#333';
-      ctx.setLineDash([10, 10]);
-      ctx.beginPath();
-      ctx.moveTo(canvas.width/2, 0);
-      ctx.lineTo(canvas.width/2, canvas.height);
-      ctx.stroke();
-
-      // Raketkalar
-      ctx.fillStyle = '#0f0';
-      ctx.fillRect(paddle1.x, paddle1.y, paddle1.w, paddle1.h);
-      ctx.fillRect(paddle2.x, paddle2.y, paddle2.w, paddle2.h);
-
-      // Top
-      ctx.beginPath();
-      ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI*2);
-      ctx.fillStyle = '#ff0';
-      ctx.fill();
-
-      // Skor
-      ctx.font = 'bold 60px Arial';
-      ctx.fillStyle = '#0f0';
-      ctx.fillText(score1, canvas.width/2 - 80, 80);
-      ctx.fillText(score2, canvas.width/2 + 40, 80);
-
-      requestAnimationFrame(gameLoop);
+      showQuestion();
     }
 
-    function resetBall() {
-      ball.x = canvas.width / 2;
-      ball.y = canvas.height / 2;
-      ball.dx = (Math.random() > 0.5 ? 5 : -5);
-      ball.dy = (Math.random() * 6 - 3);
+    function showQuestion() {
+      if (currentQuestionIndex >= questions.length) {
+        endGame();
+        return;
+      }
+
+      const q = questions[currentQuestionIndex];
+      questionEl.textContent = `${currentQuestionIndex+1}/20 → ${q.q}`;
+      optionsEl.innerHTML = '';
+
+      q.options.forEach((opt, i) => {
+        const div = document.createElement('div');
+        div.className = 'option';
+        div.textContent = `${String.fromCharCode(65+i)}) ${opt}`;
+        div.onclick = () => selectAnswer(i);
+        optionsEl.appendChild(div);
+      });
+
+      timeLeft = 15;
+      timerEl.textContent = timeLeft;
+      answered = false;
+      clearInterval(timerInterval);
+      timerInterval = setInterval(updateTimer, 1000);
+    }
+
+    function updateTimer() {
+      timeLeft--;
+      timerEl.textContent = timeLeft;
+
+      if (timeLeft <= 0) {
+        clearInterval(timerInterval);
+        timerEl.textContent = "VAXT BİTDİ!";
+        if (!answered) {
+          if (myRole === 'host') conn.send({ type: 'timeout', player: 'host' });
+          else conn.send({ type: 'timeout', player: 'guest' });
+        }
+        setTimeout(nextQuestion, 1800);
+      }
+    }
+
+    function selectAnswer(index) {
+      if (answered) return;
+      answered = true;
+      clearInterval(timerInterval);
+
+      const q = questions[currentQuestionIndex];
+      const isCorrect = index === q.correct;
+
+      if (isCorrect) {
+        myScore++;
+        updateScores();
+      }
+
+      // Cavabı rəqibə göndər
+      conn.send({ type: 'answer', player: myRole, correct: isCorrect });
+
+      // Seçilən variantı vurğula
+      const opts = optionsEl.children;
+      for (let i = 0; i < opts.length; i++) {
+        if (i === index) opts[i].classList.add('selected');
+        if (i === q.correct) opts[i].style.borderColor = '#00ff88';
+      }
+
+      setTimeout(nextQuestion, 1800);
+    }
+
+    function nextQuestion() {
+      currentQuestionIndex++;
+      if (myRole === 'host') {
+        conn.send({ type: 'next', index: currentQuestionIndex });
+      }
+      showQuestion();
+    }
+
+    function updateScores() {
+      scoresEl.textContent = `Sənin düzlərin: ${myScore}  –  Onun düzləri: ${opponentScore}`;
+    }
+
+    function endGame() {
+      clearInterval(timerInterval);
+      gameDiv.style.display = 'none';
+      endEl.style.display = 'flex';
+
+      let msg = myScore > opponentScore ? "Sən qazandın! 🎉" :
+                myScore < opponentScore ? "O qazandı... 😏" :
+                "Bərabər qaldı! ❤️";
+
+      resultEl.innerHTML = `${msg}<br><br>Sən: ${myScore}/20<br>O: ${opponentScore}/20`;
     }
 
     status.innerHTML = 'Host ol və ya dostunun ID-sini yazaraq qoşul!';
