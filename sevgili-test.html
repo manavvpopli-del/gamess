@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Sevgilini Nə Qədər Tanıyırsan?</title>
   <style>
-    /* Bütün stil əvvəlki kimi qaldı – heç nə dəyişmədi */
     * { margin:0; padding:0; box-sizing:border-box; }
     body {
       font-family: system-ui, -apple-system, sans-serif;
@@ -80,68 +79,31 @@
       max-width: 90%;
       z-index: 1;
     }
-    #lobby {
-      text-align: center;
-      width: 100%;
-      max-width: 580px;
-      z-index: 1;
+    #lobby { 
+      text-align: center; 
+      width: 100%; 
+      max-width: 520px; 
+      z-index: 1; 
       display: none;
-      background: linear-gradient(135deg, rgba(30,0,60,0.75), rgba(60,0,100,0.75));
-      border-radius: 24px;
-      padding: 5vh 4vw;
-      border: 2px solid rgba(255,102,204,0.3);
-      box-shadow: 0 15px 50px rgba(255,51,102,0.3);
-      backdrop-filter: blur(10px);
-    }
-    #lobby h3 {
-      color: #ff66cc;
-      font-size: 1.8rem;
-      margin-bottom: 4vh;
-      text-shadow: 0 0 10px #ff66cc80;
     }
     input, button {
-      font-size: 1.5rem;
-      padding: 1.4rem 2.5rem;
-      margin: 1.5rem 0.8rem;
+      font-size: 1.4rem;
+      padding: 1rem 2rem;
+      margin: 1.2rem 0.6rem;
       border: none;
-      border-radius: 16px;
+      border-radius: 14px;
       width: 100%;
-      transition: all 0.3s ease;
-    }
-    input {
-      background: rgba(255,255,255,0.08);
-      color: white;
-      border: 2px solid rgba(255,102,204,0.4);
-      backdrop-filter: blur(6px);
-    }
-    input::placeholder {
-      color: rgba(255,255,255,0.5);
-    }
-    input:focus {
-      border-color: #ff66cc;
-      box-shadow: 0 0 12px rgba(255,102,204,0.5);
-      outline: none;
+      max-width: 400px;
     }
     button {
-      background: linear-gradient(135deg, #ff3366, #ff66cc);
+      background: #ff33cc;
       color: white;
       cursor: pointer;
-      font-weight: bold;
-      box-shadow: 0 8px 25px rgba(255,51,102,0.4);
+      transition: all 0.3s;
     }
-    button:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 12px 35px rgba(255,51,102,0.6);
-      background: linear-gradient(135deg, #ff66cc, #cc33ff);
-    }
-    #copyBtn {
-      background: linear-gradient(135deg, #00cc88, #00ffaa);
-      box-shadow: 0 8px 25px rgba(0,204,136,0.4);
-    }
-    #copyBtn:hover {
-      background: linear-gradient(135deg, #00ffaa, #33ffcc);
-      box-shadow: 0 12px 35px rgba(0,204,136,0.6);
-    }
+    button:hover { background: #ff1ab3; transform: translateY(-4px); }
+    #copyBtn { background: #00cc88; }
+    #copyBtn:hover { background: #00ffaa; }
 
     #game {
       display: none;
@@ -180,14 +142,14 @@
       border-radius: 18px;
       font-size: clamp(1.3rem, 4.5vw, 1.8rem);
       cursor: pointer;
-      transition: all 0.3s ease;
+      transition: all 0.35s ease;
       border: 3px solid transparent;
       text-align: center;
       backdrop-filter: blur(6px);
     }
     .option:hover {
-      background: rgba(100,0,160,0.9);
-      transform: translateY(-6px);
+      background: rgba(100,0,160,0.95);
+      transform: translateY(-8px);
       border-color: #ff99ff;
     }
     .option.selected {
@@ -203,80 +165,27 @@
       padding: 5vh 0;
       z-index: 1;
     }
-    #end h2 { 
-      font-size: clamp(3rem, 8vw, 4.2rem); 
-      color: #ffdd44; 
-      margin-bottom: 4vh; 
-      text-shadow: 0 0 15px #ffdd44aa;
-    }
-    #result { 
-      font-size: clamp(1.8rem, 5.5vw, 2.4rem); 
-      text-align: center; 
-      margin-bottom: 5vh; 
-      color: #ffcc66;
-    }
+    #end h2 { font-size: clamp(3rem, 8vw, 4.2rem); color: #ffdd44; margin-bottom: 4vh; }
+    #result { font-size: clamp(1.8rem, 5.5vw, 2.4rem); text-align: center; margin-bottom: 5vh; }
     #answersList {
       width: 100%;
-      max-width: 900px;
-      background: linear-gradient(135deg, rgba(40,0,70,0.85), rgba(60,0,100,0.85));
-      border-radius: 24px;
-      padding: 5vh 4vw;
+      background: rgba(40,0,70,0.75);
+      border-radius: 18px;
+      padding: 4vh;
       font-size: clamp(1.2rem, 4vw, 1.5rem);
-      line-height: 1.9;
+      line-height: 1.8;
       margin-bottom: 5vh;
-      border: 2px solid rgba(255, 102, 204, 0.3);
-      box-shadow: 0 10px 40px rgba(255, 51, 102, 0.3);
-      backdrop-filter: blur(10px);
     }
-    #answersList h3 {
-      text-align: center;
-      color: #ff66cc;
-      font-size: 1.8rem;
-      margin-bottom: 3vh;
-      text-shadow: 0 0 10px #ff66cc80;
-    }
-    #answersList div {
-      margin: 3vh 0;
-      padding: 3vh 4vw;
-      background: rgba(80,0,120,0.6);
-      border-radius: 16px;
-      border-left: 6px solid #ff66cc;
-      transition: all 0.3s;
-    }
-    #answersList div:hover {
-      transform: translateX(8px);
-      box-shadow: 0 8px 25px rgba(255, 102, 204, 0.4);
-    }
-    #answersList strong {
-      color: #ffcc66;
-    }
-    #copyAllAnswers {
-      font-size: 1.4rem;
-      padding: 1rem 2.5rem;
-      margin-top: 3vh;
-      background: linear-gradient(135deg, #00cc88, #00ffaa);
-      color: white;
-      border: none;
-      border-radius: 50px;
-      cursor: pointer;
-      box-shadow: 0 8px 25px rgba(0,204,136,0.5);
-      transition: all 0.3s;
-    }
-    #copyAllAnswers:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 12px 35px rgba(0,204,136,0.7);
-      background: linear-gradient(135deg, #00ffaa, #33ffcc);
-    }
-    button#restartBtn {
+    #answersList div { margin: 2.5vh 0; padding: 2.5vh; background: rgba(60,0,100,0.65); border-radius: 14px; }
+    button#copyAllAnswers, button#restartBtn {
       font-size: 1.5rem;
       padding: 1.2rem 3rem;
-      margin: 1vh;
-      background: linear-gradient(135deg, #3366ff, #5588ff);
+      margin: 2vh;
     }
-    button#restartBtn:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 12px 35px rgba(51,102,255,0.7);
-    }
+    #copyAllAnswers { background: #00cc88; }
+    #copyAllAnswers:hover { background: #00ffaa; }
+    #restartBtn { background: #3366ff; }
+    #restartBtn:hover { background: #5588ff; }
     #waiting { font-size: 1.5rem; color: #ffcc66; margin-top: 3vh; text-align: center; }
   </style>
 </head>
@@ -299,9 +208,8 @@
   <div id="status" style="display:none;">Hazırlanır...</div>
 
   <div id="lobby">
-    <h3>Premium Giriş</h3>
     <button onclick="createRoom()">Otaq Yarat (KOD al)</button>
-    <input id="roomIdInput" placeholder="Qarşı tərəfin kodunu bura yaz..." />
+    <input id="roomIdInput" placeholder="Qarşı Tərəfin Kodunu Yaz" />
     <button onclick="joinRoom()">Qoşul</button>
   </div>
 
@@ -326,7 +234,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
 
   <script>
-    // Sənin verdiyin Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyCM5WdZNSj9oFipNI-J3csHpOIvK8PjoLU",
       authDomain: "sevgili-testi.firebaseapp.com",
@@ -408,7 +315,7 @@
     });
 
     function createRoom() {
-      roomId = Math.random().toString(36).substring(2, 10).toUpperCase(); // 8 simvol kod
+      roomId = Math.random().toString(36).substring(2, 10).toUpperCase();
       myRole = 'host';
       status.innerHTML = `Otaq KODU: <strong>${roomId}</strong><br>Qarşı tərəfə göndər!`;
       const copyBtn = document.createElement('button');
@@ -418,7 +325,6 @@
       };
       status.appendChild(copyBtn);
 
-      // Otağı Firebase-də yarat
       db.ref('rooms/' + roomId).set({
         hostConnected: true,
         guestConnected: false,
@@ -452,13 +358,14 @@
         const data = snapshot.val();
         if (!data) return;
 
-        // Qarşı tərəf qoşulduqda host-a bildiriş
+        // Host üçün: qoşulan tərəf gələndə oyun dərhal başlasın
         if (myRole === 'host' && data.guestConnected && currentQuestionIndex === -1) {
           status.innerHTML = 'Qarşı tərəf qoşuldu! Oyun başlayır...';
-          nextQuestion();
+          currentQuestionIndex = -1; // reset
+          nextQuestion(); // host tərəfdə də başlasın
         }
 
-        // Sual dəyişəndə hər kəsə sinxronizasiya
+        // Sual sinxronizasiyası (hər iki tərəf üçün)
         if (data.currentQuestion !== undefined && data.currentQuestion !== currentQuestionIndex) {
           currentQuestionIndex = data.currentQuestion;
           myAnswered = false;
@@ -487,33 +394,12 @@
       currentQuestionIndex++;
       if (currentQuestionIndex >= questions.length) {
         showEndScreen();
-        db.ref('rooms/' + roomId).update({ currentQuestion: -2 }); // oyun bitdi işarəsi
+        db.ref('rooms/' + roomId).update({ currentQuestion: -2 }); // oyun bitdi
         return;
       }
 
       db.ref('rooms/' + roomId).update({
         currentQuestion: currentQuestionIndex
-      });
-    }
-
-    function selectAnswer(index) {
-      if (myAnswered) return;
-      myAnswered = true;
-      myAnswers[currentQuestionIndex] = index;
-
-      const playerKey = myRole === 'host' ? 'host' : 'guest';
-      db.ref('rooms/' + roomId + '/answers/' + playerKey).set(index);
-
-      checkBothAnswered();
-    }
-
-    function checkBothAnswered() {
-      db.ref('rooms/' + roomId + '/answers').once('value').then(snapshot => {
-        const answers = snapshot.val() || {};
-        if (Object.keys(answers).length === 2) {
-          // Hər ikisi cavab verib
-          setTimeout(nextQuestion, 1500);
-        }
       });
     }
 
@@ -546,6 +432,26 @@
       }
     }
 
+    function selectAnswer(index) {
+      if (myAnswered) return;
+      myAnswered = true;
+      myAnswers[currentQuestionIndex] = index;
+
+      const playerKey = myRole === 'host' ? 'host' : 'guest';
+      db.ref('rooms/' + roomId + '/answers/' + playerKey).set(index);
+
+      checkBothAnswered();
+    }
+
+    function checkBothAnswered() {
+      db.ref('rooms/' + roomId + '/answers').once('value').then(snapshot => {
+        const answers = snapshot.val() || {};
+        if (Object.keys(answers).length === 2) {
+          setTimeout(nextQuestion, 1500);
+        }
+      });
+    }
+
     function showEndScreen() {
       clearInterval(timerInterval);
       gameDiv.style.display = 'none';
@@ -553,15 +459,11 @@
 
       resultEl.innerHTML = "30 sual cavablandı!";
 
-      answersList.innerHTML = '<h3 style="text-align:center; color:#ff66cc; margin-bottom:3vh; font-size:1.8rem; text-shadow:0 0 10px #ff66cc80;">❤️ Sənin Cavabların ❤️</h3>';
+      answersList.innerHTML = '<h3 style="text-align:center; color:#ff99ff; margin-bottom:2vh;">Sənin cavabların:</h3>';
       questions.forEach((q, i) => {
         const ans = myAnswers[i] === -1 ? "Cavab vermədin" : q.options[myAnswers[i]];
         const div = document.createElement('div');
-        div.innerHTML = `
-          <strong style="font-size:1.4rem; color:#ffcc66;">Sual ${i+1}:</strong><br>
-          <span style="color:#e0ccff; font-weight:500;">${q.q}</span><br><br>
-          <strong style="color:#ff99ff;">Cavabın:</strong> <span style="color:#ffffff;">${ans}</span>
-        `;
+        div.innerHTML = `<strong>${i+1}.</strong> ${q.q}<br><strong>Cavabın:</strong> ${ans}`;
         answersList.appendChild(div);
       });
 
@@ -569,12 +471,10 @@
         let textToCopy = "Sənin cavabların:\n\n";
         questions.forEach((q, i) => {
           const ans = myAnswers[i] === -1 ? "Cavab vermədin" : q.options[myAnswers[i]];
-          textToCopy += `Sual ${i+1}: ${q.q}\nCavabın: ${ans}\n\n`;
+          textToCopy += `${i+1}. ${q.q}\nCavabın: ${ans}\n\n`;
         });
         navigator.clipboard.writeText(textToCopy).then(() => {
-          alert("Bütün suallar və cavablar kopyalandı! Yapışdırıb paylaşa bilərsən.");
-        }).catch(() => {
-          alert("Kopyalama uğursuz oldu, brauzer icazəsini yoxla.");
+          alert("Bütün suallar və cavablar kopyalandı!");
         });
       };
     }
