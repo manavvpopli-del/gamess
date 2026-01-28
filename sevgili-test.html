@@ -358,19 +358,21 @@
         const data = snapshot.val();
         if (!data) return;
 
-        // Host üçün: qoşulan tərəf gələndə oyun dərhal başlasın
-        if (myRole === 'host' && data.guestConnected && currentQuestionIndex === -1) {
+        // Host üçün qoşulan gələndə dərhal başla
+        if (myRole === 'host' && data.guestConnected === true && currentQuestionIndex === -1) {
+          console.log('Guest qoşuldu, host tərəfdə oyun başlasın');
           status.innerHTML = 'Qarşı tərəf qoşuldu! Oyun başlayır...';
-          currentQuestionIndex = -1; // reset
-          nextQuestion(); // host tərəfdə də başlasın
+          currentQuestionIndex = -1;
+          nextQuestion();
         }
 
-        // Sual sinxronizasiyası (hər iki tərəf üçün)
+        // Sual sinxronizasiyası
         if (data.currentQuestion !== undefined && data.currentQuestion !== currentQuestionIndex) {
           currentQuestionIndex = data.currentQuestion;
           myAnswered = false;
           opponentAnswered = false;
           showQuestion();
+          console.log('Yeni sual: ' + currentQuestionIndex);
         }
 
         // Cavab sinxronizasiyası
@@ -394,7 +396,7 @@
       currentQuestionIndex++;
       if (currentQuestionIndex >= questions.length) {
         showEndScreen();
-        db.ref('rooms/' + roomId).update({ currentQuestion: -2 }); // oyun bitdi
+        db.ref('rooms/' + roomId).update({ currentQuestion: -2 });
         return;
       }
 
