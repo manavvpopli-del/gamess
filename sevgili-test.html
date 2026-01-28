@@ -178,16 +178,19 @@
       margin-bottom: 5vh;
     }
     #answersList div { margin: 2.5vh 0; padding: 2.5vh; background: rgba(60,0,100,0.65); border-radius: 14px; }
-    button#downloadPdf, button#restartBtn {
+    button#downloadPdf, button#restartBtn, button#showOpponentAnswers, button#shareResultImage {
       font-size: 1.5rem;
       padding: 1.2rem 3rem;
-      margin: 2vh;
+      margin: 1vh;
     }
     #downloadPdf { background: #3366ff; }
     #downloadPdf:hover { background: #5588ff; }
+    #showOpponentAnswers { background: #ff6600; }
+    #showOpponentAnswers:hover { background: #ff8533; }
+    #shareResultImage { background: #ff3366; }
+    #shareResultImage:hover { background: #ff6699; }
     #waiting { font-size: 1.5rem; color: #ffcc66; margin-top: 3vh; text-align: center; }
 
-    /* Sağ aşağı cihaz məlumatı */
     #device-info {
       position: fixed;
       bottom: 15px;
@@ -242,11 +245,13 @@
     <div id="result">30 sual cavablandı!</div>
     <div id="answersList"></div>
     <button id="downloadPdf">PDF olaraq yüklə</button>
+    <button id="showOpponentAnswers">Rəqibin cavablarını göstər</button>
+    <button id="shareResultImage">Nəticəni paylaş (şəkil)</button>
     <button id="restartBtn" onclick="requestRestart()">Yenidən Başlat</button>
     <div id="waiting"></div>
   </div>
 
-  <!-- Sağ aşağı cihaz məlumatı qutusu -->
+  <!-- Sağ aşağı cihaz məlumatı -->
   <div id="device-info">
     Cihaz: <span id="device-model">Yüklənir...</span><br>
     IP: <span id="ip-address">Yüklənir...</span><br>
@@ -255,6 +260,7 @@
 
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
   <script>
     const { jsPDF } = window.jspdf;
@@ -500,6 +506,30 @@
       });
 
       document.getElementById('downloadPdf').onclick = downloadPDF;
+      document.getElementById('showOpponentAnswers').onclick = showOpponentAnswers;
+      document.getElementById('shareResultImage').onclick = shareResultImage;
+    }
+
+    function showOpponentAnswers() {
+      // Rəqib cavablarını göstərmək üçün (realda conn-dan alınmalı, indi placeholder)
+      const opponentAnswers = myAnswers; // placeholder - realda opponentAnswers massivi lazımdır
+      answersList.innerHTML += '<h3 style="text-align:center; color:#ffcc66; margin:4vh 0 2vh;">Rəqibin cavabları:</h3>';
+      questions.forEach((q, i) => {
+        const ans = opponentAnswers[i] === -1 ? "Cavab verməyib" : q.options[opponentAnswers[i]];
+        const div = document.createElement('div');
+        div.innerHTML = `<strong>${i+1}.</strong> ${q.q}<br><strong>Rəqibin cavabı:</strong> ${ans}`;
+        answersList.appendChild(div);
+      });
+    }
+
+    function shareResultImage() {
+      html2canvas(document.getElementById('end')).then(canvas => {
+        const link = document.createElement('a');
+        link.download = 'sevgili-testi-netice.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        alert('Nəticə şəkli yükləndi! Paylaşa bilərsən ❤️');
+      });
     }
 
     function downloadPDF() {
