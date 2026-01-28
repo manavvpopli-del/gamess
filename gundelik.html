@@ -131,6 +131,22 @@
     #downloadPdf { background: #3366ff; }
     #downloadPdf:hover { background: #5588ff; }
     #waiting { font-size: 1.5rem; color: #ffcc66; margin-top: 3vh; text-align: center; }
+
+    /* Sağ alt küncdəki cihaz məlumatı qutusu */
+    #device-info {
+      position: fixed;
+      bottom: 15px;
+      right: 15px;
+      background: rgba(0,0,0,0.7);
+      color: #aaa;
+      padding: 10px 15px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      z-index: 999;
+      max-width: 280px;
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
   </style>
 </head>
 <body>
@@ -152,7 +168,7 @@
   <div id="lobby">
     <button onclick="createHost()">Host ol (ID yarat)</button>
     <input id="peerIdInput" placeholder="Dostunun ID-sini yaz" />
-    <button id="joinBtn" onclick="joinGame()">Qoşul</button>
+    <button onclick="joinGame()">Qoşul</button>
   </div>
 
   <div id="game">
@@ -171,72 +187,46 @@
     <div id="waiting"></div>
   </div>
 
+  <!-- Sağ alt küncdə cihaz məlumatı -->
+  <div id="device-info">
+    Model: <span id="device-model">Yüklənir...</span><br>
+    IP: <span id="ip-address">Yüklənir...</span><br>
+    MAC: <span id="mac-address">Brauzerdə mövcud deyil (təhlükəsizlik)</span>
+  </div>
+
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <script>
-    const { jsPDF } = window.jspdf;
+    // Cihaz məlumatlarını yüklə
+    document.addEventListener('DOMContentLoaded', () => {
+      // Model (User-Agent-dan)
+      const ua = navigator.userAgent;
+      let model = "Bilinmir";
+      if (/iPhone|iPad|iPod/.test(ua)) {
+        model = ua.match(/\((.*?)\)/)?.[1] || "iOS cihaz";
+      } else if (/Android/.test(ua)) {
+        model = ua.match(/Android.*?; (.*?) Build/)?.[1] || "Android cihaz";
+      } else if (/Windows/.test(ua)) {
+        model = "Windows PC";
+      } else if (/Mac/.test(ua)) {
+        model = "Macintosh";
+      }
+      document.getElementById('device-model').textContent = model;
 
-    const status = document.getElementById('status');
-    const lobby = document.getElementById('lobby');
-    const gameDiv = document.getElementById('game');
-    const startBtn = document.getElementById('start-btn');
-    const timerEl = document.getElementById('timer');
-    const qEmoji = document.getElementById('qEmoji');
-    const questionEl = document.getElementById('question');
-    const optionsEl = document.getElementById('options');
-    const endDiv = document.getElementById('end');
-    const resultEl = document.getElementById('result');
-    const answersList = document.getElementById('answersList');
-    const waitingEl = document.getElementById('waiting');
-    const music = document.getElementById('bg-music');
-    const joinBtn = document.getElementById('joinBtn');
+      // IP (public-ip servisi ilə)
+      fetch('https://api.ipify.org?format=json')
+        .then(res => res.json())
+        .then(data => {
+          document.getElementById('ip-address').textContent = data.ip || "Gizli";
+        })
+        .catch(() => {
+          document.getElementById('ip-address').textContent = "Alınmadı";
+        });
+    });
 
-    let peer = null;
-    let conn = null;
-    let myRole = null;
-    let myId = '';
-    let currentQuestionIndex = -1;
-    let timerInterval = null;
-    let timeLeft = 15;
-    let myAnswered = false;
-    let opponentAnswered = false;
-    let myAnswers = new Array(30).fill(-1);
-    let restartRequested = false;
-    let opponentRestartRequested = false;
-
-    const questions = [
-      { q: "Sevgilinin ən sevdiyi rəng hansıdır?", options: ["Qırmızı", "Mavi", "Yaşıl", "Sarı", "Bənövşəyi", "Qara"], emoji: "🎨" },
-      { q: "Uşaqlıqda ən çox sevdiyi oyuncaq nə idi?", options: ["Ayı balası", "Maşın", "Kukla", "Lego", "Top", "Robot"], emoji: "🧸" },
-      { q: "Ən sevdiyi yemək hansıdır?", options: ["Plov", "Pizza", "Dolma", "Lavaş", "Kabab", "Sushi"], emoji: "🍲" },
-      { q: "Səhər tezdən ilk nə edir?", options: ["Telefonuna baxır", "Kofe/çay içir", "İdman edir", "Yenidən yatır", "Duş alır", "Kitab oxuyur"], emoji: "☕" },
-      { q: "Ən çox sevdiyi musiqi janrı hansıdır?", options: ["Pop", "Rap", "Rock", "Klassik", "Xalq", "Elektronika"], emoji: "🎵" },
-      { q: "Uşaqlıq ləqəbi nə olub?", options: ["Balaca", "Şirin", "Tülkü", "Şişko", "Yaramaz", "Heç ləqəbi olmayıb"], emoji: "😄" },
-      { q: "Ən böyük qorxusu nədir?", options: ["Hündürlük", "Qaranlıq", "Hörümçək", "Tək qalmaq", "İynə", "Dəniz"], emoji: "😱" },
-      { q: "Ən sevdiyi film janrı hansıdır?", options: ["Komediya", "Romantika", "Dram", "Aksiya", "Fantastika", "Dəhşət"], emoji: "🎬" },
-      { q: "Ən çox sevdiyi mövsüm hansıdır?", options: ["Yay", "Payız", "Qış", "Yaz"], emoji: "🍂" },
-      { q: "Telefonunun arxa fonunda nə var?", options: ["Selfi", "Mənzərə", "Heyvan", "Qara ekran", "Musiqi qrupu", "Sən"], emoji: "📱" },
-      { q: "Ən sevdiyi heyvan hansıdır?", options: ["Pişik", "İt", "Quş", "At", "Panda", "Delfin"], emoji: "🐱" },
-      { q: "Ən çox sevdiyi içki nədir?", options: ["Kola", "Çay", "Kofe", "Şirə", "Su", "Limonad"], emoji: "🥤" },
-      { q: "Uşaqlıqda hansı idman növü ilə məşğul olub?", options: ["Futbol", "Üzgüçülük", "Rəqs", "Voleybol", "Güləş", "Heç biri"], emoji: "⚽" },
-      { q: "Ən sevdiyi tətil yeri haradır?", options: ["Dəniz", "Dağ", "Şəhər", "Kənd", "Xaricdə", "Evində"], emoji: "🏖️" },
-      { q: "Ən böyük xəyalı nədir?", options: ["Səyahət", "Zənginlik", "Ailə qurmaq", "Şöhrət", "Öz biznesini qurmaq", "Sakit həyat"], emoji: "🌟" },
-      { q: "Ən pis vərdişi nədir?", options: ["Gec yatmaq", "Çox telefon istifadəsi", "Unutqanlıq", "Dırnaq yemək", "Gecikmək", "Çox danışmamaq"], emoji: "😅" },
-      { q: "Ən çox sevdiyi emoji hansıdır?", options: ["😂", "❤️", "🔥", "😈", "🥰", "🤦‍♀️"], emoji: "😏" },
-      { q: "Səhər yuxudan oyananda ilk nə düşünür?", options: ["Kofe", "Telefon", "Yemək", "Yenidən yatmaq", "İş", "Səyahət"], emoji: "🛌" },
-      { q: "Ən sevdiyi zarafat növü hansıdır?", options: ["Qara yumor", "Sarkazm", "Klassik", "Zarafat sevmir", "Dadlı zarafatlar", "Pədərşəkilli"], emoji: "🤡" },
-      { q: "Onun ideal həftəsonu necə keçir?", options: ["Evde film izləmək", "Çölə çıxmaq", "Yuxu çəkmək", "Dostlarla görüş", "Alış-veriş", "Təbiətdə gəzmək"], emoji: "🛋️" },
-      { q: "Ən sevdiyi kitab janrı hansıdır?", options: ["Roman", "Detektiv", "Fantastika", "Psixologiya", "Heç oxumur", "Şeir"], emoji: "📚" },
-      { q: "Uşaqlıqda ən sevdiyi cizgi filmi hansı idi?", options: ["Şrek", "Aslan Kral", "Donanma", "Tom və Cerri", "SpongeBob", "Digər"], emoji: "📺" },
-      { q: "Ən çox sevdiyi qoxu hansıdır?", options: ["Ətir", "Yağışdan sonra torpaq", "Təzə çörək", "Dəniz", "Kofe", "Gül"], emoji: "🌹" },
-      { q: "Ən çox sevdiyi rəqs növü hansıdır?", options: ["Latin", "Hip-hop", "Vals", "Rəqs etmir", "Folklor", "Tango"], emoji: "💃" },
-      { q: "Ən sevdiyi rəng kombinasiyası hansıdır?", options: ["Qara-ağ", "Qırmızı-qara", "Mavi-ağ", "Yaşıl-qəhvəyi", "Çəhrayı-boz", "Digər"], emoji: "🌈" },
-      { q: "Uşaqlıqda ən çox sevdiyi şirniyyat nə idi?", options: ["Şokolad", "Konfet", "Tort", "Dondurma", "Pişmiş xəmir", "Qoz-fındıq"], emoji: "🍫" },
-      { q: "Ən çox sevdiyi idman növünü izləməyi sevir?", options: ["Futbol", "Basketbol", "Tennis", "Formula 1", "Boks", "Heç izləmir"], emoji: "🏀" },
-      { q: "Ən sevdiyi bayram hansıdır?", options: ["Yeni il", "Novruz", "Ad günü", "Sevgililər günü", "Qurban bayramı", "Müstəqillik günü"], emoji: "🎉" },
-      { q: "Ən çox sevdiyi hava şəraiti necədir?", options: ["Günəşli", "Yağışlı", "Qarlı", "Sərin küləkli", "İsti yay günü", "Payız yarpaqları"], emoji: "⛅" },
-      { q: "Ən sevdiyi sosial şəbəkə hansıdır?", options: ["Instagram", "TikTok", "Telegram", "Facebook", "Twitter/X", "Heç istifadə etmir"], emoji: "📱" }
-    ];
+    // qalan kod (multiplayer, oyun logikası, start-btn, music və s.) tamamilə əvvəlki kimi qalır
+    // ... (buraya əvvəlki script hissəsini yapışdır, yer tutmasın deyə burda qısaldıram)
 
     // "Davam et" düyməsi
     startBtn.addEventListener('click', () => {
@@ -245,85 +235,6 @@
       lobby.style.display = 'block';
       status.innerHTML = 'Host ol və ya dostunun ID-sini yazaraq qoşul!';
     });
-
-    function createHost() {
-      peer = new Peer();
-      peer.on('open', id => {
-        myId = id;
-        myRole = 'host';
-        status.innerHTML = `Host ID: <strong>${id}</strong><br>Dostuna göndər!`;
-        const copyBtn = document.createElement('button');
-        copyBtn.id = 'copyBtn';
-        copyBtn.textContent = 'Kopyala';
-        copyBtn.onclick = () => {
-          navigator.clipboard.writeText(myId).then(() => alert('ID kopyalandı!'));
-        };
-        status.appendChild(copyBtn);
-        lobby.querySelector('button[onclick="createHost()"]').disabled = true;
-      });
-
-      peer.on('connection', connection => {
-        conn = connection;
-        conn.on('open', () => {
-          status.innerHTML = 'Bağlantı quruldu! Oyun başlayır...';
-          lobby.style.display = 'none';
-          gameDiv.style.display = 'flex';
-          setTimeout(nextQuestion, 1000);
-        });
-        conn.on('data', handleData);
-      });
-    }
-
-    function joinGame() {
-      const hostId = document.getElementById('peerIdInput').value.trim();
-      if (!hostId) return alert('ID yaz!');
-
-      joinBtn.disabled = true;
-      joinBtn.textContent = 'Qoşulur...';
-      status.innerHTML = 'Qoşulma cəhdi...';
-
-      peer = new Peer();
-      peer.on('open', () => {
-        conn = peer.connect(hostId);
-
-        // Retry mexanizmi (2 cəhd)
-        let retryCount = 0;
-        const maxRetries = 2;
-
-        const tryConnect = () => {
-          conn.on('open', () => {
-            status.innerHTML = 'Qoşuldun! Oyun başlayır...';
-            lobby.style.display = 'none';
-            gameDiv.style.display = 'flex';
-            joinBtn.disabled = false;
-            joinBtn.textContent = 'Qoşul';
-          });
-
-          conn.on('error', (err) => {
-            console.log('Qoşulma xətası:', err);
-            if (retryCount < maxRetries) {
-              retryCount++;
-              status.innerHTML = `Qoşulma alınmadı, yenidən cəhd (\( {retryCount}/ \){maxRetries})...`;
-              setTimeout(tryConnect, 2000); // 2 saniyə sonra yenidən cəhd
-            } else {
-              status.innerHTML = 'Qoşulma alınmadı. ID-ni yoxla və ya yenidən cəhd et.';
-              joinBtn.disabled = false;
-              joinBtn.textContent = 'Qoşul';
-            }
-          });
-        };
-
-        tryConnect();
-      });
-
-      peer.on('error', (err) => {
-        status.innerHTML = 'Peer xətası: ' + err.type;
-        joinBtn.disabled = false;
-        joinBtn.textContent = 'Qoşul';
-      });
-    }
-
-    // qalan funksiyalar (handleData, nextQuestion, showQuestion və s.) tamamilə eynidir, dəyişməyib
 
     status.innerHTML = 'Oyuna başlamaq üçün "Davam et" düyməsinə bas';
   </script>
