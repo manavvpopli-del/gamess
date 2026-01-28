@@ -69,7 +69,6 @@
     button:hover { background: #ff1ab3; transform: translateY(-4px); }
     #copyBtn { background: #00cc88; }
     #copyBtn:hover { background: #00ffaa; }
-    #retryBtn { background: #ff4444; display: none; }
 
     #game {
       display: none;
@@ -206,7 +205,7 @@
 
     const questions = [
       { q: "Sevgilinin ən sevdiyi rəng hansıdır?", options: ["Qırmızı", "Mavi", "Yaşıl", "Sarı", "Bənövşəyi", "Qara"], emoji: "🎨" },
-      // ... (qalan 29 sual eynidir, yer tutmasın deyə burda qısaldıram)
+      // ... qalan 29 sual eynidir
       { q: "Ən sevdiyi sosial şəbəkə hansıdır?", options: ["Instagram", "TikTok", "Telegram", "Facebook", "Twitter/X", "Heç istifadə etmir"], emoji: "📱" }
     ];
 
@@ -238,9 +237,10 @@
         conn = connection;
         conn.on('open', () => {
           status.innerHTML = 'Bağlantı quruldu! Oyun başlayır...';
+          conn.send({ type: 'ready' }); // Guest-ə "hazıram" mesajı göndər
           lobby.style.display = 'none';
           gameDiv.style.display = 'flex';
-          setTimeout(nextQuestion, 1000);
+          setTimeout(nextQuestion, 1500); // 1.5 saniyə gecikmə ilə başla
         });
         conn.on('data', handleData);
       });
@@ -263,11 +263,18 @@
         conn = peer.connect(hostId);
 
         conn.on('open', () => {
-          status.innerHTML = 'Qoşuldun! Oyun başlayır...';
-          lobby.style.display = 'none';
-          gameDiv.style.display = 'flex';
-          joinBtn.disabled = false;
-          joinBtn.textContent = 'Qoşul';
+          status.innerHTML = 'Qoşuldun! Host hazır olmasını gözləyir...';
+        });
+
+        conn.on('data', data => {
+          if (data.type === 'ready') {
+            status.innerHTML = 'Host hazır! Oyun başlayır...';
+            lobby.style.display = 'none';
+            gameDiv.style.display = 'flex';
+            joinBtn.disabled = false;
+            joinBtn.textContent = 'Qoşul';
+            setTimeout(nextQuestion, 1500);
+          }
         });
 
         conn.on('error', (err) => {
@@ -275,7 +282,7 @@
           if (retryCount < maxRetries) {
             retryCount++;
             status.innerHTML = `Qoşulma alınmadı, yenidən cəhd \( {retryCount}/ \){maxRetries}...`;
-            setTimeout(tryConnect, 3000); // 3 saniyə sonra yenidən cəhd
+            setTimeout(tryConnect, 3000);
           } else {
             status.innerHTML = 'Qoşulma alınmadı! ID-ni yoxla və ya internetini yenilə.';
             joinBtn.disabled = false;
@@ -295,7 +302,24 @@
       });
     }
 
-    // qalan bütün funksiyalar (handleData, nextQuestion, showQuestion və s.) tamamilə eynidir, dəyişməyib
+    function handleData(data) {
+      if (data.type === 'next') {
+        currentQuestionIndex = data.index;
+        myAnswered = false;
+        opponentAnswered = false;
+        showQuestion();
+      } else if (data.type === 'answered') {
+        if (data.player !== myRole) {
+          opponentAnswered = true;
+          checkBothAnswered();
+        }
+      } else if (data.type === 'restart') {
+        opponentRestartRequested = true;
+        checkRestart();
+      }
+    }
+
+    // qalan bütün funksiyalar (nextQuestion, showQuestion, updateTimer və s.) tamamilə eynidir
 
     status.innerHTML = 'Oyuna başlamaq üçün "Davam et" düyməsinə bas';
   </script>
