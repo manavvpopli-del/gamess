@@ -266,17 +266,15 @@
       box-shadow: 0 12px 35px rgba(0,204,136,0.7);
       background: linear-gradient(135deg, #00ffaa, #33ffcc);
     }
-    button#restartBtn, button#shareResultImage {
+    button#restartBtn {
       font-size: 1.5rem;
       padding: 1.2rem 3rem;
       margin: 1vh;
+      background: linear-gradient(135deg, #3366ff, #5588ff);
     }
-    #shareResultImage { 
-      background: linear-gradient(135deg, #ff3366, #ff6699); 
-    }
-    #shareResultImage:hover { 
-      background: linear-gradient(135deg, #ff6699, #ff99cc); 
+    button#restartBtn:hover {
       transform: translateY(-4px);
+      box-shadow: 0 12px 35px rgba(51,102,255,0.7);
     }
     #waiting { font-size: 1.5rem; color: #ffcc66; margin-top: 3vh; text-align: center; }
   </style>
@@ -300,9 +298,9 @@
   <div id="status" style="display:none;">Hazırlanır...</div>
 
   <div id="lobby">
-    <h3>🌐 Onlayn/Multiplayer</h3>
+    <h3>Premium Giriş</h3>
     <button onclick="createHost()">KOD Yarat</button>
-    <input id="peerIdInput" placeholder="Qarşı tərəfin kodunu yaz" />
+    <input id="peerIdInput" placeholder="Qarşı tərəfin kodunu bura yaz..." />
     <button onclick="joinGame()">Qoşul</button>
   </div>
 
@@ -396,7 +394,17 @@
     });
 
     function createHost() {
-      peer = new Peer();
+      peer = new Peer({
+        config: {
+          iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
+            { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
+            { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' }
+          ]
+        }
+      });
+
       peer.on('open', id => {
         myId = id;
         myRole = 'host';
@@ -405,16 +413,14 @@
         copyBtn.id = 'copyBtn';
         copyBtn.textContent = 'Kopyala';
         copyBtn.onclick = () => {
-          navigator.clipboard.writeText(myId).then(() => {
-            alert('KOD kopyalandı!');
-          });
+          navigator.clipboard.writeText(myId).then(() => alert('KOD kopyalandı!'));
         };
         status.appendChild(copyBtn);
         lobby.querySelector('button[onclick="createHost()"]').disabled = true;
       });
 
       peer.on('error', err => {
-        alert('Bağlantı xətası: ' + err.message + '\nBrauzerini yenilə və ya VPN-i söndür.');
+        alert('Bağlantı xətası: ' + err.message + '\nBrauzeri yenilə və ya VPN-i söndür.');
       });
 
       peer.on('connection', connection => {
@@ -440,7 +446,17 @@
       const hostId = document.getElementById('peerIdInput').value.trim();
       if (!hostId) return alert('KOD yaz!');
 
-      peer = new Peer();
+      peer = new Peer({
+        config: {
+          iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
+            { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
+            { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' }
+          ]
+        }
+      });
+
       peer.on('open', () => {
         conn = peer.connect(hostId);
         conn.on('open', () => {
@@ -454,10 +470,11 @@
           nextQuestion();
         });
         conn.on('error', err => {
-          alert('Qoşulma xətası: ' + err.message + '\nKOD-u yoxla və ya yenidən cəhd et.');
+          alert('Qoşulma xətası: ' + err.message + '\nKOD-u yoxla və ya VPN-i söndür.');
         });
         conn.on('data', handleData);
       });
+
       peer.on('error', err => {
         alert('Bağlantı xətası: ' + err.message);
       });
