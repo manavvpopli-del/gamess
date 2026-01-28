@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sevgilini Nə Qədər Tanıyırsan?</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      color: #f0e0ff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      overflow-x: hidden;
+    }
+    #bg-video {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      z-index: -2;
+    }
+    #overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: -1;
+    }
+    h1 { 
+      font-size: clamp(2.2rem, 7vw, 3.5rem); 
+      margin: 4vh 0 3vh; 
+      color: #ff66cc; 
+      text-shadow: 0 0 15px #ff66cc80; 
+      z-index: 1;
+    }
+    #status {
+      font-size: clamp(1.4rem, 5vw, 2rem);
+      margin: 3vh 0 5vh;
+      color: #ffcc66;
+      text-align: center;
+      max-width: 90%;
+      z-index: 1;
+    }
+    #lobby { 
+      text-align: center; 
+      width: 100%; 
+      max-width: 520px; 
+      z-index: 1; 
+      display: none;
+    }
+    input, button {
+      font-size: 1.4rem;
+      padding: 1rem 2rem;
+      margin: 1.2rem 0.6rem;
+      border: none;
+      border-radius: 14px;
+      width: 100%;
+      max-width: 400px;
+    }
+    button {
+      background: #ff33cc;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    button:hover { background: #ff1ab3; transform: translateY(-4px); }
+    #copyBtn { background: #00cc88; }
+    #copyBtn:hover { background: #00ffaa; }
+
+    #game {
+      display: none;
+      width: 100%;
+      max-width: 1100px;
+      flex-direction: column;
+      align-items: center;
+      padding: 3vh 0;
+      z-index: 1;
+    }
+    #timer {
+      font-size: clamp(5rem, 14vw, 7rem);
+      font-weight: bold;
+      color: #ff3366;
+      margin: 3vh 0;
+      text-shadow: 0 0 20px #ff3366aa;
+    }
+    #qEmoji { font-size: clamp(6rem, 18vw, 9rem); margin: 3vh 0; }
+    #question {
+      font-size: clamp(1.8rem, 6vw, 2.8rem);
+      text-align: center;
+      line-height: 1.45;
+      margin: 4vh 0 6vh;
+      max-width: 90%;
+    }
+    .options {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2.5vh;
+      width: 100%;
+      max-width: 1000px;
+    }
+    .option {
+      background: rgba(60,0,110,0.8);
+      padding: 3vh 5vw;
+      border-radius: 18px;
+      font-size: clamp(1.3rem, 4.5vw, 1.8rem);
+      cursor: pointer;
+      transition: all 0.35s ease;
+      border: 3px solid transparent;
+      text-align: center;
+      backdrop-filter: blur(6px);
+    }
+    .option:hover {
+      background: rgba(100,0,160,0.95);
+      transform: translateY(-8px);
+      border-color: #ff99ff;
+    }
+    .option.selected {
+      border-color: #00ffcc;
+      background: rgba(0,80,60,0.75);
+    }
+    #end {
+      display: none;
+      width: 100%;
+      max-width: 1000px;
+      flex-direction: column;
+      align-items: center;
+      padding: 5vh 0;
+      z-index: 1;
+    }
+    #end h2 { font-size: clamp(3rem, 8vw, 4.2rem); color: #ffdd44; margin-bottom: 4vh; }
+    #result { font-size: clamp(1.8rem, 5.5vw, 2.4rem); text-align: center; margin-bottom: 5vh; }
+    #answersList {
+      width: 100%;
+      background: rgba(40,0,70,0.75);
+      border-radius: 18px;
+      padding: 4vh;
+      font-size: clamp(1.2rem, 4vw, 1.5rem);
+      line-height: 1.8;
+      margin-bottom: 5vh;
+    }
+    #answersList div { margin: 2.5vh 0; padding: 2.5vh; background: rgba(60,0,100,0.65); border-radius: 14px; }
+    button#downloadPdf, button#restartBtn {
+      font-size: 1.5rem;
+      padding: 1.2rem 3rem;
+      margin: 2vh;
+    }
+    #downloadPdf { background: #3366ff; }
+    #downloadPdf:hover { background: #5588ff; }
+    #waiting { font-size: 1.5rem; color: #ffcc66; margin-top: 3vh; text-align: center; }
+  </style>
+</head>
+<body>
+
+  <video id="bg-video" autoplay loop playsinline muted>
+    <source src="videoo.mp4" type="video/mp4">
+  </video>
+  <div id="overlay"></div>
+
+  <audio id="bg-music" loop>
+    <source src="musiic.mp3" type="audio/mpeg">
+  </audio>
+
+  <h1>Sevgilini Nə Qədər Tanıyırsan?</h1>
+  <div id="status">Oyuna başlamaq üçün "Davam et" düyməsinə bas</div>
+
+  <button id="start-btn">Davam et</button>
+
+  <div id="lobby">
+    <button onclick="createHost()">Host ol (ID yarat)</button>
+    <input id="peerIdInput" placeholder="Dostunun ID-sini yaz" />
+    <button onclick="joinGame()">Qoşul</button>
+  </div>
+
+  <div id="game">
+    <div id="timer">15</div>
+    <div id="qEmoji"></div>
+    <div id="question"></div>
+    <div class="options" id="options"></div>
+  </div>
+
+  <div id="end">
+    <h2>Oyun Bitdi!</h2>
+    <div id="result">30 sual cavablandı!</div>
+    <div id="answersList"></div>
+    <button id="downloadPdf">PDF olaraq yüklə</button>
+    <button id="restartBtn" onclick="requestRestart()">Yenidən Başlat</button>
+    <div id="waiting"></div>
+  </div>
+
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <script>
+    const { jsPDF } = window.jspdf;
+
+    const status = document.getElementById('status');
+    const lobby = document.getElementById('lobby');
+    const gameDiv = document.getElementById('game');
+    const startBtn = document.getElementById('start-btn');
+    const timerEl = document.getElementById('timer');
+    const qEmoji = document.getElementById('qEmoji');
+    const questionEl = document.getElementById('question');
+    const optionsEl = document.getElementById('options');
+    const endDiv = document.getElementById('end');
+    const resultEl = document.getElementById('result');
+    const answersList = document.getElementById('answersList');
+    const waitingEl = document.getElementById('waiting');
+    const music = document.getElementById('bg-music');
+
+    let peer = null;
+    let conn = null;
+    let myRole = null;
+    let myId = '';
+    let currentQuestionIndex = -1;
+    let timerInterval = null;
+    let timeLeft = 15;
+    let myAnswered = false;
+    let opponentAnswered = false;
+    let myAnswers = new Array(30).fill(-1);
+    let restartRequested = false;
+    let opponentRestartRequested = false;
+
+    const questions = [
+      { q: "Sevgilinin ən sevdiyi rəng hansıdır?", options: ["A) Qırmızı – ehtiraslı və cəsarətli", "B) Mavi – sakit və dərin", "C) Yaşıl – təbiət və harmoniya", "D) Sarı – günəş kimi parlaq və enerjili", "E) Bənövşəyi – sirli və kraliça kimi", "F) Qara – gizemli və seksiy"], emoji: "🎨" },
+      { q: "Uşaqlıqda ən çox sevdiyi oyuncaq nə idi?", options: ["A) Ayı balası – qucaqlayıb yatardı", "B) Maşın – bütün evi yarış meydanı edirdi", "C) Kukla – ona saç düzəldirdi", "D) Lego – saatlarla tikib sökürdü", "E) Top – hər yerdə oynayırdı", "F) Robot – onu idarə etməyi sevirdi"], emoji: "🧸" },
+      { q: "Ən sevdiyi yemək hansıdır?", options: ["A) Plov – anasının plovu əvəzedilməz", "B) Pizza – gecələr ən yaxşı dostu", "C) Dolma – ailə yeməyi, emosional", "D) Lavaş – hər şeyə yaraşır", "E) Kabab – odun qoxusu ilə", "F) Sushi – zövqlü və ekzotik"], emoji: "🍲" },
+      { q: "Səhər tezdən ilk nə edir?", options: ["A) Telefonuna baxır – ilk iş sosial media", "B) Kofe/çay içir – günə onsuz başlamaz", "C) İdman edir – enerjini boşaldır", "D) Yenidən yatır – səhər onun düşmənidir", "E) Duş alır – təzəlik vacibdir", "F) Kitab oxuyur – günə intellektlə başlayır"], emoji: "☕" },
+      { q: "Ən çox sevdiyi musiqi janrı hansıdır?", options: ["A) Pop – hər yerdə oxuyur", "B) Rap – sözlərə vurulub", "C) Rock – emosiyanı boşaldır", "D) Klassik – ruhu sakitləşdirir", "E) Xalq musiqisi – köklərə bağlıdır", "F) Elektronika – gecələrə uyğundur"], emoji: "🎵" },
+      { q: "Uşaqlıq ləqəbi nə olub?", options: ["A) Balaca – həmişə kiçik qalırdı", "B) Şirin – hamı qucaqlayırdı", "C) Tülkü – hiyləgər idi", "D) Şişko – yumşaq və sevimli", "E) Yaramaz – evdə başı-başına qalırdı", "F) Heç ləqəbi olmayıb – ciddi uşaq idi"], emoji: "😄" },
+      { q: "Ən böyük qorxusu nədir?", options: ["A) Hündürlük – damdan aşağı baxa bilmir", "B) Qaranlıq – işıq sönəndə panika olur", "C) Hörümçək – görəndə qışqırır", "D) Tək qalmaq – yalnılıqdan qorxur", "E) İynə – həkimə getməkdən yayınır", "F) Dəniz – dərin sudan qorxur"], emoji: "😱" },
+      { q: "Ən sevdiyi film janrı hansıdır?", options: ["A) Komediya – gülüş vacibdir", "B) Romantika – sevgi hekayələrinə inanır", "C) Dram – emosional filmləri sevir", "D) Aksiya – adrenalin vurur", "E) Fantastika – xəyallara qaçır", "F) Dəhşət – qorxunu sevir"], emoji: "🎬" },
+      { q: "Ən çox sevdiyi mövsüm hansıdır?", options: ["A) Yay – dəniz, günəş, istirahət", "B) Payız – yarpaqlar və romantika", "C) Qış – qar və isti yorğan", "D) Yaz – təzəlik və çiçəklər"], emoji: "🍂" },
+      { q: "Telefonunun arxa fonunda nə var?", options: ["A) Öz selfisi – özünü sevir", "B) Mənzərə – gözəlliyə vurulub", "C) Heyvan – heyvansevərdir", "D) Qara ekran – sadəliyi sevir", "E) Musiqi qrupu – fanatdır", "F) Sənin şəklin – səni ön plana çıxarır"], emoji: "📱" },
+      { q: "Ən sevdiyi heyvan hansıdır?", options: ["A) Pişik – evdəki ən yaxşı dost", "B) İt – sadiq və enerjili", "C) Quş – azadlıq simvolu", "D) At – güc və zəriflik", "E) Panda – şirin və tənbəl", "F) Delfin – ağıllı və oynaq"], emoji: "🐱" },
+      { q: "Ən çox sevdiyi içki nədir?", options: ["A) Kola – klassik və enerji verən", "B) Çay – sakitləşdirici və ənənəvi", "C) Kofe – günün başlanğıcı", "D) Şirə – təbii və sağlam", "E) Su – sadə və təmiz", "F) Limonad – sərin və turş"], emoji: "🥤" },
+      { q: "Uşaqlıqda hansı idman növü ilə məşğul olub?", options: ["A) Futbol – komanda ruhu", "B) Üzgüçülük – azadlıq hissi", "C) Rəqs – ritm və emosiya", "D) Voleybol – çeviklik", "E) Güləş – güc və mübarizə", "F) Heç biri – idmanla arası yox idi"], emoji: "⚽" },
+      { q: "Ən sevdiyi tətil yeri haradır?", options: ["A) Dəniz sahili – qum və günəş", "B) Dağlar – sərin hava və mənzərə", "C) Şəhər – həyat və gecə həyatı", "D) Kənd – sakitlik və təbiət", "E) Xaricdə – yeni mədəniyyətlər", "F) Evində – ən rahat yer"], emoji: "🏖️" },
+      { q: "Ən böyük xəyalı nədir?", options: ["A) Dünyanı gəzmək – hər ölkəni görmək", "B) Çox pul qazanmaq – lüks həyat", "C) Ailə qurmaq – sevgi və uşaqlar", "D) Məşhur olmaq – hamının tanıması", "E) Öz biznesini qurmaq – müstəqillik", "F) Sakit həyat sürmək – stresssiz günlər"], emoji: "🌟" },
+      { q: "Ən pis vərdişi nədir?", options: ["A) Gec yatmaq – gecə quşudur", "B) Çox telefon istifadəsi – sosial media asılılığı", "C) Unutqanlıq – hər şeyi itirir", "D) Dırnaq yemək – stress anında", "E) Gecikmək – həmişə 5 dəqiqə gecikir", "F) Çox danışmamaq – içində saxlayır"], emoji: "😅" },
+      { q: "Ən çox sevdiyi emoji hansıdır?", options: ["A) 😂 – hər şeyə gülür", "B) ❤️ – sevgini göstərir", "C) 🔥 – hər şey 'yanır'", "D) 😈 – yaramazlıq anları", "E) 🥰 – şirinlik", "F) 🤦‍♀️ – 'bu nə idi indi?'"], emoji: "😏" },
+      { q: "Səhər yuxudan oyananda ilk nə düşünür?", options: ["A) Kofe/çay – günə onsuz başlamaz", "B) Telefon – ilk iş mesajlara baxmaq", "C) Sən – səni xatırlayır", "D) Yenidən yatmaq – yuxu onun sevgilisidir", "E) İş – plan qurur", "F) Yemək – ac qalır"], emoji: "🛌" },
+      { q: "Ən sevdiyi zarafat növü hansıdır?", options: ["A) Qara yumor – qaranlıqdan qorxmur", "B) Sarkazm – ironiyanı sevir", "C) Klassik zarafatlar – sadə və təmiz", "D) Zarafat sevmir – ciddi insan", "E) Dadlı zarafatlar – axmaq gülüşlər", "F) Pədərşəkilli – yaramazlıq"], emoji: "🤡" },
+      { q: "Onun ideal həftəsonu necə keçir?", options: ["A) Evdə film izləmək – rahat və isti", "B) Çölə çıxmaq – macəra axtarır", "C) Yuxu çəkmək – yuxu onun sevdiyi şeydir", "D) Dostlarla görüş – söhbət və gülüş", "E) Alış-veriş – özünə baxmaq", "F) Təbiətdə gəzmək – təmizlik və sükut"], emoji: "🛋️" },
+      { q: "Ən sevdiyi kitab janrı hansıdır?", options: ["A) Roman – sevgi və həyat hekayələri", "B) Detektiv – sirri açmağı sevir", "C) Fantastika – xəyallara qaçır", "D) Psixologiya – özünü anlamaq", "E) Heç oxumur – kitab onun düşmənidir", "F) Şeir – ruhu oxşayır"], emoji: "📚" },
+      { q: "Uşaqlıqda ən sevdiyi cizgi filmi hansı idi?", options: ["A) Şrek – ironiya və yumor", "B) Aslan Kral – emosional və epik", "C) Donanma – macəra və dostluq", "D) Tom və Cerri – klassik gülüş", "E) SpongeBob – axmaq və əyləncəli", "F) Digər – özününkü de"], emoji: "📺" },
+      { q: "Ən çox sevdiyi qoxu hansıdır?", options: ["A) Ətir – özünə baxımlıdır", "B) Yağışdan sonra torpaq – təbiət qoxusu", "C) Təzə çörək – ev qoxusu", "D) Dəniz – azadlıq hissi", "E) Kofe – səhər ritualı", "F) Gül – romantika"], emoji: "🌹" },
+      { q: "Ən çox sevdiyi rəqs növü hansıdır?", options: ["A) Latin – ehtiraslı və isti", "B) Hip-hop – enerjili və gənc", "C) Vals – klassik və romantik", "D) Rəqs etmir – utancaqdır", "E) Folklor – köklərə bağlıdır", "F) Tango – intim və güclü"], emoji: "💃" },
+      { q: "Ən sevdiyi rəng kombinasiyası hansıdır?", options: ["A) Qara-ağ – minimalist və şık", "B) Qırmızı-qara – ehtiras və güc", "C) Mavi-ağ – sakit və təmiz", "D) Yaşıl-qəhvəyi – təbiət tonları", "E) Çəhrayı-boz – yumşaq və şirin", "F) Digər – özününkü de"], emoji: "🌈" },
+      { q: "Uşaqlıqda ən çox sevdiyi şirniyyat nə idi?", options: ["A) Şokolad – həmişə əlində", "B) Konfet – rəngli və şirin", "C) Tort – ad günü sevinci", "D) Dondurma – yay günlərinin xoşbəxtliyi", "E) Pişmiş xəmir – ev qoxusu", "F) Qoz-fındıq – sağlam və dadlı"], emoji: "🍫" },
+      { q: "Ən çox sevdiyi idman növünü izləməyi sevir?", options: ["A) Futbol – həyəcan və komanda", "B) Basketbol – sürət və bacarıq", "C) Tennis – fərdi mübarizə", "D) Formula 1 – adrenalin və sürət", "E) Boks – güc və iradə", "F) Heç izləmir – idman onun işi deyil"], emoji: "🏀" },
+      { q: "Ən sevdiyi bayram hansıdır?", options: ["A) Yeni il – yeni başlanğıclar", "B) Novruz – təzəlik və bahar", "C) Ad günü – özü mərkəzdə", "D) Sevgililər günü – romantika", "E) Qurban bayramı – ailə və paylaşma", "F) Müstəqillik günü – vətənpərvərlik"], emoji: "🎉" },
+      { q: "Ən çox sevdiyi hava şəraiti necədir?", options: ["A) Günəşli – enerji verir", "B) Yağışlı – romantik və sakit", "C) Qarlı – sehrli və təmiz", "D) Sərin küləkli – rahat", "E) İsti yay günü – dəniz və istirahət", "F) Payız yarpaqları – gözəl mənzərə"], emoji: "⛅" },
+      { q: "Ən sevdiyi sosial şəbəkə hansıdır?", options: ["A) Instagram – şəkillər və estetika", "B) TikTok – qısa və əyləncəli videolar", "C) Telegram – sürətli və gizli", "D) Facebook – köhnə dostlar", "E) Twitter/X – fikir mübadiləsi", "F) Heç istifadə etmir – real həyatı sevir"], emoji: "📱" }
+    ];
+
+    // "Davam et" düyməsi
+    startBtn.addEventListener('click', () => {
+      startBtn.style.display = 'none';
+      music.play().catch(e => console.log("Mahnı oxumadı:", e));
+      lobby.style.display = 'block';
+      status.innerHTML = 'Host ol və ya dostunun ID-sini yazaraq qoşul!';
+    });
+
+    function createHost() {
+      peer = new Peer();
+      peer.on('open', id => {
+        myId = id;
+        myRole = 'host';
+        status.innerHTML = `Host ID: <strong>${id}</strong><br>Dostuna göndər!`;
+        const copyBtn = document.createElement('button');
+        copyBtn.id = 'copyBtn';
+        copyBtn.textContent = 'Kopyala';
+        copyBtn.onclick = () => {
+          navigator.clipboard.writeText(myId).then(() => alert('ID kopyalandı!'));
+        };
+        status.appendChild(copyBtn);
+        lobby.querySelector('button[onclick="createHost()"]').disabled = true;
+      });
+
+      peer.on('connection', connection => {
+        conn = connection;
+        conn.on('open', () => {
+          status.innerHTML = 'Bağlantı quruldu! Oyun başlayır...';
+          lobby.style.display = 'none';
+          gameDiv.style.display = 'flex';
+          timerEl.style.display = 'block';
+          qEmoji.style.display = 'block';
+          questionEl.style.display = 'block';
+          optionsEl.style.display = 'grid';
+          nextQuestion();
+        });
+        conn.on('data', handleData);
+      });
+    }
+
+    function joinGame() {
+      const hostId = document.getElementById('peerIdInput').value.trim();
+      if (!hostId) return alert('ID yaz!');
+
+      peer = new Peer();
+      peer.on('open', () => {
+        conn = peer.connect(hostId);
+        conn.on('open', () => {
+          status.innerHTML = 'Qoşuldun! Oyun başlayır...';
+          lobby.style.display = 'none';
+          gameDiv.style.display = 'flex';
+          timerEl.style.display = 'block';
+          qEmoji.style.display = 'block';
+          questionEl.style.display = 'block';
+          optionsEl.style.display = 'grid';
+          nextQuestion();
+        });
+        conn.on('data', handleData);
+      });
+    }
+
+    function handleData(data) {
+      if (data.type === 'next') {
+        currentQuestionIndex = data.index;
+        myAnswered = false;
+        opponentAnswered = false;
+        showQuestion();
+      } else if (data.type === 'answered') {
+        if (data.player !== myRole) {
+          opponentAnswered = true;
+          checkBothAnswered();
+        }
+      } else if (data.type === 'restart') {
+        opponentRestartRequested = true;
+        checkRestart();
+      }
+    }
+
+    function nextQuestion() {
+      currentQuestionIndex++;
+      if (currentQuestionIndex >= questions.length) {
+        showEndScreen();
+        return;
+      }
+
+      myAnswered = false;
+      opponentAnswered = false;
+
+      if (myRole === 'host') {
+        conn.send({ type: 'next', index: currentQuestionIndex });
+      }
+      showQuestion();
+    }
+
+    function showQuestion() {
+      const q = questions[currentQuestionIndex];
+      qEmoji.textContent = q.emoji;
+      questionEl.textContent = q.q;
+      optionsEl.innerHTML = '';
+      q.options.forEach((opt, i) => {
+        const div = document.createElement('div');
+        div.className = 'option';
+        div.textContent = opt;
+        div.onclick = () => selectAnswer(i);
+        optionsEl.appendChild(div);
+      });
+      timeLeft = 15;
+      timerEl.textContent = timeLeft;
+      clearInterval(timerInterval);
+      timerInterval = setInterval(updateTimer, 1000);
+    }
+
+    function updateTimer() {
+      if (myAnswered && opponentAnswered) return;
+      timeLeft--;
+      timerEl.textContent = timeLeft;
+      if (timeLeft <= 0) {
+        clearInterval(timerInterval);
+        timerEl.textContent = "VAQT BİTDİ!";
+        setTimeout(nextQuestion, 1800);
+      }
+    }
+
+    function selectAnswer(index) {
+      if (myAnswered) return;
+      myAnswered = true;
+      myAnswers[currentQuestionIndex] = index;
+      conn.send({ type: 'answered', player: myRole });
+      optionsEl.children[index].classList.add('selected');
+      checkBothAnswered();
+    }
+
+    function checkBothAnswered() {
+      if (myAnswered && opponentAnswered) {
+        clearInterval(timerInterval);
+        timerEl.textContent = "Hazır!";
+        setTimeout(nextQuestion, 1500);
+      }
+    }
+
+    function showEndScreen() {
+      clearInterval(timerInterval);
+      gameDiv.style.display = 'none';
+      endDiv.style.display = 'flex';
+
+      resultEl.innerHTML = "30 sual cavablandı!";
+
+      answersList.innerHTML = '<h3 style="text-align:center; color:#ff99ff; margin-bottom:2vh;">Sənin cavabların:</h3>';
+      questions.forEach((q, i) => {
+        const ans = myAnswers[i] === -1 ? "Cavab vermədin" : q.options[myAnswers[i]];
+        const div = document.createElement('div');
+        div.innerHTML = `<strong>${i+1}.</strong> ${q.q}<br><strong>Cavabın:</strong> ${ans}`;
+        answersList.appendChild(div);
+      });
+
+      document.getElementById('downloadPdf').onclick = downloadPDF;
+    }
+
+    function downloadPDF() {
+      const doc = new jsPDF();
+      doc.setFontSize(18);
+      doc.text("Sevgilini Nə Qədər Tanıyırsan? - Sənin Cavabların", 20, 20);
+      doc.setFontSize(12);
+      let y = 40;
+      questions.forEach((q, i) => {
+      
