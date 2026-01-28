@@ -49,6 +49,7 @@
       width: 100%; 
       max-width: 520px; 
       z-index: 1; 
+      display: none;
     }
     input, button {
       font-size: 1.4rem;
@@ -153,14 +154,19 @@
 </head>
 <body>
 
-  <video id="bg-video" autoplay muted loop playsinline>
+  <video id="bg-video" autoplay loop playsinline muted>
     <source src="videoo.mp4" type="video/mp4">
-    Brauzeriniz video dəstəkləmir.
   </video>
   <div id="overlay"></div>
 
+  <audio id="bg-music" loop>
+    <source src="musiic.mp3" type="audio/mpeg">
+  </audio>
+
   <h1>Sevgilini Nə Qədər Tanıyırsan?</h1>
-  <div id="status">Hazırlanır...</div>
+  <div id="status">Oyuna başlamaq üçün "Davam et" düyməsinə bas</div>
+
+  <button id="start-btn">Davam et</button>
 
   <div id="lobby">
     <button onclick="createHost()">Host ol (ID yarat)</button>
@@ -193,14 +199,16 @@
     const status = document.getElementById('status');
     const lobby = document.getElementById('lobby');
     const gameDiv = document.getElementById('game');
+    const startBtn = document.getElementById('start-btn');
+    const timerEl = document.getElementById('timer');
     const qEmoji = document.getElementById('qEmoji');
     const questionEl = document.getElementById('question');
     const optionsEl = document.getElementById('options');
-    const timerEl = document.getElementById('timer');
     const endDiv = document.getElementById('end');
     const resultEl = document.getElementById('result');
     const answersList = document.getElementById('answersList');
     const waitingEl = document.getElementById('waiting');
+    const music = document.getElementById('bg-music');
 
     let peer = null;
     let conn = null;
@@ -216,37 +224,45 @@
     let opponentRestartRequested = false;
 
     const questions = [
-      { q: "Sevgilinin ən sevdiyi rəng hansıdır?", options: ["Qırmızı", "Mavi", "Yaşıl", "Sarı", "Bənövşəyi", "Qara"], emoji: "🎨" },
-      { q: "Uşaqlıqda ən çox sevdiyi oyuncaq nə idi?", options: ["Ayı balası", "Maşın", "Kukla", "Lego", "Top", "Robot"], emoji: "🧸" },
-      { q: "Ən sevdiyi yemək hansıdır?", options: ["Plov", "Pizza", "Dolma", "Lavaş", "Kabab", "Sushi"], emoji: "🍲" },
-      { q: "Səhər tezdən ilk nə edir?", options: ["Telefonuna baxır", "Kofe/çay içir", "İdman edir", "Yenidən yatır", "Duş alır", "Kitab oxuyur"], emoji: "☕" },
-      { q: "Ən çox sevdiyi musiqi janrı hansıdır?", options: ["Pop", "Rap", "Rock", "Klassik", "Xalq", "Elektronika"], emoji: "🎵" },
-      { q: "Uşaqlıq ləqəbi nə olub?", options: ["Balaca", "Şirin", "Tülkü", "Şişko", "Yaramaz", "Heç ləqəbi olmayıb"], emoji: "😄" },
-      { q: "Ən böyük qorxusu nədir?", options: ["Hündürlük", "Qaranlıq", "Hörümçək", "Tək qalmaq", "İynə", "Dəniz"], emoji: "😱" },
-      { q: "Ən sevdiyi film janrı hansıdır?", options: ["Komediya", "Romantika", "Dram", "Aksiya", "Fantastika", "Dəhşət"], emoji: "🎬" },
-      { q: "Ən çox sevdiyi mövsüm hansıdır?", options: ["Yay", "Payız", "Qış", "Yaz"], emoji: "🍂" },
-      { q: "Telefonunun arxa fonunda nə var?", options: ["Selfi", "Mənzərə", "Heyvan", "Qara ekran", "Musiqi qrupu", "Sən"], emoji: "📱" },
-      { q: "Ən sevdiyi heyvan hansıdır?", options: ["Pişik", "İt", "Quş", "At", "Panda", "Delfin"], emoji: "🐱" },
-      { q: "Ən çox sevdiyi içki nədir?", options: ["Kola", "Çay", "Kofe", "Şirə", "Su", "Limonad"], emoji: "🥤" },
-      { q: "Uşaqlıqda hansı idman növü ilə məşğul olub?", options: ["Futbol", "Üzgüçülük", "Rəqs", "Voleybol", "Güləş", "Heç biri"], emoji: "⚽" },
-      { q: "Ən sevdiyi tətil yeri haradır?", options: ["Dəniz", "Dağ", "Şəhər", "Kənd", "Xaricdə", "Evində"], emoji: "🏖️" },
-      { q: "Ən böyük xəyalı nədir?", options: ["Səyahət", "Zənginlik", "Ailə qurmaq", "Şöhrət", "Öz biznesini qurmaq", "Sakit həyat"], emoji: "🌟" },
-      { q: "Ən pis vərdişi nədir?", options: ["Gec yatmaq", "Çox telefon istifadəsi", "Unutqanlıq", "Dırnaq yemək", "Gecikmək", "Çox danışmamaq"], emoji: "😅" },
-      { q: "Ən çox sevdiyi emoji hansıdır?", options: ["😂", "❤️", "🔥", "😈", "🥰", "🤦‍♀️"], emoji: "😏" },
-      { q: "Səhər yuxudan oyananda ilk nə düşünür?", options: ["Kofe", "Telefon", "Yemək", "Yenidən yatmaq", "İş", "Səyahət"], emoji: "🛌" },
-      { q: "Ən sevdiyi zarafat növü hansıdır?", options: ["Qara yumor", "Sarkazm", "Klassik", "Zarafat sevmir", "Dadlı zarafatlar", "Pədərşəkilli"], emoji: "🤡" },
-      { q: "Onun ideal həftəsonu necə keçir?", options: ["Evde film izləmək", "Çölə çıxmaq", "Yuxu çəkmək", "Dostlarla görüş", "Alış-veriş", "Təbiətdə gəzmək"], emoji: "🛋️" },
-      { q: "Ən sevdiyi kitab janrı hansıdır?", options: ["Roman", "Detektiv", "Fantastika", "Psixologiya", "Heç oxumur", "Şeir"], emoji: "📚" },
-      { q: "Uşaqlıqda ən sevdiyi cizgi filmi hansı idi?", options: ["Şrek", "Aslan Kral", "Donanma", "Tom və Cerri", "SpongeBob", "Digər"], emoji: "📺" },
-      { q: "Ən çox sevdiyi qoxu hansıdır?", options: ["Ətir", "Yağışdan sonra torpaq", "Təzə çörək", "Dəniz", "Kofe", "Gül"], emoji: "🌹" },
-      { q: "Ən çox sevdiyi rəqs növü hansıdır?", options: ["Latin", "Hip-hop", "Vals", "Rəqs etmir", "Folklor", "Tango"], emoji: "💃" },
-      { q: "Ən sevdiyi rəng kombinasiyası hansıdır?", options: ["Qara-ağ", "Qırmızı-qara", "Mavi-ağ", "Yaşıl-qəhvəyi", "Çəhrayı-boz", "Digər"], emoji: "🌈" },
-      { q: "Uşaqlıqda ən çox sevdiyi şirniyyat nə idi?", options: ["Şokolad", "Konfet", "Tort", "Dondurma", "Pişmiş xəmir", "Qoz-fındıq"], emoji: "🍫" },
-      { q: "Ən çox sevdiyi idman növünü izləməyi sevir?", options: ["Futbol", "Basketbol", "Tennis", "Formula 1", "Boks", "Heç izləmir"], emoji: "🏀" },
-      { q: "Ən sevdiyi bayram hansıdır?", options: ["Yeni il", "Novruz", "Ad günü", "Sevgililər günü", "Qurban bayramı", "Müstəqillik günü"], emoji: "🎉" },
-      { q: "Ən çox sevdiyi hava şəraiti necədir?", options: ["Günəşli", "Yağışlı", "Qarlı", "Sərin küləkli", "İsti yay günü", "Payız yarpaqları"], emoji: "⛅" },
-      { q: "Ən sevdiyi sosial şəbəkə hansıdır?", options: ["Instagram", "TikTok", "Telegram", "Facebook", "Twitter/X", "Heç istifadə etmir"], emoji: "📱" }
+      { q: "Sevgilinin ən sevdiyi rəng hansıdır?", options: ["A) Qırmızı – ehtiraslı və cəsarətli", "B) Mavi – sakit və dərin", "C) Yaşıl – təbiət və harmoniya", "D) Sarı – günəş kimi parlaq və enerjili", "E) Bənövşəyi – sirli və kraliça kimi", "F) Qara – gizemli və seksiy"], emoji: "🎨" },
+      { q: "Uşaqlıqda ən çox sevdiyi oyuncaq nə idi?", options: ["A) Ayı balası – qucaqlayıb yatardı", "B) Maşın – bütün evi yarış meydanı edirdi", "C) Kukla – ona saç düzəldirdi", "D) Lego – saatlarla tikib sökürdü", "E) Top – hər yerdə oynayırdı", "F) Robot – onu idarə etməyi sevirdi"], emoji: "🧸" },
+      { q: "Ən sevdiyi yemək hansıdır?", options: ["A) Plov – anasının plovu əvəzedilməz", "B) Pizza – gecələr ən yaxşı dostu", "C) Dolma – ailə yeməyi, emosional", "D) Lavaş – hər şeyə yaraşır", "E) Kabab – odun qoxusu ilə", "F) Sushi – zövqlü və ekzotik"], emoji: "🍲" },
+      { q: "Səhər tezdən ilk nə edir?", options: ["A) Telefonuna baxır – ilk iş sosial media", "B) Kofe/çay içir – günə onsuz başlamaz", "C) İdman edir – enerjini boşaldır", "D) Yenidən yatır – səhər onun düşmənidir", "E) Duş alır – təzəlik vacibdir", "F) Kitab oxuyur – günə intellektlə başlayır"], emoji: "☕" },
+      { q: "Ən çox sevdiyi musiqi janrı hansıdır?", options: ["A) Pop – hər yerdə oxuyur", "B) Rap – sözlərə vurulub", "C) Rock – emosiyanı boşaldır", "D) Klassik – ruhu sakitləşdirir", "E) Xalq musiqisi – köklərə bağlıdır", "F) Elektronika – gecələrə uyğundur"], emoji: "🎵" },
+      { q: "Uşaqlıq ləqəbi nə olub?", options: ["A) Balaca – həmişə kiçik qalırdı", "B) Şirin – hamı qucaqlayırdı", "C) Tülkü – hiyləgər idi", "D) Şişko – yumşaq və sevimli", "E) Yaramaz – evdə başı-başına qalırdı", "F) Heç ləqəbi olmayıb – ciddi uşaq idi"], emoji: "😄" },
+      { q: "Ən böyük qorxusu nədir?", options: ["A) Hündürlük – damdan aşağı baxa bilmir", "B) Qaranlıq – işıq sönəndə panika olur", "C) Hörümçək – görəndə qışqırır", "D) Tək qalmaq – yalnılıqdan qorxur", "E) İynə – həkimə getməkdən yayınır", "F) Dəniz – dərin sudan qorxur"], emoji: "😱" },
+      { q: "Ən sevdiyi film janrı hansıdır?", options: ["A) Komediya – gülüş vacibdir", "B) Romantika – sevgi hekayələrinə inanır", "C) Dram – emosional filmləri sevir", "D) Aksiya – adrenalin vurur", "E) Fantastika – xəyallara qaçır", "F) Dəhşət – qorxunu sevir"], emoji: "🎬" },
+      { q: "Ən çox sevdiyi mövsüm hansıdır?", options: ["A) Yay – dəniz, günəş, istirahət", "B) Payız – yarpaqlar və romantika", "C) Qış – qar və isti yorğan", "D) Yaz – təzəlik və çiçəklər"], emoji: "🍂" },
+      { q: "Telefonunun arxa fonunda nə var?", options: ["A) Öz selfisi – özünü sevir", "B) Mənzərə – gözəlliyə vurulub", "C) Heyvan – heyvansevərdir", "D) Qara ekran – sadəliyi sevir", "E) Musiqi qrupu – fanatdır", "F) Sənin şəklin – səni ön plana çıxarır"], emoji: "📱" },
+      { q: "Ən sevdiyi heyvan hansıdır?", options: ["A) Pişik – evdəki ən yaxşı dost", "B) İt – sadiq və enerjili", "C) Quş – azadlıq simvolu", "D) At – güc və zəriflik", "E) Panda – şirin və tənbəl", "F) Delfin – ağıllı və oynaq"], emoji: "🐱" },
+      { q: "Ən çox sevdiyi içki nədir?", options: ["A) Kola – klassik və enerji verən", "B) Çay – sakitləşdirici və ənənəvi", "C) Kofe – günün başlanğıcı", "D) Şirə – təbii və sağlam", "E) Su – sadə və təmiz", "F) Limonad – sərin və turş"], emoji: "🥤" },
+      { q: "Uşaqlıqda hansı idman növü ilə məşğul olub?", options: ["A) Futbol – komanda ruhu", "B) Üzgüçülük – azadlıq hissi", "C) Rəqs – ritm və emosiya", "D) Voleybol – çeviklik", "E) Güləş – güc və mübarizə", "F) Heç biri – idmanla arası yox idi"], emoji: "⚽" },
+      { q: "Ən sevdiyi tətil yeri haradır?", options: ["A) Dəniz sahili – qum və günəş", "B) Dağlar – sərin hava və mənzərə", "C) Şəhər – həyat və gecə həyatı", "D) Kənd – sakitlik və təbiət", "E) Xaricdə – yeni mədəniyyətlər", "F) Evində – ən rahat yer"], emoji: "🏖️" },
+      { q: "Ən böyük xəyalı nədir?", options: ["A) Dünyanı gəzmək – hər ölkəni görmək", "B) Çox pul qazanmaq – lüks həyat", "C) Ailə qurmaq – sevgi və uşaqlar", "D) Məşhur olmaq – hamının tanıması", "E) Öz biznesini qurmaq – müstəqillik", "F) Sakit həyat sürmək – stresssiz günlər"], emoji: "🌟" },
+      { q: "Ən pis vərdişi nədir?", options: ["A) Gec yatmaq – gecə quşudur", "B) Çox telefon istifadəsi – sosial media asılılığı", "C) Unutqanlıq – hər şeyi itirir", "D) Dırnaq yemək – stress anında", "E) Gecikmək – həmişə 5 dəqiqə gecikir", "F) Çox danışmamaq – içində saxlayır"], emoji: "😅" },
+      { q: "Ən çox sevdiyi emoji hansıdır?", options: ["A) 😂 – hər şeyə gülür", "B) ❤️ – sevgini göstərir", "C) 🔥 – hər şey 'yanır'", "D) 😈 – yaramazlıq anları", "E) 🥰 – şirinlik", "F) 🤦‍♀️ – 'bu nə idi indi?'"], emoji: "😏" },
+      { q: "Səhər yuxudan oyananda ilk nə düşünür?", options: ["A) Kofe/çay – günə onsuz başlamaz", "B) Telefon – ilk iş mesajlara baxmaq", "C) Sən – səni xatırlayır", "D) Yenidən yatmaq – yuxu onun sevgilisidir", "E) İş – plan qurur", "F) Yemək – ac qalır"], emoji: "🛌" },
+      { q: "Ən sevdiyi zarafat növü hansıdır?", options: ["A) Qara yumor – qaranlıqdan qorxmur", "B) Sarkazm – ironiyanı sevir", "C) Klassik zarafatlar – sadə və təmiz", "D) Zarafat sevmir – ciddi insan", "E) Dadlı zarafatlar – axmaq gülüşlər", "F) Pədərşəkilli – yaramazlıq"], emoji: "🤡" },
+      { q: "Onun ideal həftəsonu necə keçir?", options: ["A) Evdə film izləmək – rahat və isti", "B) Çölə çıxmaq – macəra axtarır", "C) Yuxu çəkmək – yuxu onun sevdiyi şeydir", "D) Dostlarla görüş – söhbət və gülüş", "E) Alış-veriş – özünə baxmaq", "F) Təbiətdə gəzmək – təmizlik və sükut"], emoji: "🛋️" },
+      { q: "Ən sevdiyi kitab janrı hansıdır?", options: ["A) Roman – sevgi və həyat hekayələri", "B) Detektiv – sirri açmağı sevir", "C) Fantastika – xəyallara qaçır", "D) Psixologiya – özünü anlamaq", "E) Heç oxumur – kitab onun düşmənidir", "F) Şeir – ruhu oxşayır"], emoji: "📚" },
+      { q: "Uşaqlıqda ən sevdiyi cizgi filmi hansı idi?", options: ["A) Şrek – ironiya və yumor", "B) Aslan Kral – emosional və epik", "C) Donanma – macəra və dostluq", "D) Tom və Cerri – klassik gülüş", "E) SpongeBob – axmaq və əyləncəli", "F) Digər – özününkü de"], emoji: "📺" },
+      { q: "Ən çox sevdiyi qoxu hansıdır?", options: ["A) Ətir – özünə baxımlıdır", "B) Yağışdan sonra torpaq – təbiət qoxusu", "C) Təzə çörək – ev qoxusu", "D) Dəniz – azadlıq hissi", "E) Kofe – səhər ritualı", "F) Gül – romantika"], emoji: "🌹" },
+      { q: "Ən çox sevdiyi rəqs növü hansıdır?", options: ["A) Latin – ehtiraslı və isti", "B) Hip-hop – enerjili və gənc", "C) Vals – klassik və romantik", "D) Rəqs etmir – utancaqdır", "E) Folklor – köklərə bağlıdır", "F) Tango – intim və güclü"], emoji: "💃" },
+      { q: "Ən sevdiyi rəng kombinasiyası hansıdır?", options: ["A) Qara-ağ – minimalist və şık", "B) Qırmızı-qara – ehtiras və güc", "C) Mavi-ağ – sakit və təmiz", "D) Yaşıl-qəhvəyi – təbiət tonları", "E) Çəhrayı-boz – yumşaq və şirin", "F) Digər – özününkü de"], emoji: "🌈" },
+      { q: "Uşaqlıqda ən çox sevdiyi şirniyyat nə idi?", options: ["A) Şokolad – həmişə əlində", "B) Konfet – rəngli və şirin", "C) Tort – ad günü sevinci", "D) Dondurma – yay günlərinin xoşbəxtliyi", "E) Pişmiş xəmir – ev qoxusu", "F) Qoz-fındıq – sağlam və dadlı"], emoji: "🍫" },
+      { q: "Ən çox sevdiyi idman növünü izləməyi sevir?", options: ["A) Futbol – həyəcan və komanda", "B) Basketbol – sürət və bacarıq", "C) Tennis – fərdi mübarizə", "D) Formula 1 – adrenalin və sürət", "E) Boks – güc və iradə", "F) Heç izləmir – idman onun işi deyil"], emoji: "🏀" },
+      { q: "Ən sevdiyi bayram hansıdır?", options: ["A) Yeni il – yeni başlanğıclar", "B) Novruz – təzəlik və bahar", "C) Ad günü – özü mərkəzdə", "D) Sevgililər günü – romantika", "E) Qurban bayramı – ailə və paylaşma", "F) Müstəqillik günü – vətənpərvərlik"], emoji: "🎉" },
+      { q: "Ən çox sevdiyi hava şəraiti necədir?", options: ["A) Günəşli – enerji verir", "B) Yağışlı – romantik və sakit", "C) Qarlı – sehrli və təmiz", "D) Sərin küləkli – rahat", "E) İsti yay günü – dəniz və istirahət", "F) Payız yarpaqları – gözəl mənzərə"], emoji: "⛅" },
+      { q: "Ən sevdiyi sosial şəbəkə hansıdır?", options: ["A) Instagram – şəkillər və estetika", "B) TikTok – qısa və əyləncəli videolar", "C) Telegram – sürətli və gizli", "D) Facebook – köhnə dostlar", "E) Twitter/X – fikir mübadiləsi", "F) Heç istifadə etmir – real həyatı sevir"], emoji: "📱" }
     ];
+
+    // "Davam et" düyməsi
+    startBtn.addEventListener('click', () => {
+      startBtn.style.display = 'none';
+      music.play().catch(e => console.log("Mahnı oxumadı:", e));
+      lobby.style.display = 'block';
+      status.innerHTML = 'Host ol və ya dostunun ID-sini yazaraq qoşul!';
+    });
 
     function createHost() {
       peer = new Peer();
@@ -257,7 +273,9 @@
         const copyBtn = document.createElement('button');
         copyBtn.id = 'copyBtn';
         copyBtn.textContent = 'Kopyala';
-        copyBtn.onclick = () => navigator.clipboard.writeText(myId).then(() => alert('ID kopyalandı!'));
+        copyBtn.onclick = () => {
+          navigator.clipboard.writeText(myId).then(() => alert('ID kopyalandı!'));
+        };
         status.appendChild(copyBtn);
         lobby.querySelector('button[onclick="createHost()"]').disabled = true;
       });
@@ -268,7 +286,11 @@
           status.innerHTML = 'Bağlantı quruldu! Oyun başlayır...';
           lobby.style.display = 'none';
           gameDiv.style.display = 'flex';
-          setTimeout(nextQuestion, 1000);
+          timerEl.style.display = 'block';
+          qEmoji.style.display = 'block';
+          questionEl.style.display = 'block';
+          optionsEl.style.display = 'grid';
+          nextQuestion();
         });
         conn.on('data', handleData);
       });
@@ -285,6 +307,11 @@
           status.innerHTML = 'Qoşuldun! Oyun başlayır...';
           lobby.style.display = 'none';
           gameDiv.style.display = 'flex';
+          timerEl.style.display = 'block';
+          qEmoji.style.display = 'block';
+          questionEl.style.display = 'block';
+          optionsEl.style.display = 'grid';
+          nextQuestion();
         });
         conn.on('data', handleData);
       });
@@ -331,7 +358,7 @@
       q.options.forEach((opt, i) => {
         const div = document.createElement('div');
         div.className = 'option';
-        div.textContent = `${String.fromCharCode(65 + i)}) ${opt}`;
+        div.textContent = opt;
         div.onclick = () => selectAnswer(i);
         optionsEl.appendChild(div);
       });
@@ -412,7 +439,6 @@
 
     function checkRestart() {
       if (restartRequested && opponentRestartRequested) {
-        myScore = 0;
         myAnswers = new Array(questions.length).fill(-1);
         currentQuestionIndex = -1;
         endDiv.style.display = 'none';
@@ -426,7 +452,7 @@
       }
     }
 
-    status.innerHTML = 'Host ol və ya dostunun ID-sini yazaraq qoşul!';
+    status.innerHTML = 'Oyuna başlamaq üçün "Davam et" düyməsinə bas';
   </script>
 </body>
 </html>
