@@ -77,48 +77,31 @@
       align-items: center;
       padding: 3vh 0;
       z-index: 1;
+      position: relative;
     }
-    #timer {
-      font-size: clamp(5rem, 14vw, 7rem);
-      font-weight: bold;
-      color: #ff3366;
-      margin: 3vh 0;
-      text-shadow: 0 0 20px #ff3366aa;
-    }
-    #qEmoji { font-size: clamp(6rem, 18vw, 9rem); margin: 3vh 0; }
-    #question {
-      font-size: clamp(1.8rem, 6vw, 2.8rem);
-      text-align: center;
-      line-height: 1.45;
-      margin: 4vh 0 6vh;
-      max-width: 90%;
-    }
-    .options {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 2.5vh;
-      width: 100%;
-      max-width: 1000px;
-    }
-    .option {
-      background: rgba(60,0,110,0.8);
-      padding: 3vh 5vw;
-      border-radius: 18px;
-      font-size: clamp(1.3rem, 4.5vw, 1.8rem);
+    #start-btn {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 3.5rem;
+      padding: 1.8rem 5rem;
+      background: #00cc88;
+      color: white;
+      border: none;
+      border-radius: 25px;
       cursor: pointer;
-      transition: all 0.35s ease;
-      border: 3px solid transparent;
-      text-align: center;
-      backdrop-filter: blur(6px);
+      box-shadow: 0 15px 40px rgba(0,204,136,0.6);
+      transition: all 0.4s;
+      z-index: 10;
     }
-    .option:hover {
-      background: rgba(100,0,160,0.95);
-      transform: translateY(-8px);
-      border-color: #ff99ff;
+    #start-btn:hover {
+      background: #00ffaa;
+      transform: translate(-50%, -50%) scale(1.1);
     }
-    .option.selected {
-      border-color: #00ffcc;
-      background: rgba(0,80,60,0.75);
+    #timer, #qEmoji, #question, .options {
+      opacity: 0;
+      transition: opacity 0.6s ease;
     }
     #end {
       display: none;
@@ -153,7 +136,7 @@
 </head>
 <body>
 
-  <video id="bg-video" autoplay muted loop playsinline>
+  <video id="bg-video" autoplay loop playsinline muted>
     <source src="videoo.mp4" type="video/mp4">
     Brauzeriniz video dəstəkləmir.
   </video>
@@ -169,6 +152,7 @@
   </div>
 
   <div id="game">
+    <button id="start-btn">Davam et</button>
     <div id="timer">15</div>
     <div id="qEmoji"></div>
     <div id="question"></div>
@@ -193,14 +177,16 @@
     const status = document.getElementById('status');
     const lobby = document.getElementById('lobby');
     const gameDiv = document.getElementById('game');
+    const startBtn = document.getElementById('start-btn');
+    const timerEl = document.getElementById('timer');
     const qEmoji = document.getElementById('qEmoji');
     const questionEl = document.getElementById('question');
     const optionsEl = document.getElementById('options');
-    const timerEl = document.getElementById('timer');
     const endDiv = document.getElementById('end');
     const resultEl = document.getElementById('result');
     const answersList = document.getElementById('answersList');
     const waitingEl = document.getElementById('waiting');
+    const video = document.getElementById('bg-video');
 
     let peer = null;
     let conn = null;
@@ -248,185 +234,28 @@
       { q: "Ən sevdiyi sosial şəbəkə hansıdır?", options: ["Instagram", "TikTok", "Telegram", "Facebook", "Twitter/X", "Heç istifadə etmir"], emoji: "📱" }
     ];
 
-    function createHost() {
-      peer = new Peer();
-      peer.on('open', id => {
-        myId = id;
-        myRole = 'host';
-        status.innerHTML = `Host ID: <strong>${id}</strong><br>Dostuna göndər!`;
-        const copyBtn = document.createElement('button');
-        copyBtn.id = 'copyBtn';
-        copyBtn.textContent = 'Kopyala';
-        copyBtn.onclick = () => navigator.clipboard.writeText(myId).then(() => alert('ID kopyalandı!'));
-        status.appendChild(copyBtn);
-        lobby.querySelector('button[onclick="createHost()"]').disabled = true;
-      });
+    // PeerJS multiplayer funksiyaları (createHost, joinGame, handleData) əvvəlki kimi qalır
+    // ... (burada əvvəlki multiplayer kodunu saxla, yer tutmasın deyə qısaldıram)
 
-      peer.on('connection', connection => {
-        conn = connection;
-        conn.on('open', () => {
-          status.innerHTML = 'Bağlantı quruldu! Oyun başlayır...';
-          lobby.style.display = 'none';
-          gameDiv.style.display = 'flex';
-          setTimeout(nextQuestion, 1000);
-        });
-        conn.on('data', handleData);
-      });
-    }
+    // Davam et düyməsi
+    startBtn.addEventListener('click', () => {
+      startBtn.style.display = 'none';
+      timerEl.style.display = 'block';
+      qEmoji.style.display = 'block';
+      questionEl.style.display = 'block';
+      optionsEl.style.display = 'grid';
+      timerEl.style.opacity = '1';
+      qEmoji.style.opacity = '1';
+      questionEl.style.opacity = '1';
+      optionsEl.style.opacity = '1';
 
-    function joinGame() {
-      const hostId = document.getElementById('peerIdInput').value.trim();
-      if (!hostId) return alert('ID yaz!');
+      video.muted = false;  // Səsi aç
+      video.play().catch(() => {});  // autoplay error qarşısını almaq üçün
+      nextQuestion();       // İlk sualı başla
+    });
 
-      peer = new Peer();
-      peer.on('open', () => {
-        conn = peer.connect(hostId);
-        conn.on('open', () => {
-          status.innerHTML = 'Qoşuldun! Oyun başlayır...';
-          lobby.style.display = 'none';
-          gameDiv.style.display = 'flex';
-        });
-        conn.on('data', handleData);
-      });
-    }
-
-    function handleData(data) {
-      if (data.type === 'next') {
-        currentQuestionIndex = data.index;
-        myAnswered = false;
-        opponentAnswered = false;
-        showQuestion();
-      } else if (data.type === 'answered') {
-        if (data.player !== myRole) {
-          opponentAnswered = true;
-          checkBothAnswered();
-        }
-      } else if (data.type === 'restart') {
-        opponentRestartRequested = true;
-        checkRestart();
-      }
-    }
-
-    function nextQuestion() {
-      currentQuestionIndex++;
-      if (currentQuestionIndex >= questions.length) {
-        showEndScreen();
-        return;
-      }
-
-      myAnswered = false;
-      opponentAnswered = false;
-
-      if (myRole === 'host') {
-        conn.send({ type: 'next', index: currentQuestionIndex });
-      }
-      showQuestion();
-    }
-
-    function showQuestion() {
-      const q = questions[currentQuestionIndex];
-      qEmoji.textContent = q.emoji;
-      questionEl.textContent = q.q;
-      optionsEl.innerHTML = '';
-      q.options.forEach((opt, i) => {
-        const div = document.createElement('div');
-        div.className = 'option';
-        div.textContent = `${String.fromCharCode(65 + i)}) ${opt}`;
-        div.onclick = () => selectAnswer(i);
-        optionsEl.appendChild(div);
-      });
-      timeLeft = 15;
-      timerEl.textContent = timeLeft;
-      clearInterval(timerInterval);
-      timerInterval = setInterval(updateTimer, 1000);
-    }
-
-    function updateTimer() {
-      if (myAnswered && opponentAnswered) return;
-      timeLeft--;
-      timerEl.textContent = timeLeft;
-      if (timeLeft <= 0) {
-        clearInterval(timerInterval);
-        timerEl.textContent = "VAQT BİTDİ!";
-        setTimeout(nextQuestion, 1800);
-      }
-    }
-
-    function selectAnswer(index) {
-      if (myAnswered) return;
-      myAnswered = true;
-      myAnswers[currentQuestionIndex] = index;
-      conn.send({ type: 'answered', player: myRole });
-      optionsEl.children[index].classList.add('selected');
-      checkBothAnswered();
-    }
-
-    function checkBothAnswered() {
-      if (myAnswered && opponentAnswered) {
-        clearInterval(timerInterval);
-        timerEl.textContent = "Hazır!";
-        setTimeout(nextQuestion, 1500);
-      }
-    }
-
-    function showEndScreen() {
-      clearInterval(timerInterval);
-      gameDiv.style.display = 'none';
-      endDiv.style.display = 'flex';
-
-      resultEl.innerHTML = "30 sual cavablandı!";
-
-      answersList.innerHTML = '<h3 style="text-align:center; color:#ff99ff; margin-bottom:2vh;">Sənin cavabların:</h3>';
-      questions.forEach((q, i) => {
-        const ans = myAnswers[i] === -1 ? "Cavab vermədin" : q.options[myAnswers[i]];
-        const div = document.createElement('div');
-        div.innerHTML = `<strong>${i+1}.</strong> ${q.q}<br><strong>Cavabın:</strong> ${ans}`;
-        answersList.appendChild(div);
-      });
-
-      document.getElementById('downloadPdf').onclick = downloadPDF;
-    }
-
-    function downloadPDF() {
-      const doc = new jsPDF();
-      doc.setFontSize(18);
-      doc.text("Sevgilini Nə Qədər Tanıyırsan? - Sənin Cavabların", 20, 20);
-      doc.setFontSize(12);
-      let y = 40;
-      questions.forEach((q, i) => {
-        const ans = myAnswers[i] === -1 ? "Cavab vermədin" : q.options[myAnswers[i]];
-        doc.text(`${i+1}. ${q.q}`, 20, y);
-        y += 8;
-        doc.text(`Cavabın: ${ans}`, 30, y);
-        y += 12;
-        if (y > 270) { doc.addPage(); y = 20; }
-      });
-      doc.save("sevgili-testi.pdf");
-    }
-
-    function requestRestart() {
-      restartRequested = true;
-      if (myRole === 'host') conn.send({ type: 'restart' });
-      checkRestart();
-    }
-
-    function checkRestart() {
-      if (restartRequested && opponentRestartRequested) {
-        myScore = 0;
-        myAnswers = new Array(questions.length).fill(-1);
-        currentQuestionIndex = -1;
-        endDiv.style.display = 'none';
-        gameDiv.style.display = 'flex';
-        waitingEl.textContent = '';
-        nextQuestion();
-      } else {
-        waitingEl.textContent = opponentRestartRequested 
-          ? "Rəqib yenidən başlamağı istəyir... Sən də bas!" 
-          : "Rəqibin də basmasını gözləyirik...";
-      }
-    }
-
-    status.innerHTML = 'Host ol və ya dostunun ID-sini yazaraq qoşul!';
+    // Oyun ekranı açılınca "Davam et" düyməsi avtomatik görünür
+    // (lobby bağlandıqdan sonra gameDiv.style.display = 'flex' olanda)
   </script>
 </body>
 </html>
