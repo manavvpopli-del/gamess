@@ -168,45 +168,16 @@
     }
     #end h2 { font-size: clamp(3rem, 8vw, 4.2rem); color: #ffdd44; margin-bottom: 4vh; }
     #result { font-size: clamp(1.8rem, 5.5vw, 2.4rem); text-align: center; margin-bottom: 5vh; }
-    #answersList {
-      width: 100%;
-      background: rgba(40,0,70,0.75);
-      border-radius: 18px;
-      padding: 4vh;
-      font-size: clamp(1.2rem, 4vw, 1.5rem);
-      line-height: 1.8;
-      margin-bottom: 5vh;
-    }
-    #answersList div { margin: 2.5vh 0; padding: 2.5vh; background: rgba(60,0,100,0.65); border-radius: 14px; }
-    button#downloadPdf, button#restartBtn, button#showOpponentAnswers, button#shareResultImage {
+    button#downloadPdf, button#restartBtn, button#shareResultImage {
       font-size: 1.5rem;
       padding: 1.2rem 3rem;
       margin: 1vh;
     }
     #downloadPdf { background: #3366ff; }
     #downloadPdf:hover { background: #5588ff; }
-    #showOpponentAnswers { background: #ff6600; }
-    #showOpponentAnswers:hover { background: #ff8533; }
     #shareResultImage { background: #ff3366; }
     #shareResultImage:hover { background: #ff6699; }
     #waiting { font-size: 1.5rem; color: #ffcc66; margin-top: 3vh; text-align: center; }
-
-    #device-info {
-      position: fixed;
-      bottom: 15px;
-      right: 15px;
-      background: rgba(0, 0, 0, 0.75);
-      color: #ccc;
-      padding: 12px 18px;
-      border-radius: 12px;
-      font-size: 0.9rem;
-      z-index: 999;
-      max-width: 300px;
-      backdrop-filter: blur(8px);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      line-height: 1.6;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-    }
   </style>
 </head>
 <body>
@@ -243,19 +214,10 @@
   <div id="end">
     <h2>Oyun Bitdi!</h2>
     <div id="result">30 sual cavablandı!</div>
-    <div id="answersList"></div>
     <button id="downloadPdf">PDF olaraq yüklə</button>
-    <button id="showOpponentAnswers">Rəqibin cavablarını göstər</button>
     <button id="shareResultImage">Nəticəni paylaş (şəkil)</button>
     <button id="restartBtn" onclick="requestRestart()">Yenidən Başlat</button>
     <div id="waiting"></div>
-  </div>
-
-  <!-- Sağ aşağı cihaz məlumatı -->
-  <div id="device-info">
-    Cihaz: <span id="device-model">Yüklənir...</span><br>
-    IP: <span id="ip-address">Yüklənir...</span><br>
-    Məkan: <span id="location">Yüklənir...</span>
   </div>
 
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
@@ -276,7 +238,6 @@
     const optionsEl = document.getElementById('options');
     const endDiv = document.getElementById('end');
     const resultEl = document.getElementById('result');
-    const answersList = document.getElementById('answersList');
     const waitingEl = document.getElementById('waiting');
     const music = document.getElementById('bg-music');
 
@@ -292,30 +253,6 @@
     let myAnswers = new Array(30).fill(-1);
     let restartRequested = false;
     let opponentRestartRequested = false;
-
-    // Sağ aşağı cihaz məlumatını yüklə
-    document.addEventListener('DOMContentLoaded', () => {
-      const modelSpan = document.getElementById('device-model');
-      const ipSpan = document.getElementById('ip-address');
-      const locSpan = document.getElementById('location');
-
-      let model = navigator.userAgentData?.platform || navigator.platform || "Bilinmir";
-      if (navigator.userAgentData) {
-        model = navigator.userAgentData.brands.map(b => b.brand + ' ' + b.version).join(', ') || model;
-      }
-      modelSpan.textContent = model;
-
-      fetch('https://ipapi.co/json/')
-        .then(res => res.json())
-        .then(data => {
-          ipSpan.textContent = data.ip || "Gizli";
-          locSpan.textContent = (data.city || "Bilinmir") + ", " + (data.country_name || "Bilinmir");
-        })
-        .catch(() => {
-          ipSpan.textContent = "Alınmadı";
-          locSpan.textContent = "Alınmadı";
-        });
-    });
 
     const questions = [
       { q: "Sevgilinin ən sevdiyi rəng hansıdır?", options: ["A) Qırmızı – ehtiraslı və cəsarətli", "B) Mavi – sakit və dərin", "C) Yaşıl – təbiət və harmoniya", "D) Sarı – günəş kimi parlaq və enerjili", "E) Bənövşəyi – sirli və kraliça kimi", "F) Qara – gizemli və seksiy"], emoji: "🎨" },
@@ -497,33 +434,13 @@
 
       resultEl.innerHTML = "30 sual cavablandı!";
 
-      answersList.innerHTML = '<h3 style="text-align:center; color:#ff99ff; margin-bottom:2vh;">Sənin cavabların:</h3>';
-      questions.forEach((q, i) => {
-        const ans = myAnswers[i] === -1 ? "Cavab vermədin" : q.options[myAnswers[i]];
-        const div = document.createElement('div');
-        div.innerHTML = `<strong>${i+1}.</strong> ${q.q}<br><strong>Cavabın:</strong> ${ans}`;
-        answersList.appendChild(div);
-      });
-
+      // Cavab siyahısı tamamilə silindi, yalnız nəticə paylaşma düyməsi var
       document.getElementById('downloadPdf').onclick = downloadPDF;
-      document.getElementById('showOpponentAnswers').onclick = showOpponentAnswers;
       document.getElementById('shareResultImage').onclick = shareResultImage;
     }
 
-    function showOpponentAnswers() {
-      // Rəqib cavablarını göstərmək üçün (realda conn-dan alınmalı, indi placeholder)
-      const opponentAnswers = myAnswers; // placeholder - realda opponentAnswers massivi lazımdır
-      answersList.innerHTML += '<h3 style="text-align:center; color:#ffcc66; margin:4vh 0 2vh;">Rəqibin cavabları:</h3>';
-      questions.forEach((q, i) => {
-        const ans = opponentAnswers[i] === -1 ? "Cavab verməyib" : q.options[opponentAnswers[i]];
-        const div = document.createElement('div');
-        div.innerHTML = `<strong>${i+1}.</strong> ${q.q}<br><strong>Rəqibin cavabı:</strong> ${ans}`;
-        answersList.appendChild(div);
-      });
-    }
-
     function shareResultImage() {
-      html2canvas(document.getElementById('end')).then(canvas => {
+      html2canvas(document.getElementById('end'), { backgroundColor: null }).then(canvas => {
         const link = document.createElement('a');
         link.download = 'sevgili-testi-netice.png';
         link.href = canvas.toDataURL('image/png');
@@ -535,17 +452,9 @@
     function downloadPDF() {
       const doc = new jsPDF();
       doc.setFontSize(18);
-      doc.text("Sevgilini Nə Qədər Tanıyırsan? - Sənin Cavabların", 20, 20);
+      doc.text("Sevgilini Nə Qədər Tanıyırsan?", 20, 20);
       doc.setFontSize(12);
-      let y = 40;
-      questions.forEach((q, i) => {
-        const ans = myAnswers[i] === -1 ? "Cavab vermədin" : q.options[myAnswers[i]];
-        doc.text(`${i+1}. ${q.q}`, 20, y);
-        y += 8;
-        doc.text(`Cavabın: ${ans}`, 30, y);
-        y += 12;
-        if (y > 270) { doc.addPage(); y = 20; }
-      });
+      doc.text("30 sual cavablandı!", 20, 35);
       doc.save("sevgili-testi.pdf");
     }
 
