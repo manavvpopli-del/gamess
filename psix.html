@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Psixoloji Test - Multiplayer</title>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 24px;
+        }
+        
+        .menu {
+            text-align: center;
+        }
+        
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px;
+            transition: transform 0.2s, background 0.3s;
+            width: 100%;
+            max-width: 250px;
+        }
+        
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        input {
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 250px;
+            font-size: 16px;
+            text-align: center;
+            margin: 10px;
+        }
+        
+        .game-area {
+            display: none;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #eee;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        
+        .progress {
+            height: 100%;
+            background: #667eea;
+            transition: width 0.3s;
+        }
+        
+        .question {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 20px;
+            line-height: 1.6;
+            font-weight: 600;
+        }
+        
+        .answers {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .answer-btn {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            color: #495057;
+            padding: 15px;
+            text-align: left;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            margin: 0;
+        }
+        
+        .answer-btn:hover {
+            background: #e9ecef;
+            border-color: #667eea;
+        }
+        
+        .answer-btn.selected {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        
+        .status {
+            text-align: center;
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            background: #fff3cd;
+            color: #856404;
+            display: none;
+        }
+        
+        .status.waiting {
+            display: block;
+        }
+        
+        .result {
+            display: none;
+            text-align: center;
+        }
+        
+        .result h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        
+        .profile {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: left;
+            line-height: 1.8;
+        }
+        
+        .waiting-room {
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .code-display {
+            font-size: 36px;
+            font-weight: bold;
+            color: #667eea;
+            letter-spacing: 5px;
+            margin: 20px 0;
+            padding: 20px;
+            background: #f0f0f0;
+            border-radius: 10px;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧠 Psixoloji Analiz Oyunu</h1>
+        
+        <!-- Menyu -->
+        <div id="menu" class="menu">
+            <p style="margin-bottom: 20px; color: #666;">Dostunuzla birlikdə 30 suallıq psixoloji test</p>
+            <button onclick="createRoom()">Yeni Oyun Yarat</button>
+            <br>
+            <input type="text" id="roomCode" placeholder="Otaq kodu (məs: 1234)" maxlength="4">
+            <br>
+            <button onclick="joinRoom()">Oyuna Qoşul</button>
+        </div>
+
+        <!-- Gözləmə otağı -->
+        <div id="waitingRoom" class="waiting-room" style="display: none;">
+            <p>Otaq kodunuz:</p>
+            <div class="code-display" id="displayCode">----</div>
+            <p style="color: #666;">Bu kodu dostunuzla paylaşın...</p>
+            <p id="waitingText" style="margin-top: 20px; color: #856404;">⏳ Rəqibin qoşulması gözlənilir...</p>
+        </div>
+
+        <!-- Oyun sahəsi -->
+        <div id="gameArea" class="game-area">
+            <div class="progress-bar">
+                <div class="progress" id="progressBar" style="width: 0%"></div>
+            </div>
+            <div class="question" id="questionText"></div>
+            <div class="answers" id="answersContainer"></div>
+            <div class="status" id="status">Rəqibin cavab verməsi gözlənilir...</div>
+        </div>
+
+        <!-- Nəticə -->
+        <div id="result" class="result">
+            <h2>🎯 Psixoloji Profiliniz</h2>
+            <div id="resultContent"></div>
+            <button onclick="location.reload()" style="margin-top: 20px;">Yenidən Oyna</button>
+        </div>
+    </div>
+
+    <script>
+        // Socket.io bağlantısı - Server adresini dəyiş
+        const socket = io('https://your-server-name.glitch.me'); // Buraya öz server adresini yaz
+        
+        let currentQuestion = 0;
+        let myAnswers = [];
+        let selectedAnswer = null;
+
+        // 30 Psixoloji Sual
+        const questions = [
+            { q: "Yeni bir sosial vəziyyətdə özünüzü necə hiss edirsiniz?", a: ["Rahat və həyəcanlı", "Bir az narahat", "Çox stresli", "QAÇMAQ İSTƏRİM"] },
+            { q: "Planlar qəfil dəyişdikdə reaksiyanız necə olur?", a: ["Asanlıqla uyğunlaşıram", "Bir az vaxt lazımdır", "Çox streslənirəm", "Tamamilə çökerəm"] },
+            { q: "Boş vaxtlarınızı ən çox necə keçirirsiniz?", a: ["Dostlarla", "Yalnız", "Kitab/film", "Düşünmək"] },
+            { q: "Tənqidə necə yanaşırsınız?", a: ["Konstruktiv qəbul edirəm", "Bir az inciyirəm", "Çox bağırıram", "O mümkün deyil"] },
+            { q: "Qərar verərkən nəyə üstünlük verirsiniz?", a: ["Məntiqə", "İntuisiyaya", "Başqalarının fikrinə", "Hadisələrə"] },
+            { q: "Stressli anlarda nə edirsiniz?", a: ["Məşq/əziyyət", "Yemək/yatmaq", "Düşünmək", "Bağırmaq/ağlamaq"] },
+            { q: "Başqalarının hisslərini necə anlayırsınız?", a: ["Dərhal hiss edirəm", "Bir az vaxt lazımdır", "Çətinlik çəkirəm", "Maraqlanmıram"] },
+            { q: "Hədəfə çatmaq üçün nə edərsiniz?", a: ["Hər şeyi riskə ataram", "Planla işləyərəm", "Kömək istəyərəm", "Taleyinə buraxaram"] },
+            { q: "Keçmişinizdən nə qədər asılısınız?", a: ["Dərslər alıb irəliləyirəm", "Bəzən xatırlayıram", "Çox düşünürəm", "Orada yaşayıram"] },
+            { q: "Gələcəkdən narahatsınızmı?", a: ["Optimistəm", ["Realistəm", "Pessimistəm", "Dəhşətliyəm"] },
+            { q: "Problemləri həll edərkən:", a: ["Praktik oluram", ["Kreativ oluram", "Başqalarına deyirəm", "Yox sayıram"] },
+            { q: "Özünüzü necə qiymətləndirirsiniz?", a: ["Güclü", ["Normal", "Zəif", "Bilmirəm"] },
+            { q: "İdeyalarınızı bölüşməkdə:", a: ["Açıqəm", ["Seçiciəm", ["Çətinlik çəkirəm", "Heç vaxt"] },
+            { q: "Gözləmə mövqeyiniz:", a: ["Səbirliyəm", ["Bəzən sinirliyəm", ["Dərhal nəticə istəyirəm", "Heç gözləmirəm"] },
+            { q: "Münaqişələrdə:", a: ["Sakitləşdirərəm", ["Müdafiə olunaram", ["Hücuma keçərəm", "Kaçaram"] },
+            { q: "Dəyişikliklərə:", a: ["Açıqam", ["Adaptasiya edirəm", ["Müqavimət göstərirəm", "Qorxuram"] },
+            { q: "Sosial media istifadəniz:", a: ["Mütəmadi", ["Mülayim", ["Nadir", ["Heç istifadə etmirəm"] },
+            { q: "Yalnız qalmaq:", a: ["Xoşum gəlir", ["Lazımdır", ["Çətindir", ["Dəhşətli"] },
+            { q: "Rəng seçimi:", a: ["Qırmızı", ["Mavi", ["Yaşıl", ["Qara"] },
+            { q: "Həyat ritminiz:", a: ["Sürətli", ["Dengəli", ["Yavaş", ["Dayanmış"] },
+            { q: "Pul xərcləmə:", a: ["Dəlisov", ["Planlı", ["Xəsis", ["Heç düşünmürəm"] },
+            { q: "Səhərlər:", a: ["Erkən dururam", ["Normal", ["Gec yatıram", ["Həmişə yorğunam"] },
+            { q: "İdman:", a: ["Hər gün", ["Bəzən", ["Nadir", ["0"] },
+            { q: "Yemək vəziyyəti:", a: ["Sağlam", ["Normal", ["Fast food", ["Dəyişkən"] },
+            { q: "Yuxu keyfiyyəti:", a: ["Əla", ["Normal", ["Pis", ["Dərmanla"] },
+            { q: "Baş ağrısı tezliyi:", a: ["Heç vaxt", ["Nadir", ["Tez-tez", ["Daimi"] },
+            { q: "Enerji səviyyəniz:", a: ["Yüksək", ["Normal", ["Alçaq", ["Tükənmiş"] },
+            { q: "Yaradıcılıq:", a: ["Hər gün", ["Bəzən", ["Nadir", ["Yoxdur"] },
+            { q: "Perfectionism:", a: ["Sağlam", ["Həddindən artıq", ["Yoxdur", ["Bilmirəm"] },
+            { q: "Həyatdan razılıq:", a: ["Çox", ["Kifayət", ["Az", ["Heç"] }
+        ];
+
+        function createRoom() {
+            const code = Math.floor(1000 + Math.random() * 9000).toString();
+            document.getElementById('menu').style.display = 'none';
+            document.getElementById('waitingRoom').style.display = 'block';
+            document.getElementById('displayCode').textContent = code;
+            socket.emit('createRoom', code);
+        }
+
+        function joinRoom() {
+            const code = document.getElementById('roomCode').value;
+            if (code.length !== 4) {
+                alert('4 rəqəmli kod daxil edin!');
+                return;
+            }
+            socket.emit('joinRoom', code);
+        }
+
+        socket.on('roomCreated', (code) => {
+            console.log('Otaq yaradıldı:', code);
+        });
+
+        socket.on('joinedRoom', (code) => {
+            document.getElementById('menu').style.display = 'none';
+            document.getElementById('waitingRoom').style.display = 'block';
+            document.getElementById('displayCode').textContent = code;
+            document.getElementById('waitingText').textContent = 'Qoşuldunuz! Rəqib gözlənilir...';
+        });
+
+        socket.on('gameStart', (data) => {
+            document.getElementById('waitingRoom').style.display = 'none';
+            document.getElementById('gameArea').style.display = 'block';
+            showQuestion(0);
+        });
+
+        socket.on('nextQuestion', (data) => {
+            currentQuestion = data.questionIndex;
+            selectedAnswer = null;
+            document.getElementById('status').classList.remove('waiting');
+            showQuestion(currentQuestion);
+        });
+
+        socket.on('waitingForAnswer', () => {
+            document.getElementById('status').textContent = 'Rəqibin cavab verməsi gözlənilir...';
+            document.getElementById('status').classList.add('waiting');
+        });
+
+        socket.on('gameEnd', (data) => {
+            document.getElementById('gameArea').style.display = 'none';
+            document.getElementById('result').style.display = 'block';
+            showResult();
+        });
+
+        socket.on('error', (msg) => {
+            alert(msg);
+        });
+
+        function showQuestion(index) {
+            const q = questions[index];
+            document.getElementById('questionText').textContent = `${index + 1}. ${q.q}`;
+            document.getElementById('progressBar').style.width = ((index + 1) / 30 * 100) + '%';
+            
+            const container = document.getElementById('answersContainer');
+            container.innerHTML = '';
+            
+            q.a.forEach((answer, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'answer-btn';
+                btn.textContent = answer;
+                btn.onclick = () => selectAnswer(idx, btn);
+                container.appendChild(btn);
+            });
+        }
+
+        function selectAnswer(index, btn) {
+            if (selectedAnswer !== null) return; // Artıq cavab verilib
+            
+            selectedAnswer = index;
+            
+            // Vizual seçim
+            document.querySelectorAll('.answer-btn').forEach(b => {
+                b.classList.remove('selected');
+                b.disabled = true;
+            });
+            btn.classList.add('selected');
+            
+            // Serverə göndər
+            socket.emit('submitAnswer', {
+                questionIndex: currentQuestion,
+                answer: index
+            });
+            
+            myAnswers[currentQuestion] = index;
+        }
+
+        function showResult() {
+            // Psixoloji analiz alqoritmi
+            let scores = {
+                extrovert: 0,  // 0-ekstravert
+                anxiety: 0,    // 1-anksiyete  
+                stability: 0,  // 2-stabil
+                creativity: 0  // 3-kreativ
+            };
+            
+            // Cavablara görə xal hesablama (sadə psixoloji model)
+            myAnswers.forEach((ans, idx) => {
+                if (ans === 0) scores.extrovert += 2;
+                if (ans === 1) scores.stability += 2;
+                if (ans === 2) scores.anxiety += 1;
+                if (ans === 3) scores.creativity += 2;
+            });
+            
+            // Predominant xüsusiyyət
+            let dominant = Object.keys(scores).reduce((a, b) => scores[a] > scores[b] ? a : b);
+            
+            const profiles = {
+                extrovert: {
+                    title: "🌟 Sosial Lider (Ekstravert)",
+                    desc: "Siz ətraf mühitə asanlıqla uyğunlaşırsınız, yeni insanlarla tanışlıq sizə enerji verir. Liderlik keyfiyyətləriniz güclüdür. Amma bəzən yalnız qalmağa da vaxt ayırmalısınız.",
+                    advice: "Özünüz üçün də vaxt ayırın, daxili dünyanızı kəşf edin."
+                },
+                anxiety: {
+                    title: "🌧️ Həssas Analitik",
+                    desc: "Siz hər şeyi dərindən hiss edir və təhlil edirsiniz. Detallara diqqətiniz yüksəkdir. Ancaq narahatlıq səviyyəniz bəzən sizi yorur.",
+                    advice: "Nəfəs məşqləri edin, indiki anda qalmağa çalışın."
+                },
+                stability: {
+                    title: "⚖️ Denge Ustası",
+                    desc: "Siz emosional cəhətdən stabil və praktik insansınız. Problemləri soyuqqanlıqla həll edirsiniz. Etibarlı birisiniz.",
+                    advice: "Bəzən risk almaq da lazımdır, həyat təkcə plan deyil."
+                },
+                creativity: {
+                    title: "🎨 Yaradıcı Ruh",
+                    desc: "Siz unikal düşünürsünüz, adətən görmədikləri görürsünüz. Yaradıcılığınız yüksəkdir. Ancaq praktik məsələlərdə çətinlik çəkə bilərsiniz.",
+                    advice: "Ideyalarınızı reallaşdırmaq üçün konkret addımlar atın."
+                }
+            };
+            
+            const profile = profiles[dominant];
+            const html = `
+                <h3>${profile.title}</h3>
+                <div class="profile">
+                    <p><strong>Təsvir:</strong> ${profile.desc}</p>
+                    <p style="margin-top: 15px; color: #667eea;"><strong>Məsləhət:</strong> ${profile.advice}</p>
+                </div>
+                <div style="margin-top: 20px; font-size: 14px; color: #666;">
+                    <p>Ekstraversiya: ${scores.extrovert}/60</p>
+                    <p>Stabilite: ${scores.stability}/60</p>
+                    <p>Həssaslıq: ${scores.anxiety}/30</p>
+                    <p>Yaradıcılıq: ${scores.creativity}/60</p>
+                </div>
+            `;
+            
+            document.getElementById('resultContent').innerHTML = html;
+        }
+    </script>
+</body>
+</html>
