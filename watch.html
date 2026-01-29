@@ -3,27 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HLS Video Detector - Sync Player</title>
+    <title>Sync Cinema - HLS & MP4</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #0f0f0f;
+            background: #000;
             color: #fff;
             height: 100vh;
             overflow: hidden;
         }
 
-        /* Login */
-        #login {
+        /* Login Screen */
+        .login-screen {
             position: fixed;
             inset: 0;
-            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -31,550 +30,282 @@
         }
         
         .login-box {
-            background: rgba(255,255,255,0.95);
+            background: white;
             padding: 40px;
-            border-radius: 24px;
-            max-width: 500px;
+            border-radius: 20px;
             width: 90%;
-            color: #1e1b4b;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            max-width: 400px;
+            color: #333;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
         
-        .tabs { display: flex; gap: 8px; margin: 20px 0; background: #e0e7ff; padding: 6px; border-radius: 12px; }
-        .tab { flex: 1; padding: 12px; border: none; background: transparent; cursor: pointer; border-radius: 8px; font-weight: 600; color: #64748b; transition: all 0.3s; }
-        .tab.active { background: white; color: #4338ca; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .tabs { display: flex; margin-bottom: 20px; background: #eee; padding: 5px; border-radius: 10px; }
+        .tab { flex: 1; padding: 10px; border: none; background: transparent; cursor: pointer; border-radius: 8px; font-weight: 600; }
+        .tab.active { background: white; color: #764ba2; }
         
-        input { width: 100%; padding: 14px 18px; margin: 8px 0; border: 2px solid #c7d2fe; border-radius: 12px; font-size: 16px; transition: 0.3s; }
-        input:focus { outline: none; border-color: #4f46e5; }
-        
-        button {
-            width: 100%;
-            padding: 16px;
-            background: linear-gradient(135deg, #4f46e5, #7c3aed);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
+        input { width: 100%; padding: 12px; margin: 8px 0; border: 2px solid #ddd; border-radius: 8px; font-size: 16px; }
+        button { 
+            width: 100%; 
+            padding: 14px; 
+            background: #764ba2; 
+            color: white; 
+            border: none; 
+            border-radius: 8px; 
+            font-size: 16px; 
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s;
+            margin-top: 10px;
         }
-        button:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(79, 70, 229, 0.4); }
+        button:hover { background: #667eea; }
 
-        /* App */
-        #app { display: none; height: 100vh; flex-direction: column; }
-
+        /* Main App Layout */
+        .app { display: none; height: 100vh; flex-direction: column; }
+        
         .header {
-            background: rgba(15, 23, 42, 0.8);
-            backdrop-filter: blur(10px);
-            padding: 12px 24px;
+            background: #1a1a2a;
+            padding: 15px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 1px solid #333;
         }
         
-        .badge {
-            padding: 6px 14px;
+        .room-tag {
+            background: rgba(255,255,255,0.1);
+            padding: 6px 12px;
             border-radius: 20px;
-            font-size: 12px;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
-        .badge.mod { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
-        .badge.viewer { background: rgba(255,255,255,0.1); color: #cbd5e1; }
-        
-        .code-box {
-            background: rgba(99, 102, 241, 0.2);
-            border: 1px solid rgba(99, 102, 241, 0.4);
-            color: #a5b4fc;
-            padding: 8px 16px;
-            border-radius: 8px;
             font-family: monospace;
-            font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s;
         }
-        .code-box:hover { background: rgba(99, 102, 241, 0.3); }
 
-        .main { flex: 1; display: flex; overflow: hidden; }
+        .content { flex: 1; display: flex; overflow: hidden; }
 
-        /* Left Panel - Browser/Detector (Moderator) */
-        .left-panel {
-            flex: 1;
+        /* LEFT SIDE - Browser (Moderator only) */
+        .browser-section {
+            width: 50%;
             display: flex;
             flex-direction: column;
-            background: #000;
-            min-width: 0;
+            background: #0f0f0f;
+            border-right: 1px solid #333;
         }
         
-        .toolbar {
-            background: #1e1b4b;
+        .browser-toolbar {
             padding: 10px;
+            background: #1f1f2f;
             display: flex;
             gap: 8px;
-            align-items: center;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
         }
         
-        .url-bar {
-            flex: 1;
-            background: rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,255,255,0.2);
-            color: white;
-            padding: 10px 16px;
-            border-radius: 8px;
-            font-family: monospace;
-            font-size: 14px;
-        }
-        
-        .tool-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
-            background: rgba(255,255,255,0.1);
-            border: none;
-            color: white;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-        }
-        .tool-btn:hover { background: rgba(255,255,255,0.2); }
-        .tool-btn.scan { background: #4f46e5; }
-        .tool-btn.scan:hover { background: #4338ca; }
-        
-        .browser-view {
-            flex: 1;
-            position: relative;
-            background: #0f0f0f;
-        }
+        .browser-toolbar input { flex: 1; margin: 0; background: #2a2a3a; color: white; border: 1px solid #444; }
+        .browser-toolbar button { width: auto; padding: 10px 20px; margin: 0; }
         
         #browserFrame {
+            flex: 1;
             width: 100%;
-            height: 100%;
             border: none;
             background: white;
         }
 
-        /* Stream Detector Sidebar */
-        .detector-sidebar {
-            position: absolute;
-            right: 0;
-            top: 0;
-            bottom: 0;
-            width: 350px;
-            background: rgba(15, 23, 42, 0.98);
-            border-left: 1px solid rgba(255,255,255,0.1);
-            display: none;
+        /* RIGHT SIDE - Player (Everyone) */
+        .player-section {
+            flex: 1;
+            display: flex;
             flex-direction: column;
-            z-index: 50;
+            background: #000;
+            min-width: 0; /* Important for flex child */
         }
         
-        .detector-sidebar.active { display: flex; }
+        .video-container {
+            flex: 1;
+            position: relative;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
         
-        .detector-header {
+        #mainVideo {
+            width: 100%;
+            height: 100%;
+            max-height: calc(100vh - 250px);
+        }
+        
+        .waiting-msg {
+            position: absolute;
+            text-align: center;
+            color: #666;
             padding: 20px;
-            background: rgba(0,0,0,0.3);
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* Stream Selector Panel (Moderator) */
+        .stream-panel {
+            height: 200px;
+            background: #1a1a2a;
+            border-top: 1px solid #333;
+            overflow-y: auto;
+            padding: 10px;
+            display: none; /* Hidden by default, shown for mod */
+        }
+        
+        .stream-item {
+            background: #2a2a3a;
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            border-left: 3px solid #764ba2;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
         
-        .stream-list {
-            flex: 1;
-            overflow-y: auto;
-            padding: 12px;
-        }
-        
-        .stream-item {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 12px;
-            cursor: pointer;
-            transition: all 0.3s;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .stream-item:hover {
-            background: rgba(79, 70, 229, 0.2);
-            border-color: #4f46e5;
-            transform: translateX(-4px);
-        }
-        
-        .stream-item.active {
-            background: rgba(79, 70, 229, 0.3);
-            border-color: #4f46e5;
-            box-shadow: 0 0 20px rgba(79, 70, 229, 0.3);
-        }
-        
-        .stream-type {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-        
-        .type-hls { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
-        .type-mp4 { background: rgba(74, 222, 128, 0.2); color: #4ade80; border: 1px solid rgba(74, 222, 128, 0.4); }
-        .type-dash { background: rgba(96, 165, 250, 0.2); color: #60a5fa; border: 1px solid rgba(96, 165, 250, 0.4); }
-        
-        .stream-url {
-            font-family: monospace;
-            font-size: 12px;
-            color: #94a3b8;
-            word-break: break-all;
-            line-height: 1.4;
-        }
-        
-        .stream-meta {
-            margin-top: 8px;
-            font-size: 12px;
-            color: #64748b;
-            display: flex;
-            gap: 12px;
-        }
-
-        /* Right Panel - Player (Everyone) */
-        .player-panel {
-            width: 50%;
-            min-width: 400px;
-            background: #0a0a0a;
-            border-left: 1px solid rgba(255,255,255,0.1);
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .player-container {
-            flex: 1;
-            background: #000;
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        #videoPlayer {
-            width: 100%;
-            height: 100%;
-            max-height: calc(100vh - 200px);
-        }
-        
-        .player-overlay {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: #64748b;
-            text-align: center;
-            padding: 40px;
-        }
-        
-        .player-overlay i {
-            font-size: 64px;
-            margin-bottom: 20px;
-            color: #334155;
-        }
-
-        /* Stream Info Bar */
-        .info-bar {
-            padding: 16px 20px;
-            background: rgba(30, 41, 59, 0.8);
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-        
-        .stream-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 6px 12px;
-            background: rgba(79, 70, 229, 0.2);
-            border: 1px solid rgba(79, 70, 229, 0.4);
-            border-radius: 20px;
-            font-size: 13px;
-            color: #a5b4fc;
-        }
-        
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            background: #4ade80;
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .stream-item:hover { background: #3a3a4a; }
+        .stream-url { font-size: 12px; color: #aaa; flex: 1; margin-right: 10px; word-break: break-all; }
+        .stream-type { background: #764ba2; padding: 4px 8px; border-radius: 4px; font-size: 11px; }
 
         /* Chat */
         .chat-section {
-            height: 200px;
-            background: rgba(15, 23, 42, 0.5);
-            border-top: 1px solid rgba(255,255,255,0.1);
+            height: 150px;
+            background: #0f0f0f;
+            border-top: 1px solid #333;
             display: flex;
             flex-direction: column;
         }
         
-        .chat-messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
+        .chat-messages { flex: 1; overflow-y: auto; padding: 10px; }
+        .message { margin-bottom: 8px; padding: 8px 12px; background: rgba(255,255,255,0.05); border-radius: 8px; font-size: 14px; }
+        .message.own { background: #764ba2; text-align: right; }
+        .message b { color: #aaa; font-size: 12px; display: block; margin-bottom: 4px; }
         
-        .msg {
-            background: rgba(255,255,255,0.05);
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: 13px;
-            max-width: 90%;
-        }
-        
-        .msg.own { background: rgba(79, 70, 229, 0.3); align-self: flex-end; }
-        .msg.system { 
-            background: rgba(245, 158, 11, 0.1); 
-            color: #fbbf24; 
-            text-align: center; 
-            align-self: center;
-            font-size: 12px;
-            border: 1px solid rgba(245, 158, 11, 0.3);
-        }
-        
-        .chat-input {
-            padding: 12px;
-            display: flex;
-            gap: 8px;
-            border-top: 1px solid rgba(255,255,255,0.1);
-        }
-        
-        .chat-input input {
-            flex: 1;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            color: white;
-            padding: 10px 14px;
-            border-radius: 20px;
-            font-size: 14px;
-        }
-        
-        .chat-input button {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            padding: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+        .chat-input { display: flex; padding: 10px; gap: 8px; }
+        .chat-input input { flex: 1; margin: 0; background: #2a2a3a; color: white; border: 1px solid #444; }
+        .chat-input button { width: 80px; margin: 0; }
 
-        /* Manual Input Modal */
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.8);
-            display: none;
-            align-items: center;
-            justify-content: center;
+        /* Manual Add Button */
+        .manual-btn {
+            position: absolute;
+            bottom: 220px;
+            right: 20px;
+            width: 60px !important;
+            height: 60px;
+            border-radius: 50%;
+            background: #10b981 !important;
+            font-size: 24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
             z-index: 100;
-        }
-        
-        .modal-overlay.active { display: flex; }
-        
-        .modal-content {
-            background: #1e1b4b;
-            padding: 24px;
-            border-radius: 16px;
-            width: 90%;
-            max-width: 600px;
-            border: 1px solid rgba(255,255,255,0.2);
-        }
-        
-        .input-group { margin: 16px 0; }
-        .input-group label { display: block; margin-bottom: 8px; color: #a5b4fc; font-size: 14px; }
-        
-        select {
-            width: 100%;
-            padding: 12px;
-            background: rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,255,255,0.2);
-            color: white;
-            border-radius: 8px;
-            font-size: 14px;
         }
 
         .hidden { display: none !important; }
         
-        @media (max-width: 1024px) {
-            .player-panel { width: 100%; position: absolute; inset: 0; z-index: 100; }
-            .left-panel { display: none; }
+        /* Responsive */
+        @media (max-width: 768px) {
+            .browser-section { 
+                display: none; 
+                position: absolute; 
+                inset: 0; 
+                z-index: 50; 
+                width: 100%;
+            }
+            .browser-section.active { display: flex; }
         }
-        
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
     </style>
 </head>
 <body>
 
-<div id="login">
+<!-- LOGIN SCREEN -->
+<div class="login-screen" id="login">
     <div class="login-box">
-        <h1><i class="fas fa-satellite-dish"></i> HLS Detector</h1>
-        <p style="color: #64748b; margin-bottom: 24px;">M3U8 stream-ləri avtomatik tap və sinxron izlə</p>
+        <h2 style="text-align: center; margin-bottom: 20px; color: #764ba2;">🎬 Sync Cinema</h2>
         
         <div class="tabs">
             <button class="tab active" onclick="switchTab('create')">Otaq Yarat</button>
             <button class="tab" onclick="switchTab('join')">Qoşul</button>
         </div>
         
-        <div id="createForm">
-            <input type="text" id="cName" placeholder="Adınız" maxlength="20">
-            <input type="text" id="cCode" placeholder="Otaq kodu (məs: CINEMA)" maxlength="15">
-            <p style="font-size: 13px; color: #64748b; margin: 10px 0;">
-                🎯 Moderator olaraq saytdakı gizli M3U8 stream-ləri tapacaqsan
-            </p>
-            <button onclick="createRoom()">Moderator Ol</button>
+        <div id="createPanel">
+            <input type="text" id="modName" placeholder="Adınız" value="Admin">
+            <input type="text" id="modCode" placeholder="Kod (məs: FILM123)" value="TEST123">
+            <button onclick="createRoom()">Yarat və Başla</button>
         </div>
         
-        <div id="joinForm" style="display:none">
-            <input type="text" id="jName" placeholder="Adınız" maxlength="20">
-            <input type="text" id="jCode" placeholder="Otaq kodu" maxlength="15">
-            <p style="font-size: 13px; color: #64748b; margin: 10px 0;">
-                👀 Moderatorun tapdığı HLS stream-i izləyəcəksən
-            </p>
-            <button onclick="joinRoom()">İzləyici Ol</button>
+        <div id="joinPanel" style="display:none">
+            <input type="text" id="viewName" placeholder="Adınız" value="Guest">
+            <input type="text" id="viewCode" placeholder="Otaq kodu" value="">
+            <button onclick="joinRoom()">Otağa Qoşul</button>
         </div>
     </div>
 </div>
 
-<div id="app">
+<!-- MAIN APP -->
+<div class="app" id="app">
+    <!-- Header -->
     <div class="header">
-        <div style="display:flex; align-items:center; gap:12px;">
-            <i class="fas fa-broadcast-tower" style="color: #6366f1; font-size: 20px;"></i>
-            <span style="font-weight: 700; font-size: 18px;">Stream Sync</span>
-            <span id="roleBadge" class="badge mod">MOD</span>
+        <div>
+            <b style="font-size: 18px;">🎥 Sync Cinema</b>
+            <span id="roleBadge" style="background: #764ba2; padding: 4px 12px; border-radius: 12px; font-size: 12px; margin-left: 10px;">MOD</span>
         </div>
-        <div style="display:flex; align-items:center; gap:12px;">
-            <span id="userDisplay" style="color: #94a3b8; font-size: 14px;"></span>
-            <div class="code-box" onclick="copyCode()" title="Kopyalamaq üçün kliklə">
-                <span id="roomDisplay">CODE</span> <i class="fas fa-copy" style="margin-left:8px;"></i>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span id="headerName" style="color: #aaa;"></span>
+            <div class="room-tag" onclick="copyCode()">
+                <span id="roomCodeDisplay">CODE</span> 📋
             </div>
         </div>
     </div>
 
-    <div class="main">
-        <!-- Left: Browser & Detector (Moderator Only) -->
-        <div class="left-panel" id="leftPanel">
-            <div class="toolbar">
-                <input type="text" class="url-bar" id="urlInput" value="https://archive.org/details/movies" placeholder="Film saytının URL-i...">
-                <button class="tool-btn" onclick="navigate()" title="Get"><i class="fas fa-arrow-right"></i></button>
-                <button class="tool-btn scan" onclick="toggleDetector()" title="Stream Axtar"><i class="fas fa-search"></i></button>
-                <button class="tool-btn" onclick="openManualModal()" title="Manuel Əlavə Et" style="background: #059669;"><i class="fas fa-plus"></i></button>
+    <!-- Content -->
+    <div class="content">
+        <!-- LEFT: Browser (Only for Moderator) -->
+        <div class="browser-section" id="browserArea">
+            <div class="browser-toolbar">
+                <input type="text" id="urlBar" value="https://archive.org/details/movies" placeholder="URL daxil et...">
+                <button onclick="navigate()">Get</button>
+                <button onclick="scanPage()" style="background: #f59e0b;">🔍 Axtar</button>
             </div>
+            <iframe id="browserFrame" src="about:blank"></iframe>
             
-            <div class="browser-view">
-                <iframe id="browserFrame" sandbox="allow-same-origin allow-scripts allow-forms allow-popups"></iframe>
-                
-                <!-- Stream Detector Panel -->
-                <div class="detector-sidebar" id="detectorPanel">
-                    <div class="detector-header">
-                        <div>
-                            <h3 style="font-size: 16px; margin-bottom: 4px;"><i class="fas fa-radar"></i> Tapılan Stream-lər</h3>
-                            <p style="font-size: 12px; color: #94a3b8;">Birinə kliklə hamıya göndər</p>
-                        </div>
-                        <button class="tool-btn" onclick="toggleDetector()" style="width: 32px; height: 32px;"><i class="fas fa-times"></i></button>
-                    </div>
-                    
-                    <div class="stream-list" id="streamList">
-                        <div style="color: #64748b; text-align: center; padding: 40px 20px;">
-                            <i class="fas fa-spinner fa-spin" style="font-size: 24px; margin-bottom: 12px; opacity: 0.5;"></i>
-                            <p>Sayt açılmaq üzrə...</p>
-                        </div>
-                    </div>
+            <!-- Stream List for Moderator -->
+            <div class="stream-panel" id="streamListPanel">
+                <div style="padding: 10px; color: #aaa; font-size: 14px; margin-bottom: 5px;">
+                    Tapılan videolar (birinə kliklə):
+                </div>
+                <div id="streamsContainer">
+                    <!-- Streams appear here -->
                 </div>
             </div>
         </div>
 
-        <!-- Right: Universal Player (Everyone) -->
-        <div class="player-panel">
-            <div class="info-bar">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div class="stream-badge" id="streamBadge" style="display:none;">
-                        <div class="status-dot"></div>
-                        <span id="streamType">HLS Stream</span>
-                    </div>
-                    <div style="font-size: 13px; color: #64748b;" id="resolutionInfo">
-                        <i class="fas fa-users"></i> <span id="viewerCount">1</span> izləyici
-                    </div>
+        <!-- RIGHT: Player (For Everyone) -->
+        <div class="player-section">
+            <!-- Video Player -->
+            <div class="video-container">
+                <div class="waiting-msg" id="waitingMsg">
+                    <h2>⏳ Gözləyir...</h2>
+                    <p>Moderator video seçənə qədər gözləyin.</p>
                 </div>
-            </div>
-            
-            <div class="player-container">
-                <video id="videoPlayer" controls playsinline></video>
+                <video id="mainVideo" controls autoplay playsinline style="display:none;"></video>
                 
-                <div class="player-overlay" id="playerOverlay">
-                    <i class="fas fa-tv"></i>
-                    <h3 style="color: #94a3b8; margin-bottom: 8px;">Video gözlənilir</h3>
-                    <p style="font-size: 14px; opacity: 0.7;">
-                        Moderator stream seçənə qədər gözləyin.<br>
-                        HLS (M3U8) və MP4 formatları dəstəklənir.
-                    </p>
-                </div>
+                <!-- Manual Add Button (Moderator) -->
+                <button class="manual-btn hidden" id="manualBtn" onclick="addManualStream()" title="Manual URL əlavə et">+</button>
             </div>
-            
+
+            <!-- Chat -->
             <div class="chat-section">
                 <div class="chat-messages" id="chatBox">
-                    <div class="msg system">Otağa xoş gəldiniz. Moderator video seçəndə avtomatik başlayacaq.</div>
+                    <div class="message" style="text-align: center; color: #666; background: transparent;">
+                        💬 Söhbət başladı...
+                    </div>
                 </div>
                 <div class="chat-input">
-                    <input type="text" id="msgInput" placeholder="Mesaj yaz..." onkeypress="if(event.key==='Enter')sendMsg()">
-                    <button onclick="sendMsg()"><i class="fas fa-paper-plane"></i></button>
+                    <input type="text" id="chatInput" placeholder="Mesaj yaz..." onkeypress="if(event.key==='Enter')sendChat()">
+                    <button onclick="sendChat()">Göndər</button>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
-
-<!-- Manual Add Modal -->
-<div class="modal-overlay" id="manualModal">
-    <div class="modal-content">
-        <h3 style="margin-bottom: 16px;"><i class="fas fa-link"></i> Stream URL Əlavə Et</h3>
-        <p style="font-size: 14px; color: #94a3b8; margin-bottom: 20px;">
-            Brauzerin Inkognito/DevTools panalında tapdığın M3U8 və ya MP4 linkini bura yapışdır.
-        </p>
-        
-        <div class="input-group">
-            <label>Video URL</label>
-            <input type="text" id="manualUrl" placeholder="https://example.com/video.m3u8">
-        </div>
-        
-        <div class="input-group">
-            <label>Format Tipi</label>
-            <select id="manualType">
-                <option value="auto">Avtomatik təyin et</option>
-                <option value="hls">HLS / M3U8</option>
-                <option value="mp4">MP4 / WebM</option>
-                <option value="dash">MPEG-DASH</option>
-            </select>
-        </div>
-        
-        <div style="display:flex; gap:12px; margin-top:24px;">
-            <button onclick="closeManualModal()" style="flex:1; background:rgba(255,255,255,0.1);">Ləğv Et</button>
-            <button onclick="addManualStream()" style="flex:2;">Stream-i Əlavə Et</button>
         </div>
     </div>
 </div>
 
 <script>
+// Firebase Config
 const firebaseConfig = {
     apiKey: "AIzaSyCM5WdZNSj9oFipNI-J3csHpOIvK8PjoLU",
     authDomain: "sevgili-testi.firebaseapp.com",
@@ -585,326 +316,267 @@ const firebaseConfig = {
     appId: "1:399260477557:web:584204a698d7bf145bb03c"
 };
 
+// Initialize
 firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
+const database = firebase.database();
 
-let currentUser = '', roomCode = '', isModerator = false;
-let roomRef, streamRef, chatRef;
-let hls = null;
-let detectedStreams = [];
-let currentStreamUrl = null;
+// Global State
+let userName = '';
+let roomId = '';
+let isMod = false;
+let hlsPlayer = null;
+let roomRef = null;
+let videoRef = null;
+let chatRef = null;
 
-function switchTab(t) {
-    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+// UI Switch
+function switchTab(tab) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     event.target.classList.add('active');
-    document.getElementById('createForm').style.display = t === 'create' ? 'block' : 'none';
-    document.getElementById('joinForm').style.display = t === 'join' ? 'block' : 'none';
+    document.getElementById('createPanel').style.display = tab === 'create' ? 'block' : 'none';
+    document.getElementById('joinPanel').style.display = tab === 'join' ? 'block' : 'none';
 }
 
+// CREATE ROOM (Moderator)
 function createRoom() {
-    const name = document.getElementById('cName').value.trim();
-    const code = document.getElementById('cCode').value.trim().toUpperCase();
+    const name = document.getElementById('modName').value.trim();
+    const code = document.getElementById('modCode').value.trim().toUpperCase();
     
-    if(!name || !code) return alert('Bütün xanaları doldurun!');
+    if(!name || !code) return alert('Ad və kod daxil edin!');
     
-    db.ref('rooms/' + code).once('value').then(snap => {
-        if(snap.exists()) return alert('Bu kod artıq mövcuddur!');
+    // Check if exists
+    database.ref('rooms/' + code).once('value').then(snap => {
+        if(snap.exists()) {
+            alert('Bu kod artıq mövcuddur. Başqa kod yoxlayın.');
+            return;
+        }
         
-        currentUser = name;
-        roomCode = code;
-        isModerator = true;
+        // Create
+        userName = name;
+        roomId = code;
+        isMod = true;
         
-        db.ref('rooms/' + code).set({
+        database.ref('rooms/' + code).set({
             creator: name,
             created: Date.now(),
-            activeStream: null,
-            viewers: 0
+            currentVideo: null,
+            users: {}
+        }).then(() => {
+            initApp();
         });
-        
-        init();
     });
 }
 
+// JOIN ROOM (Viewer)
 function joinRoom() {
-    const name = document.getElementById('jName').value.trim();
-    const code = document.getElementById('jCode').value.trim().toUpperCase();
+    const name = document.getElementById('viewName').value.trim();
+    const code = document.getElementById('viewCode').value.trim().toUpperCase();
     
-    if(!name || !code) return alert('Bütün xanaları doldurun!');
+    if(!name || !code) return alert('Ad və kod daxil edin!');
     
-    db.ref('rooms/' + code).once('value').then(snap => {
-        if(!snap.exists()) return alert('Otaq tapılmadı!');
+    database.ref('rooms/' + code).once('value').then(snap => {
+        if(!snap.exists()) {
+            alert('Otaq tapılmadı! Kodu düzgün daxil etdiyinizə əmin olun.');
+            return;
+        }
         
-        currentUser = name;
-        roomCode = code;
-        isModerator = false;
+        userName = name;
+        roomId = code;
+        isMod = false;
         
-        init();
+        initApp();
     });
 }
 
-function init() {
+// INITIALIZE APP
+function initApp() {
+    console.log('Initializing...', {userName, roomId, isMod});
+    
+    // Hide login, show app
     document.getElementById('login').style.display = 'none';
     document.getElementById('app').style.display = 'flex';
-    document.getElementById('userDisplay').textContent = currentUser;
-    document.getElementById('roomDisplay').textContent = roomCode;
     
-    const badge = document.getElementById('roleBadge');
-    badge.textContent = isModerator ? 'MODERATOR' : 'IZLEYICI';
-    badge.className = 'badge ' + (isModerator ? 'mod' : 'viewer');
+    // Update UI
+    document.getElementById('headerName').textContent = userName;
+    document.getElementById('roomCodeDisplay').textContent = roomId;
+    document.getElementById('roleBadge').textContent = isMod ? 'MODERATOR' : 'IZLEYICI';
+    document.getElementById('roleBadge').style.background = isMod ? '#764ba2' : '#4b5563';
     
-    if(!isModerator) {
-        document.getElementById('leftPanel').style.display = 'none';
-        document.querySelector('.player-panel').style.width = '100%';
+    // Setup UI based on role
+    if(isMod) {
+        document.getElementById('streamListPanel').style.display = 'block';
+        document.getElementById('manualBtn').classList.remove('hidden');
+        document.getElementById('browserFrame').src = 'https://archive.org/details/movies';
+    } else {
+        // Viewer - hide browser completely
+        document.getElementById('browserArea').style.display = 'none';
     }
     
-    roomRef = db.ref('rooms/' + roomCode);
-    streamRef = roomRef.child('activeStream');
+    // Firebase References
+    roomRef = database.ref('rooms/' + roomId);
+    videoRef = roomRef.child('currentVideo');
     chatRef = roomRef.child('chat');
     
-    setupStreamSync();
+    // Setup sync
+    setupVideoSync();
     setupChat();
-    addUserToRoom();
-    
-    if(isModerator) {
-        setupAutoDetection();
-        document.getElementById('browserFrame').src = 'https://archive.org/details/movies';
-    }
+    addUser();
 }
 
-function setupStreamSync() {
-    streamRef.on('value', (snap) => {
-        const data = snap.val();
-        if(!data || !data.url) return;
+// VIDEO SYNC (CRITICAL PART)
+function setupVideoSync() {
+    console.log('Setting up video sync...');
+    
+    videoRef.on('value', (snapshot) => {
+        const data = snapshot.val();
+        console.log('Video update:', data);
         
-        if(data.url !== currentStreamUrl) {
-            currentStreamUrl = data.url;
-            loadVideo(data.url, data.type);
+        if(data && data.url) {
+            const videoEl = document.getElementById('mainVideo');
+            const waitingEl = document.getElementById('waitingMsg');
             
-            // UI updates
-            document.getElementById('playerOverlay').style.display = 'none';
-            document.getElementById('streamBadge').style.display = 'inline-flex';
-            document.getElementById('streamType').textContent = data.type === 'hls' ? 'HLS Stream' : 
-                                                                 data.type === 'mp4' ? 'MP4 Video' : 'Video';
+            // Hide waiting, show video
+            waitingEl.style.display = 'none';
+            videoEl.style.display = 'block';
             
-            if(!isModerator) {
-                addSystemMessage(`🎬 Moderator yeni stream seçdi: ${data.type.toUpperCase()}`);
+            // Load video if different
+            if(videoEl.src !== data.url) {
+                loadVideo(data.url, data.type || 'auto');
+                
+                // Notification
+                if(!isMod) {
+                    showNotification(`🎬Moderator video dəyişdirdi`);
+                }
             }
         }
     });
 }
 
+// Load Video with HLS support
 function loadVideo(url, type) {
-    const video = document.getElementById('videoPlayer');
+    const video = document.getElementById('mainVideo');
     
-    // Destroy previous HLS instance
-    if(hls) {
-        hls.destroy();
-        hls = null;
+    // Cleanup previous HLS
+    if(hlsPlayer) {
+        hlsPlayer.destroy();
+        hlsPlayer = null;
     }
     
     video.pause();
-    video.removeAttribute('src');
-    video.load();
     
-    // Detect type if auto
+    // Detect type
     if(!type || type === 'auto') {
-        if(url.includes('.m3u8') || url.includes('manifest')) type = 'hls';
-        else if(url.includes('.mpd')) type = 'dash';
-        else type = 'mp4';
-    }
-    
-    if(type === 'hls') {
-        if(Hls.isSupported()) {
-            hls = new Hls({
-                enableWorker: true,
-                lowLatencyMode: true,
-                backBufferLength: 90
-            });
-            
-            hls.loadSource(url);
-            hls.attachMedia(video);
-            
-            hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                video.play().catch(() => {
-                    // Autoplay blocked, show controls
-                    video.controls = true;
-                });
-            });
-            
-            hls.on(Hls.Events.ERROR, (event, data) => {
-                if(data.fatal) {
-                    console.error('HLS Error:', data);
-                    addSystemMessage('❌ Stream yüklənmədi. CORS siyasəti və ya link xətası.');
-                }
-            });
-        } else if(video.canPlayType('application/vnd.apple.mpegurl')) {
-            // Native HLS support (Safari)
-            video.src = url;
-            video.play();
-        }
-    } else {
-        // MP4 or DASH
-        video.src = url;
-        video.play().catch(() => {
-            video.controls = true;
-        });
-    }
-}
-
-function setupAutoDetection() {
-    // Simulated detection - in real Puppeteer server this would be real network logs
-    document.getElementById('browserFrame').addEventListener('load', () => {
-        setTimeout(scanForStreams, 2000);
-    });
-}
-
-function scanForStreams() {
-    const currentUrl = document.getElementById('urlInput').value;
-    
-    // Generate some example streams based on URL patterns
-    // In real implementation, this would analyze network requests
-    const found = [];
-    
-    if(currentUrl.includes('archive.org')) {
-        found.push({
-            url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-            type: 'mp4',
-            quality: '1080p',
-            label: 'Big Buck Bunny (Sample)'
-        });
-    }
-    
-    // Always add input for manual found links
-    found.push({
-        url: currentUrl + '/playlist.m3u8',
-        type: 'hls',
-        quality: 'Auto',
-        label: 'Possible HLS Stream'
-    });
-    
-    found.push({
-        url: currentUrl.replace(/\/$/, '') + '.m3u8',
-        type: 'hls',
-        quality: 'Unknown',
-        label: 'Index M3U8'
-    });
-    
-    detectedStreams = found;
-    updateStreamList();
-}
-
-function updateStreamList() {
-    const container = document.getElementById('streamList');
-    
-    if(detectedStreams.length === 0) {
-        container.innerHTML = `
-            <div style="color: #64748b; text-align: center; padding: 40px 20px;">
-                <i class="fas fa-search" style="font-size: 32px; margin-bottom: 12px; opacity: 0.3;"></i>
-                <p>Stream tapılmadı.</p>
-                <p style="font-size: 12px; margin-top: 8px;">Saytı açdıqdan sonra "Stream Axtar" düyməsinə basın və ya manual əlavə edin.</p>
-            </div>`;
-        return;
-    }
-    
-   容器.innerHTML = detectedStreams.map((stream, idx) => `
-        <div class="stream-item ${stream.url === currentStreamUrl ? 'active' : ''}" onclick="selectStream('${stream.url}', '${stream.type}')">
-            <div class="stream-type type-${stream.type}">${stream.type.toUpperCase()}</div>
-            <div style="font-weight: 600; margin-bottom: 6px; color: #e2e8f0;">${stream.label || 'Stream ' + (idx + 1)}</div>
-            <div class="stream-url">${stream.url}</div>
-            <div class="stream-meta">
-                <span><i class="fas fa-video"></i> ${stream.quality || 'Unknown'}</span>
-                <span><i class="fas fa-database"></i> ${stream.type === 'hls' ? 'Adaptive' : 'Direct'}</span>
-            </div>
-        </div>
-    `).join('');
-}
-
-function selectStream(url, type) {
-    currentStreamUrl = url;
-    streamRef.set({
-        url: url,
-        type: type,
-        selectedBy: currentUser,
-        selectedAt: Date.now(),
-        title: detectedStreams.find(s => s.url === url)?.label || 'Unknown'
-    });
-    
-    updateStreamList(); // Update selection UI
-    
-    addSystemMessage(`✅ Stream aktivləşdirildi: ${type.toUpperCase()}`);
-}
-
-// Manual Add Functions
-function openManualModal() {
-    document.getElementById('manualModal').classList.add('active');
-    document.getElementById('manualUrl').value = '';
-}
-
-function closeManualModal() {
-    document.getElementById('manualModal').classList.remove('active');
-}
-
-function addManualStream() {
-    const url = document.getElementById('manualUrl').value.trim();
-    let type = document.getElementById('manualType').value;
-    
-    if(!url) return alert('URL daxil edin!');
-    
-    if(type === 'auto') {
         if(url.includes('.m3u8')) type = 'hls';
         else if(url.includes('.mpd')) type = 'dash';
         else type = 'mp4';
     }
     
-    const newStream = {
-        url: url,
-        type: type,
-        quality: 'Manual',
-        label: 'Manual Entry'
-    };
+    console.log('Loading video:', url, 'Type:', type);
     
-    detectedStreams.push(newStream);
-    updateStreamList();
-    closeManualModal();
-    
-    // Auto select it
-    selectStream(url, type);
-}
-
-// Chat Functions
-function setupChat() {
-    chatRef.limitToLast(30).on('child_added', (snap) => {
-        const msg = snap.val();
-        displayChatMessage(msg);
-    });
-}
-
-function addUserToRoom() {
-    const userRef = roomRef.child('users/' + currentUser);
-    userRef.set({
-        online: true,
-        moderator: isModerator,
-        joined: Date.now()
-    });
-    userRef.onDisconnect().remove();
-    
-    roomRef.child('users').on('value', (snap) => {
-        document.getElementById('viewerCount').textContent = snap.numChildren();
-    });
-    
-    if(!isModerator) {
-        addSystemMessage(`👋 ${currentUser} otağa qoşuldu`);
+    if(type === 'hls' && Hls.isSupported()) {
+        hlsPlayer = new Hls({
+            enableWorker: true,
+            lowLatencyMode: true
+        });
+        hlsPlayer.loadSource(url);
+        hlsPlayer.attachMedia(video);
+        hlsPlayer.on(Hls.Events.MANIFEST_PARSED, () => {
+            video.play().catch(e => console.log('Autoplay blocked'));
+        });
+    } else {
+        video.src = url;
+        video.play().catch(e => console.log('Autoplay blocked'));
     }
 }
 
-function displayChatMessage(msg) {
+// MODERATOR: Scan for videos
+function scanPage() {
+    if(!isMod) return;
+    
+    const container = document.getElementById('streamsContainer');
+    container.innerHTML = '<div style="color: #aaa; padding: 10px;">Axtarılır...</div>';
+    
+    // In real scenario, this would analyze the iframe
+    // For demo, we'll show manual entry prompt
+    setTimeout(() => {
+        // Add some example/demo streams
+        const demos = [
+            {url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4', type: 'mp4', name: 'Test Video (MP4)'},
+            {url: 'https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.mp4/.m3u8', type: 'hls', name: 'Test HLS Stream'}
+        ];
+        
+        container.innerHTML = demos.map(d => `
+            <div class="stream-item" onclick="selectStream('${d.url}', '${d.type}')">
+                <div>
+                    <div style="font-weight: bold; margin-bottom: 4px;">${d.name}</div>
+                    <div class="stream-url">${d.url}</div>
+                </div>
+                <span class="stream-type">${d.type.toUpperCase()}</span>
+            </div>
+        `).join('');
+    }, 500);
+}
+
+// MODERATOR: Select stream
+function selectStream(url, type) {
+    if(!isMod) return;
+    
+    console.log('Selecting stream:', url);
+    
+    videoRef.set({
+        url: url,
+        type: type,
+        selectedBy: userName,
+        timestamp: Date.now()
+    });
+    
+    // Add chat message
+    chatRef.push({
+        text: `🎬 Yeni video seçildi: ${type.toUpperCase()}`,
+        system: true,
+        time: Date.now()
+    });
+}
+
+// MODERATOR: Manual add
+function addManualStream() {
+    if(!isMod) return;
+    
+    const url = prompt('Video URL-ini daxil et (MP4 və ya M3U8):');
+    if(!url) return;
+    
+    const type = url.includes('.m3u8') ? 'hls' : 'mp4';
+    selectStream(url, type);
+}
+
+// MODERATOR: Navigate browser
+function navigate() {
+    if(!isMod) return;
+    const url = document.getElementById('urlBar').value;
+    document.getElementById('browserFrame').src = url;
+}
+
+// CHAT
+function setupChat() {
+    chatRef.limitToLast(30).on('child_added', (snap) => {
+        const msg = snap.val();
+        displayMessage(msg);
+    });
+}
+
+function displayMessage(msg) {
     const box = document.getElementById('chatBox');
     const div = document.createElement('div');
-    div.className = 'msg ' + (msg.system ? 'system' : msg.user === currentUser ? 'own' : '');
     
     if(msg.system) {
+        div.className = 'message';
+        div.style.textAlign = 'center';
+        div.style.background = 'rgba(245, 158, 11, 0.2)';
+        div.style.color = '#fbbf24';
         div.textContent = msg.text;
     } else {
+        const isOwn = msg.user === userName;
+        div.className = 'message ' + (isOwn ? 'own' : '');
         div.innerHTML = `<b>${msg.user}:</b> ${msg.text}`;
     }
     
@@ -912,71 +584,57 @@ function displayChatMessage(msg) {
     box.scrollTop = box.scrollHeight;
 }
 
-function sendMsg() {
-    const input = document.getElementById('msgInput');
+function sendChat() {
+    const input = document.getElementById('chatInput');
     const text = input.value.trim();
     if(!text) return;
     
     chatRef.push({
-        user: currentUser,
+        user: userName,
         text: text,
         time: Date.now()
     });
+    
     input.value = '';
 }
 
-function addSystemMessage(text) {
-    chatRef.push({
-        system: true,
-        text: text,
-        time: Date.now()
+function addUser() {
+    // Add to users list
+    roomRef.child('users/' + userName).set({
+        name: userName,
+        isMod: isMod,
+        joined: Date.now()
+    });
+    
+    // Remove on disconnect
+    roomRef.child('users/' + userName).onDisconnect().remove();
+    
+    // Listen for user count
+    roomRef.child('users').on('value', (snap) => {
+        console.log('Users online:', snap.numChildren());
     });
 }
 
-// Browser Controls
-function navigate() {
-    const url = document.getElementById('urlInput').value.trim();
-    if(!url) return;
-    
-    // Add protocol if missing
-    let fullUrl = url;
-    if(!/^https?:\/\//i.test(url)) {
-        fullUrl = 'https://' + url;
-        document.getElementById('urlInput').value = fullUrl;
-    }
-    
-    document.getElementById('browserFrame').src = fullUrl;
-}
-
-function toggleDetector() {
-    document.getElementById('detectorPanel').classList.toggle('active');
-    if(isModerator) scanForStreams();
+function showNotification(text) {
+    // Simple notification
+    const div = document.createElement('div');
+    div.style.cssText = 'position: fixed; top: 80px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.9); color: white; padding: 12px 24px; border-radius: 8px; z-index: 1000; border: 1px solid #764ba2;';
+    div.textContent = text;
+    document.body.appendChild(div);
+    setTimeout(() => div.remove(), 3000);
 }
 
 function copyCode() {
-    navigator.clipboard.writeText(roomCode);
-    showToast('Kod kopyalandı: ' + roomCode);
+    navigator.clipboard.writeText(roomId);
+    showNotification('Kod kopyalandı: ' + roomId);
 }
 
-function showToast(text) {
-    const toast = document.createElement('div');
-    toast.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.9);color:white;padding:12px 24px;border-radius:8px;z-index:1000;font-size:14px;';
-    toast.textContent = text;
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 3000);
+// Test function - you can call this in console to simulate video
+if(typeof window !== 'undefined') {
+    window.testVideo = function() {
+        selectStream('https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4', 'mp4');
+    };
 }
-
-// Handle paste for manual detection
-document.addEventListener('paste', (e) => {
-    if(!isModerator) return;
-    const text = e.clipboardData.getData('text');
-    if(text && (text.includes('.m3u8') || text.includes('.mp4') || text.includes('.mpd'))) {
-        if(confirm('Clipboard-da video linki tapıldı. Əlavə etmək istəyirsiniz?')) {
-            document.getElementById('manualUrl').value = text;
-            openManualModal();
-        }
-    }
-});
 </script>
 
 </body>
