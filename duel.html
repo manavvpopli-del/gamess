@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Duel - Multiplayer Atışma</title>
+    <title>Duel - Tactical Shooter</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             touch-action: none;
             -webkit-touch-callout: none;
             -webkit-user-select: none;
@@ -19,8 +19,10 @@
         }
 
         body {
-            background: #1a1a2e;
+            background: #0a0a0a;
+            color: #fff;
             overflow: hidden;
+            font-family: 'Rajdhani', sans-serif;
             position: fixed;
             width: 100%;
             height: 100%;
@@ -29,120 +31,217 @@
         #gameContainer {
             width: 100%;
             height: 100vh;
+            background: radial-gradient(ellipse at center, #1a1a2e 0%, #0a0a0a 100%);
             position: relative;
-            background: linear-gradient(to bottom, #16213e 0%, #0f3460 100%);
         }
 
-        /* Başlanğıc Menyu */
+        /* Main Menu - Premium Dark */
         #mainMenu {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.95);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 200;
+            background: linear-gradient(135deg, rgba(10,10,10,0.95) 0%, rgba(20,20,40,0.95) 100%);
+            backdrop-filter: blur(20px);
+            z-index: 300;
         }
 
-        .menu-title {
-            color: #e94560;
-            font-size: 48px;
-            font-weight: bold;
-            margin-bottom: 10px;
+        .logo-container {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 72px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #ff006e 0%, #8338ec 50%, #3a86ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
             text-transform: uppercase;
-            letter-spacing: 5px;
-            text-shadow: 0 0 20px rgba(233, 69, 96, 0.5);
+            letter-spacing: 10px;
+            text-shadow: 0 0 40px rgba(131, 56, 236, 0.5);
+            animation: logoPulse 3s ease-in-out infinite;
         }
 
-        .menu-subtitle {
-            color: #bdc3c7;
-            margin-bottom: 50px;
+        @keyframes logoPulse {
+            0%, 100% { filter: brightness(1); }
+            50% { filter: brightness(1.2); }
+        }
+
+        .tagline {
+            color: #888;
             font-size: 16px;
+            letter-spacing: 5px;
+            margin-top: 10px;
+            text-transform: uppercase;
+        }
+
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 90%;
+            max-width: 400px;
         }
 
         .menu-btn {
-            width: 280px;
-            padding: 20px;
-            margin: 10px 0;
-            font-size: 20px;
+            padding: 20px 40px;
             border: none;
-            border-radius: 15px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 700;
             cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
             text-transform: uppercase;
+            letter-spacing: 2px;
+            position: relative;
+            overflow: hidden;
         }
 
-        .create-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .btn-primary {
+            background: linear-gradient(135deg, #ff006e 0%, #8338ec 100%);
             color: white;
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 10px 30px rgba(255, 0, 110, 0.3);
         }
 
-        .create-btn:hover {
+        .btn-primary:hover {
             transform: translateY(-3px);
-            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.6);
+            box-shadow: 0 15px 40px rgba(255, 0, 110, 0.5);
         }
 
-        .join-btn {
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-            color: white;
-            box-shadow: 0 10px 30px rgba(17, 153, 142, 0.4);
+        .btn-secondary {
+            background: transparent;
+            color: #fff;
+            border: 2px solid #8338ec;
+            box-shadow: 0 0 20px rgba(131, 56, 236, 0.2);
         }
 
-        .join-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 40px rgba(17, 153, 142, 0.6);
+        .btn-secondary:hover {
+            background: rgba(131, 56, 236, 0.2);
+            box-shadow: 0 0 30px rgba(131, 56, 236, 0.4);
         }
 
-        .join-input-container {
+        /* Room Code Display */
+        #roomCodeScreen {
             display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             flex-direction: column;
+            justify-content: center;
             align-items: center;
-            margin-top: 20px;
-            animation: slideUp 0.3s ease;
+            background: rgba(10, 10, 10, 0.95);
+            z-index: 250;
         }
 
-        .code-input {
-            width: 200px;
-            padding: 15px;
-            font-size: 24px;
+        .code-box-premium {
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 40px 60px;
             text-align: center;
-            border: 3px solid #e94560;
-            border-radius: 10px;
-            background: rgba(255,255,255,0.1);
-            color: white;
-            margin-bottom: 10px;
-            letter-spacing: 5px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
         }
 
-        .code-input::placeholder {
-            color: rgba(255,255,255,0.3);
-        }
-
-        .confirm-btn {
-            padding: 12px 30px;
-            background: #e94560;
-            color: white;
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 16px;
-        }
-
-        .back-btn {
-            margin-top: 15px;
-            color: #7f8c8d;
-            cursor: pointer;
+        .code-label {
+            color: #888;
             font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 20px;
         }
 
-        /* Silah Seçim Ekranı */
+        .the-code {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 56px;
+            font-weight: 700;
+            color: #00ff88;
+            letter-spacing: 15px;
+            text-shadow: 0 0 30px rgba(0, 255, 136, 0.5);
+            margin-bottom: 10px;
+        }
+
+        .copy-hint {
+            color: #666;
+            font-size: 13px;
+            margin-top: 20px;
+        }
+
+        .continue-btn {
+            margin-top: 40px;
+            padding: 15px 50px;
+            background: #00ff88;
+            color: #000;
+            border: none;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.3s;
+        }
+
+        .continue-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.5);
+        }
+
+        /* Join Room Input */
+        #joinScreen {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(10, 10, 10, 0.95);
+            z-index: 250;
+        }
+
+        .input-container {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .code-input-premium {
+            width: 100%;
+            padding: 20px;
+            font-size: 32px;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid #8338ec;
+            border-radius: 12px;
+            color: #fff;
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 10px;
+            margin-bottom: 20px;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .code-input-premium:focus {
+            border-color: #ff006e;
+            box-shadow: 0 0 20px rgba(255, 0, 110, 0.3);
+        }
+
+        /* Weapon Select - Premium Cards */
         #weaponSelect {
             display: none;
             position: absolute;
@@ -150,83 +249,187 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.9);
             flex-direction: column;
-            justify-content: center;
+            justify-content: flex-start;
             align-items: center;
+            background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 100%);
             z-index: 100;
+            padding: 40px 20px;
+            overflow-y: auto;
         }
 
-        .room-code-display {
-            color: #f1c40f;
-            font-size: 14px;
-            margin-bottom: 20px;
-            padding: 10px 20px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 20px;
-        }
-
-        .weapon-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            padding: 20px;
-            max-width: 900px;
+        .select-header {
+            text-align: center;
+            margin-bottom: 30px;
             width: 100%;
         }
 
-        .weapon-card {
-            background: linear-gradient(145deg, #1e3c72 0%, #2a5298 100%);
-            border-radius: 20px;
-            padding: 25px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            border: 3px solid transparent;
+        .select-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 32px;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #fff 0%, #888 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
-        .weapon-card:hover, .weapon-card.selected {
+        .room-info {
+            color: #666;
+            font-size: 14px;
+            letter-spacing: 2px;
+        }
+
+        .weapons-container {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: stretch;
+            gap: 25px;
+            width: 100%;
+            max-width: 1200px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .weapon-card-premium {
+            flex: 1;
+            min-width: 280px;
+            max-width: 350px;
+            background: linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .weapon-card-premium:hover {
+            transform: translateY(-10px);
+            border-color: rgba(255, 0, 110, 0.5);
+            box-shadow: 0 20px 40px rgba(255, 0, 110, 0.2);
+        }
+
+        .weapon-card-premium.selected {
             border-color: #00ff88;
-            transform: translateY(-5px);
+            box-shadow: 0 0 40px rgba(0, 255, 136, 0.3);
+            transform: scale(1.02);
+        }
+
+        .weapon-image-container {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1e 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .weapon-image {
+            max-width: 90%;
+            max-height: 80%;
+            object-fit: contain;
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5));
+            transition: transform 0.3s;
+            z-index: 2;
+        }
+
+        .weapon-card-premium:hover .weapon-image {
+            transform: scale(1.1) rotate(-5deg);
+        }
+
+        .weapon-bg-pattern {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.1;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(255,255,255,0.1) 10px,
+                rgba(255,255,255,0.1) 20px
+            );
+        }
+
+        .weapon-info {
+            padding: 25px;
+            text-align: center;
+        }
+
+        .weapon-name-premium {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .weapon-stats-premium {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #00ff88;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 5px;
+        }
+
+        .ready-btn-premium {
+            padding: 18px 60px;
+            font-size: 18px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%);
+            color: #000;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s;
             box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3);
         }
 
-        .weapon-icon { font-size: 50px; margin-bottom: 10px; }
-        .weapon-name { font-size: 22px; color: white; font-weight: bold; margin-bottom: 10px; }
-        .weapon-stats { color: #bdc3c7; font-size: 13px; margin: 3px 0; }
-
-        .ready-btn {
-            margin-top: 30px;
-            padding: 20px 60px;
-            font-size: 24px;
-            background: #e94560;
-            color: white;
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s;
-        }
-
-        .ready-btn:disabled { 
-            background: #555; 
+        .ready-btn-premium:disabled {
+            background: #333;
+            color: #666;
             cursor: not-allowed;
-            opacity: 0.5;
+            box-shadow: none;
         }
 
-        .ready-btn.active:hover {
+        .ready-btn-premium:not(:disabled):hover {
             transform: scale(1.05);
-            box-shadow: 0 0 30px rgba(233, 69, 96, 0.6);
+            box-shadow: 0 15px 40px rgba(0, 255, 136, 0.5);
         }
 
-        #waitingText {
+        .waiting-text-premium {
             display: none;
-            color: #f1c40f;
-            margin-top: 20px;
+            color: #ff006e;
             font-size: 18px;
+            margin-top: 20px;
+            animation: pulse 2s infinite;
         }
 
-        /* Döyüş Meydanı */
+        /* Battle Field - Previous styling maintained */
         #battleField {
             display: none;
             width: 100%;
@@ -238,108 +441,84 @@
             position: absolute;
             bottom: 0;
             width: 100%;
-            height: 30%;
-            background: linear-gradient(to bottom, #2c3e50 0%, #1a252f 100%);
+            height: 25%;
+            background: linear-gradient(to bottom, #2a2a3a 0%, #1a1a2e 100%);
         }
 
         .wall {
             position: absolute;
-            bottom: 25%;
-            width: 60px;
-            height: 140px;
-            background: linear-gradient(to right, #7f8c8d, #95a5a6);
-            border: 3px solid #2c3e50;
-            border-radius: 5px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            bottom: 20%;
+            width: 80px;
+            height: 160px;
+            background: linear-gradient(to right, #3a3a4a, #4a4a5a);
+            border: 3px solid #555;
+            border-radius: 8px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
         }
 
-        .wall-left { left: 15%; }
-        .wall-right { right: 15%; }
+        .wall-left { left: 10%; }
+        .wall-right { right: 10%; }
 
         .player {
             position: absolute;
-            bottom: 30%;
-            width: 60px;
-            height: 100px;
-            transition: all 0.2s;
+            bottom: 25%;
+            width: 70px;
+            height: 120px;
+            transition: all 0.3s ease;
             z-index: 10;
         }
 
-        .player-left { left: 17%; }
-        .player-right { right: 17%; transform: scaleX(-1); }
+        .player-left { left: 12%; }
+        .player-right { right: 12%; transform: scaleX(-1); }
 
         .player-body {
             width: 100%;
             height: 100%;
-            background: #3498db;
-            border-radius: 10px;
+            background: linear-gradient(135deg, #3a86ff 0%, #0077b6 100%);
+            border-radius: 12px;
             position: relative;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
 
-        .player-right .player-body { background: #e74c3c; }
+        .player-right .player-body {
+            background: linear-gradient(135deg, #ff006e 0%, #c9184a 100%);
+        }
 
         .player-head {
             position: absolute;
-            top: -25px;
+            top: -30px;
             left: 50%;
             transform: translateX(-50%);
-            width: 40px;
-            height: 40px;
-            background: #f1c40f;
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #ffd60a 0%, #ffc300 100%);
             border-radius: 50%;
             border: 3px solid rgba(0,0,0,0.2);
         }
 
-        .covered { 
-            transform: translateY(50px) scale(0.8); 
-            opacity: 0.6;
-            filter: brightness(0.7);
-        }
-        .player-right.covered { 
-            transform: translateY(50px) scaleX(-1) scale(0.8); 
-        }
-
-        .muzzle-flash {
-            position: absolute;
-            width: 30px;
-            height: 30px;
-            background: radial-gradient(circle, #fff 0%, #f1c40f 40%, transparent 70%);
-            border-radius: 50%;
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .flash-left { left: 22%; bottom: 40%; }
-        .flash-right { right: 22%; bottom: 40%; }
-
-        .flash-active { animation: flash 0.1s; }
-
-        @keyframes flash {
-            0%, 100% { opacity: 0; transform: scale(0.5); }
-            50% { opacity: 1; transform: scale(1.5); }
-        }
+        .covered { transform: translateY(60px) scale(0.85); opacity: 0.6; }
+        .player-right.covered { transform: translateY(60px) scaleX(-1) scale(0.85); }
 
         .health-bar {
             position: absolute;
-            top: 20px;
-            width: 200px;
-            height: 30px;
-            background: rgba(0,0,0,0.5);
-            border-radius: 15px;
+            top: 30px;
+            width: 220px;
+            height: 35px;
+            background: rgba(0,0,0,0.6);
+            border-radius: 20px;
             overflow: hidden;
-            border: 2px solid rgba(255,255,255,0.3);
+            border: 2px solid rgba(255,255,255,0.1);
             z-index: 50;
         }
 
-        .health-left { left: 20px; }
-        .health-right { right: 20px; }
+        .health-left { left: 30px; }
+        .health-right { right: 30px; }
 
         .health-fill {
             height: 100%;
             background: linear-gradient(90deg, #00ff88 0%, #00cc6a 100%);
-            transition: width 0.3s;
-            box-shadow: 0 0 10px rgba(0,255,136,0.5);
+            transition: width 0.3s ease;
+            box-shadow: 0 0 20px rgba(0,255,136,0.3);
         }
 
         .health-text {
@@ -347,31 +526,31 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            color: white;
-            font-weight: bold;
-            font-size: 14px;
+            color: #fff;
+            font-weight: 700;
+            font-size: 16px;
             text-shadow: 0 2px 4px rgba(0,0,0,0.8);
         }
 
         .controls {
             position: absolute;
-            bottom: 30px;
+            bottom: 40px;
             width: 100%;
             display: flex;
             justify-content: space-between;
-            padding: 0 40px;
+            padding: 0 60px;
             z-index: 100;
         }
 
         .control-btn {
-            width: 100px;
-            height: 100px;
+            width: 110px;
+            height: 110px;
             border-radius: 50%;
             background: rgba(255,255,255,0.1);
-            border: 3px solid rgba(255,255,255,0.5);
+            border: 3px solid rgba(255,255,255,0.3);
             color: white;
-            font-size: 18px;
-            font-weight: bold;
+            font-size: 16px;
+            font-weight: 700;
             cursor: pointer;
             backdrop-filter: blur(10px);
             transition: all 0.1s;
@@ -379,38 +558,25 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 5px;
+            gap: 8px;
+            text-transform: uppercase;
         }
 
         .control-btn:active {
             transform: scale(0.95);
-            background: rgba(233, 69, 96, 0.3);
+            background: rgba(255, 0, 110, 0.3);
+            border-color: #ff006e;
         }
 
         .bullet {
             position: absolute;
-            width: 12px;
-            height: 4px;
-            background: #f1c40f;
-            border-radius: 2px;
-            box-shadow: 0 0 10px #f1c40f;
+            width: 15px;
+            height: 5px;
+            background: #ffd60a;
+            border-radius: 3px;
+            box-shadow: 0 0 15px #ffd60a;
             z-index: 20;
         }
-
-        .damage-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle, transparent 50%, rgba(255,0,0,0.4) 100%);
-            opacity: 0;
-            pointer-events: none;
-            z-index: 40;
-            transition: opacity 0.2s;
-        }
-
-        .damage-overlay.show { opacity: 1; }
 
         #gameOver {
             display: none;
@@ -420,42 +586,26 @@
             width: 100%;
             height: 100%;
             background: rgba(0,0,0,0.95);
-            z-index: 200;
+            z-index: 400;
             justify-content: center;
             align-items: center;
             flex-direction: column;
-            color: white;
         }
 
-        .winner-text { 
-            font-size: 48px; 
-            font-weight: bold; 
+        .winner-text {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 56px;
+            font-weight: 900;
             margin-bottom: 20px;
             text-transform: uppercase;
-            animation: winnerPulse 2s infinite;
         }
 
-        @keyframes winnerPulse {
-            0%, 100% { transform: scale(1); text-shadow: 0 0 20px rgba(241, 196, 15, 0.5); }
-            50% { transform: scale(1.1); text-shadow: 0 0 40px rgba(241, 196, 15, 0.8); }
-        }
-
-        .final-score {
-            font-size: 24px;
-            color: #bdc3c7;
-            margin-bottom: 30px;
-        }
-
-        @media (max-width: 768px) {
-            .weapon-grid { grid-template-columns: 1fr; max-width: 400px; }
-            .menu-title { font-size: 36px; }
-            .control-btn { width: 90px; height: 90px; }
-            .wall { width: 40px; height: 100px; }
-        }
-
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        @media (max-width: 900px) {
+            .weapons-container { flex-direction: column; align-items: center; }
+            .weapon-card-premium { max-width: 100%; width: 100%; }
+            .logo { font-size: 48px; }
+            .controls { padding: 0 30px; }
+            .control-btn { width: 90px; height: 90px; font-size: 14px; }
         }
     </style>
 </head>
@@ -464,74 +614,137 @@
 <div id="gameContainer">
     <!-- Ana Menyu -->
     <div id="mainMenu">
-        <div class="menu-title">🔫 DUEL 🔫</div>
-        <div class="menu-subtitle">Real-time Multiplayer Atışma</div>
+        <div class="logo-container">
+            <div class="logo">DUEL</div>
+            <div class="tagline">Tactical Shooter</div>
+        </div>
         
-        <button class="menu-btn create-btn" onclick="showWeaponSelect('create')">
-            + Yeni Oyun Yarat
-        </button>
-        
-        <button class="menu-btn join-btn" onclick="showJoinInput()">
-            → Oyuna Qoşul
-        </button>
-        
-        <div class="join-input-container" id="joinContainer">
-            <input type="text" class="code-input" id="joinCode" placeholder="KOD" maxlength="4">
-            <button class="confirm-btn" onclick="joinGame()">Qoşul</button>
-            <div class="back-btn" onclick="hideJoinInput()">← Geri</div>
+        <div class="menu-buttons">
+            <button class="menu-btn btn-primary" onclick="createRoom()">Yeni Oyun Yarat</button>
+            <button class="menu-btn btn-secondary" onclick="showJoin()">Oyuna Qoşul</button>
+        </div>
+    </div>
+
+    <!-- Otaq Kodu Ekranı -->
+    <div id="roomCodeScreen">
+        <div class="code-box-premium">
+            <div class="code-label">Otaq Kodunuz</div>
+            <div class="the-code" id="displayCode">----</div>
+            <div class="copy-hint">Bu kodu dostunuzla paylaşın</div>
+        </div>
+        <button class="continue-btn" onclick="goToWeaponSelect()">Davam Et →</button>
+    </div>
+
+    <!-- Qoşulma Ekranı -->
+    <div id="joinScreen">
+        <div class="input-container">
+            <h2 style="margin-bottom: 30px; font-family: 'Orbitron';">Otaq Kodunu Daxil Edin</h2>
+            <input type="text" class="code-input-premium" id="joinCodeInput" placeholder="0000" maxlength="4">
+            <button class="menu-btn btn-primary" onclick="joinRoom()" style="width: 100%;">Qoşul</button>
+            <button class="menu-btn btn-secondary" onclick="backToMenu()" style="width: 100%; margin-top: 10px;">Geri</button>
         </div>
     </div>
 
     <!-- Silah Seçimi -->
     <div id="weaponSelect">
-        <div class="room-code-display" id="roomCodeDisplay">Otaq: ----</div>
-        
-        <h2 style="color: white; margin-bottom: 20px;">Silahını Seç</h2>
-        
-        <div class="weapon-grid">
-            <div class="weapon-card" onclick="selectWeapon('akm')" id="card-akm">
-                <div class="weapon-icon">🔫</div>
-                <div class="weapon-name">AKM</div>
-                <div class="weapon-stats">💥 Zərər: 15</div>
-                <div class="weapon-stats">⚡ Atəş: Yavaş</div>
-                <div class="weapon-stats">🎯 Dəqiqlik: Orta</div>
-            </div>
-            
-            <div class="weapon-card" onclick="selectWeapon('m416')" id="card-m416">
-                <div class="weapon-icon">🔫</div>
-                <div class="weapon-name">M416</div>
-                <div class="weapon-stats">💥 Zərər: 10</div>
-                <div class="weapon-stats">⚡ Atəş: Orta</div>
-                <div class="weapon-stats">🎯 Dəqiqlik: Yüksək</div>
-            </div>
-            
-            <div class="weapon-card" onclick="selectWeapon('scar')" id="card-scar">
-                <div class="weapon-icon">🔫</div>
-                <div class="weapon-name">SCAR-L</div>
-                <div class="weapon-stats">💥 Zərər: 8</div>
-                <div class="weapon-stats">⚡ Atəş: Sürətli</div>
-                <div class="weapon-stats">🎯 Dəqiqlik: Orta</div>
-            </div>
+        <div class="select-header">
+            <div class="select-title">Silah Seçimi</div>
+            <div class="room-info" id="weaponRoomInfo">Otaq: ----</div>
         </div>
         
-        <button class="ready-btn" id="readyBtn" onclick="confirmReady()" disabled>Hazırlan</button>
-        <div id="waitingText">⏳ Rəqib gözlənilir...</div>
+        <div class="weapons-container">
+            <!-- AKM -->
+            <div class="weapon-card-premium" onclick="selectWeapon('akm')" id="card-akm">
+                <div class="weapon-image-container">
+                    <div class="weapon-bg-pattern"></div>
+                    <!-- Buraya akm.png şəklini qoyun -->
+                    <img src="akm.png" alt="AKM" class="weapon-image" onerror="this.style.display='none'; this.parentElement.innerHTML+='<div style=\'font-size:80px;color:#ff006e;font-weight:900;\'>AKM</div>'">
+                </div>
+                <div class="weapon-info">
+                    <div class="weapon-name-premium" style="color: #ff006e;">AKM</div>
+                    <div class="weapon-stats-premium">
+                        <div class="stat">
+                            <div class="stat-value">15</div>
+                            <div class="stat-label">Zərər</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value" style="color: #ff006e;">Yavaş</div>
+                            <div class="stat-label">Atəş</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value" style="color: #ffd60a;">★★★</div>
+                            <div class="stat-label">Dəqiqlik</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- M416 -->
+            <div class="weapon-card-premium" onclick="selectWeapon('m416')" id="card-m416">
+                <div class="weapon-image-container">
+                    <div class="weapon-bg-pattern"></div>
+                    <!-- Buraya m416.png şəklini qoyun -->
+                    <img src="m416.png" alt="M416" class="weapon-image" onerror="this.style.display='none'; this.parentElement.innerHTML+='<div style=\'font-size:80px;color:#8338ec;font-weight:900;\'>M4</div>'">
+                </div>
+                <div class="weapon-info">
+                    <div class="weapon-name-premium" style="color: #8338ec;">M416</div>
+                    <div class="weapon-stats-premium">
+                        <div class="stat">
+                            <div class="stat-value">10</div>
+                            <div class="stat-label">Zərər</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value" style="color: #8338ec;">Orta</div>
+                            <div class="stat-label">Atəş</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value" style="color: #00ff88;">★★★★</div>
+                            <div class="stat-label">Dəqiqlik</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SCAR-L -->
+            <div class="weapon-card-premium" onclick="selectWeapon('scar')" id="card-scar">
+                <div class="weapon-image-container">
+                    <div class="weapon-bg-pattern"></div>
+                    <!-- Buraya scar.png şəklini qoyun -->
+                    <img src="scar.png" alt="SCAR-L" class="weapon-image" onerror="this.style.display='none'; this.parentElement.innerHTML+='<div style=\'font-size:80px;color:#3a86ff;font-weight:900;\'>SCAR</div>'">
+                </div>
+                <div class="weapon-info">
+                    <div class="weapon-name-premium" style="color: #3a86ff;">SCAR-L</div>
+                    <div class="weapon-stats-premium">
+                        <div class="stat">
+                            <div class="stat-value">8</div>
+                            <div class="stat-label">Zərər</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value" style="color: #3a86ff;">Sürətli</div>
+                            <div class="stat-label">Atəş</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value" style="color: #ffd60a;">★★★</div>
+                            <div class="stat-label">Dəqiqlik</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button class="ready-btn-premium" id="readyBtn" onclick="confirmReady()" disabled>Hazırlan</button>
+        <div class="waiting-text-premium" id="waitingText">⏳ Rəqib gözlənilir...</div>
     </div>
 
     <!-- Döyüş Meydanı -->
     <div id="battleField">
-        <div class="damage-overlay" id="damageOverlay"></div>
-        
-        <div class="muzzle-flash flash-left" id="flash1"></div>
-        <div class="muzzle-flash flash-right" id="flash2"></div>
-        
         <div class="health-bar health-left">
             <div class="health-fill" id="health1" style="width: 100%;"></div>
             <div class="health-text" id="healthText1">100 HP</div>
         </div>
         
         <div class="health-bar health-right">
-            <div class="health-fill" id="health2" style="width: 100%; background: linear-gradient(90deg, #ff6b6b 0%, #ee5a24 100%);"></div>
+            <div class="health-fill" id="health2" style="width: 100%; background: linear-gradient(90deg, #ff006e 0%, #c9184a 100%);"></div>
             <div class="health-text" id="healthText2">100 HP</div>
         </div>
         
@@ -552,12 +765,12 @@
         
         <div class="controls">
             <button class="control-btn" onmousedown="toggleCover(false)" onmouseup="toggleCover(true)" ontouchstart="toggleCover(false)" ontouchend="toggleCover(true)">
-                <span style="font-size: 30px;">🛡️</span>
+                <span style="font-size: 32px;">🛡️</span>
                 <span>Qalx</span>
             </button>
             
-            <button class="control-btn" onclick="shoot()" style="background: rgba(231, 76, 60, 0.3); border-color: #e74c3c;">
-                <span style="font-size: 30px;">🔥</span>
+            <button class="control-btn" onclick="shoot()" style="border-color: #ff006e; background: rgba(255, 0, 110, 0.2);">
+                <span style="font-size: 32px;">🔥</span>
                 <span>Atəş</span>
             </button>
         </div>
@@ -565,14 +778,12 @@
 
     <!-- Oyun Sonu -->
     <div id="gameOver">
-        <div class="winner-text" id="winnerText">Qələbə! 🏆</div>
-        <div class="final-score" id="finalScore"></div>
-        <button class="menu-btn create-btn" onclick="location.reload()">Yeni Oyun</button>
+        <div class="winner-text" id="winnerText">QƏLƏBƏ!</div>
+        <button class="menu-btn btn-primary" onclick="location.reload()" style="margin-top: 30px;">Yeni Oyun</button>
     </div>
 </div>
 
 <script>
-    // Firebase Config - PSIX ilə eyni
     const firebaseConfig = {
         apiKey: "AIzaSyCM5WdZNSj9oFipNI-J3csHpOIvK8PjoLU",
         authDomain: "sevgili-testi.firebaseapp.com",
@@ -594,65 +805,65 @@
     let lastShot = 0;
     
     const weapons = {
-        akm: { damage: 15, rate: 800, color: '#8e44ad' },
-        m416: { damage: 10, rate: 500, color: '#27ae60' },
-        scar: { damage: 8, rate: 300, color: '#f39c12' }
+        akm: { damage: 15, rate: 800 },
+        m416: { damage: 10, rate: 500 },
+        scar: { damage: 8, rate: 300 }
     };
 
-    // Menyu funksiyaları
-    function showJoinInput() {
-        document.querySelector('.create-btn').style.display = 'none';
-        document.querySelector('.join-btn').style.display = 'none';
-        document.getElementById('joinContainer').style.display = 'flex';
-    }
-
-    function hideJoinInput() {
-        document.getElementById('joinContainer').style.display = 'none';
-        document.querySelector('.create-btn').style.display = 'block';
-        document.querySelector('.join-btn').style.display = 'block';
-    }
-
-    function showWeaponSelect(mode) {
+    // Ana menyu funksiyaları
+    function createRoom() {
+        roomId = Math.floor(1000 + Math.random() * 9000).toString();
+        document.getElementById('displayCode').textContent = roomId;
         document.getElementById('mainMenu').style.display = 'none';
-        document.getElementById('weaponSelect').style.display = 'flex';
-        
-        if (mode === 'create') {
-            roomId = Math.floor(1000 + Math.random() * 9000).toString();
-            document.getElementById('roomCodeDisplay').textContent = 'Otaq Kodunuz: ' + roomId;
-            initializePlayer(1);
-        }
+        document.getElementById('roomCodeScreen').style.display = 'flex';
     }
 
-    function joinGame() {
-        const code = document.getElementById('joinCode').value.trim();
+    function showJoin() {
+        document.getElementById('mainMenu').style.display = 'none';
+        document.getElementById('joinScreen').style.display = 'flex';
+    }
+
+    function backToMenu() {
+        document.getElementById('joinScreen').style.display = 'none';
+        document.getElementById('mainMenu').style.display = 'flex';
+    }
+
+    function goToWeaponSelect() {
+        document.getElementById('roomCodeScreen').style.display = 'none';
+        document.getElementById('weaponSelect').style.display = 'flex';
+        document.getElementById('weaponRoomInfo').textContent = 'Otaq: ' + roomId;
+        initializePlayer(1);
+    }
+
+    function joinRoom() {
+        const code = document.getElementById('joinCodeInput').value.trim();
         if (!code || code.length !== 4 || !/^\d{4}$/.test(code)) {
-            alert('4 rəqəmli düzgün kod daxil edin!');
+            alert('4 rəqəmli kod daxil edin!');
             return;
         }
         
         roomId = code;
         
-        // Otaq yoxlanışı
         db.ref('duel_rooms/' + roomId).once('value').then((snapshot) => {
             if (!snapshot.exists()) {
-                alert('Belə otaq tapılmadı!');
+                alert('Otaq tapılmadı!');
                 return;
             }
             
             const data = snapshot.val();
             if (data.player2) {
-                alert('Bu otaq artıq doludur (2 oyunçu var)!');
+                alert('Otaq doludur!');
                 return;
             }
             
-            if (data.started) {
-                alert('Bu oyunda artıq döyüş başlayıb!');
+            if (data.battle && data.battle.started) {
+                alert('Oyun başlayıb!');
                 return;
             }
             
-            document.getElementById('mainMenu').style.display = 'none';
+            document.getElementById('joinScreen').style.display = 'none';
             document.getElementById('weaponSelect').style.display = 'flex';
-            document.getElementById('roomCodeDisplay').textContent = 'Otaq: ' + roomId + ' (Qoşuldunuz)';
+            document.getElementById('weaponRoomInfo').textContent = 'Otaq: ' + roomId + ' (Qoşuldunuz)';
             initializePlayer(2);
         });
     }
@@ -660,24 +871,20 @@
     function initializePlayer(num) {
         playerNum = num;
         
-        // Firebase yaz
         db.ref('duel_rooms/' + roomId + '/player' + num).set({
             joined: Date.now(),
             weapon: null,
             ready: false
         });
         
-        // Dinləmə başlat
         db.ref('duel_rooms/' + roomId).on('value', (snap) => {
             const data = snap.val();
             if (!data) return;
             
-            // Hər iki tərəf hazırdırsa döyüşə başla
             if (data.player1?.ready && data.player2?.ready && !gameActive) {
-                startBattle(data);
+                startBattle();
             }
             
-            // Döyüş sync
             if (gameActive && data.battle) {
                 syncBattle(data.battle);
             }
@@ -686,13 +893,19 @@
 
     function selectWeapon(type) {
         selectedWeapon = type;
-        document.querySelectorAll('.weapon-card').forEach(c => c.classList.remove('selected'));
-        document.getElementById('card-' + type).classList.add('selected');
         
-        const btn = document.getElementById('readyBtn');
-        btn.disabled = false;
-        btn.classList.add('active');
+        document.querySelectorAll('.weapon-card-premium').forEach(c => {
+            c.classList.remove('selected');
+            c.style.opacity = '0.5';
+        });
         
+        const selected = document.getElementById('card-' + type);
+        selected.classList.add('selected');
+        selected.style.opacity = '1';
+        
+        document.getElementById('readyBtn').disabled = false;
+        
+        // Səs
         playClickSound();
     }
 
@@ -706,26 +919,20 @@
         
         document.getElementById('readyBtn').style.display = 'none';
         document.getElementById('waitingText').style.display = 'block';
-        
-        // Kartları deaktiv et
-        document.querySelectorAll('.weapon-card').forEach(c => {
-            c.style.pointerEvents = 'none';
-            c.style.opacity = '0.6';
-        });
     }
 
-    function startBattle(data) {
+    function startBattle() {
         gameActive = true;
         document.getElementById('weaponSelect').style.display = 'none';
         document.getElementById('battleField').style.display = 'block';
         
-        // Başlangıç dəyərləri (yalnız player 1 yazsın)
         if (playerNum === 1) {
             db.ref('duel_rooms/' + roomId + '/battle').set({
                 health1: 100,
                 health2: 100,
                 cover1: true,
                 cover2: true,
+                started: true,
                 timestamp: Date.now()
             });
         }
@@ -750,26 +957,19 @@
         if (now - lastShot < rate) return;
         lastShot = now;
         
-        // Səs
-        playGunSound(selectedWeapon);
+        playGunSound();
         
-        // Flash effekti
-        document.getElementById('flash' + playerNum).classList.add('flash-active');
-        setTimeout(() => {
-            document.getElementById('flash' + playerNum).classList.remove('flash-active');
-        }, 100);
-        
-        // Güllə animasiyası
+        // Güllə
         const bullet = document.createElement('div');
         bullet.className = 'bullet';
-        const startX = playerNum === 1 ? window.innerWidth * 0.2 : window.innerWidth * 0.8;
-        const endX = playerNum === 1 ? window.innerWidth * 0.8 : window.innerWidth * 0.2;
+        const startX = playerNum === 1 ? window.innerWidth * 0.15 : window.innerWidth * 0.85;
+        const endX = playerNum === 1 ? window.innerWidth * 0.85 : window.innerWidth * 0.15;
         bullet.style.left = startX + 'px';
         bullet.style.bottom = '35%';
         document.getElementById('battleField').appendChild(bullet);
         
         bullet.animate([{ left: startX + 'px' }, { left: endX + 'px' }], { 
-            duration: 200, 
+            duration: 250, 
             easing: 'linear' 
         }).onfinish = () => {
             bullet.remove();
@@ -782,23 +982,19 @@
         
         db.ref('duel_rooms/' + roomId + '/battle/cover' + enemy).once('value').then((snap) => {
             if (!snap.val()) {
-                // Vuruldu
                 const healthKey = 'health' + enemy;
                 db.ref('duel_rooms/' + roomId + '/battle/' + healthKey).once('value').then((h) => {
                     let newHealth = (h.val() || 100) - 10;
                     if (newHealth < 0) newHealth = 0;
                     db.ref('duel_rooms/' + roomId + '/battle/' + healthKey).set(newHealth);
                     
-                    if (newHealth === 0) {
-                        endGame(playerNum);
-                    }
+                    if (newHealth === 0) endGame(playerNum);
                 });
             }
         });
     }
 
     function syncBattle(battle) {
-        // Sağlamlıq
         if (battle.health1 !== undefined) {
             updateHealth(1, battle.health1);
         }
@@ -806,7 +1002,6 @@
             updateHealth(2, battle.health2);
         }
         
-        // Cover vəziyyəti
         if (battle.cover1 !== undefined) {
             const p1 = document.getElementById('player1');
             if (battle.cover1) p1.classList.add('covered');
@@ -826,107 +1021,69 @@
         fill.style.width = health + '%';
         text.textContent = health + ' HP';
         
-        // Rəng dəyişimi
         if (health <= 30) {
-            fill.style.background = 'linear-gradient(90deg, #e74c3c 0%, #c0392b 100%)';
+            fill.style.background = 'linear-gradient(90deg, #ff006e 0%, #c9184a 100%)';
         } else if (health <= 60) {
-            fill.style.background = 'linear-gradient(90deg, #f1c40f 0%, #f39c12 100%)';
+            fill.style.background = 'linear-gradient(90deg, #ffd60a 0%, #ffb700 100%)';
         }
-        
-        // Vurulma effekti (əgər mənim canımsa)
-        if (num === playerNum && health < parseInt(text.dataset.last || 100)) {
-            document.getElementById('damageOverlay').classList.add('show');
-            setTimeout(() => {
-                document.getElementById('damageOverlay').classList.remove('show');
-            }, 200);
-        }
-        text.dataset.last = health;
     }
 
     function endGame(winner) {
         gameActive = false;
         document.getElementById('gameOver').style.display = 'flex';
-        
-        const isWinner = winner === playerNum;
-        document.getElementById('winnerText').textContent = isWinner ? '🏆 Qələbə!' : '💀 Məğlubiyyət';
-        document.getElementById('winnerText').style.color = isWinner ? '#00ff88' : '#e74c3c';
-        
-        const myHealth = document.getElementById('health' + playerNum + 'Text').textContent;
-        const enemyHealth = document.getElementById('health' + (playerNum === 1 ? 2 : 1) + 'Text').textContent;
-        document.getElementById('finalScore').textContent = `Sən: ${myHealth} | Rəqib: ${enemyHealth}`;
-        
-        // Temizlik
-        setTimeout(() => {
-            db.ref('duel_rooms/' + roomId).remove();
-        }, 5000);
+        document.getElementById('winnerText').textContent = winner === playerNum ? 'QƏLƏBƏ!' : 'MƏĞLUBİYYƏT';
+        document.getElementById('winnerText').style.color = winner === playerNum ? '#00ff88' : '#ff006e';
     }
 
     // Səs funksiyaları
     function playClickSound() {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        const audioCtx = new AudioContext();
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.frequency.value = 800;
-        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.1);
+        try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            const audioCtx = new AudioContext();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.frequency.value = 800;
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.1);
+        } catch(e) {}
     }
 
-    function playGunSound(type) {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        const audioCtx = new AudioContext();
-        
-        // Ana səs
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        
-        if (type === 'akm') {
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.15);
-        } else if (type === 'm416') {
-            osc.type = 'square';
-            osc.frequency.setValueAtTime(300, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.1);
-        } else {
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(400, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.08);
-        }
-        
-        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
-        
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.2);
-        
-        // Noise
-        const bufferSize = audioCtx.sampleRate * 0.1;
-        const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-        const data = buffer.getChannelData(0);
-        for (let i = 0; i < bufferSize; i++) {
-            data[i] = Math.random() * 2 - 1;
-        }
-        const noise = audioCtx.createBufferSource();
-        noise.buffer = buffer;
-        const noiseGain = audioCtx.createGain();
-        noiseGain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-        noiseGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-        noise.connect(noiseGain);
-        noiseGain.connect(audioCtx.destination);
-        noise.start();
+    function playGunSound() {
+        try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            const audioCtx = new AudioContext();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            if (selectedWeapon === 'akm') {
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.15);
+            } else if (selectedWeapon === 'm416') {
+                osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(80, audioCtx.currentTime + 0.1);
+            } else {
+                osc.frequency.setValueAtTime(450, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + 0.08);
+            }
+            
+            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.2);
+        } catch(e) {}
     }
 
-    // Klaviatura kontrolu
+    // Klaviatura
     document.addEventListener('keydown', (e) => {
         if (!gameActive) return;
-        if (e.code === 'Space' || e.code === 'Enter') {
+        if (e.code === 'Space') {
             e.preventDefault();
             shoot();
         }
@@ -935,20 +1092,13 @@
             toggleCover(false);
         }
     });
-
+    
     document.addEventListener('keyup', (e) => {
         if (!gameActive) return;
         if (e.code === 'ArrowUp' || e.code === 'KeyW') {
             toggleCover(true);
         }
     });
-
-    // Sayfadan çıxarkən temizlik
-    window.onbeforeunload = function() {
-        if (roomId && playerNum && !gameActive) {
-            db.ref('duel_rooms/' + roomId + '/player' + playerNum).remove();
-        }
-    };
 </script>
 
 </body>
