@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Psixoloji Analiz Pro</title>
+    <title>Psixoloji Spektr - Multiplayer</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -438,9 +438,51 @@
             h1 { font-size: 24px; }
             .code-box { font-size: 32px; letter-spacing: 5px; }
         }
+        
+        .music-control {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.9);
+            padding: 10px 15px;
+            border-radius: 50px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            cursor: pointer;
+            z-index: 1000;
+            font-size: 20px;
+            transition: all 0.3s ease;
+            border: 2px solid #e2e8f0;
+        }
+        
+        .music-control:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        }
+        
+        .music-control.playing {
+            animation: musicPulse 2s infinite;
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+        }
+        
+        @keyframes musicPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
     </style>
 </head>
 <body>
+    <!-- Audio Element -->
+    <audio id="bgMusic" loop>
+        <source src="mahni.mp3" type="audio/mpeg">
+        Sizin brauzeriniz audio elementini dəstəkləmir.
+    </audio>
+    
+    <!-- Musiqi kontrol düyməsi -->
+    <div class="music-control" id="musicBtn" onclick="toggleMusic()" title="Musiqi işə sal/durdur">
+        🎵
+    </div>
+
     <div class="container">
         <h1>🧠 Psixoloji Spektr</h1>
         <p class="subtitle">Professional multi-dimensional şəxsiyyət analizi</p>
@@ -503,7 +545,6 @@
                 <div class="stats-grid" id="statsGrid"></div>
                 
                 <div style="background: #ebf8ff; border-left: 4px solid #4299e1; padding: 15px; border-radius: 8px; text-align: left; margin: 20px 0; font-size: 14px; color: #2c5282; line-height: 1.6;" id="adviceBox">
-                <!-- Məsləhət buraya -->
                 </div>
                 
                 <button onclick="location.reload()" style="margin-top: 10px;">
@@ -514,17 +555,17 @@
     </div>
 
     <script>
-        // FIREBASE CONFIG - BURAYA ÖZ MƏLUMATLARINI YAZ
+        // SƏNİN FIREBASE CONFIG
         const firebaseConfig = {
-  apiKey: "AIzaSyCM5WdZNSj9oFipNI-J3csHpOIvK8PjoLU",
-  authDomain: "sevgili-testi.firebaseapp.com",
-  databaseURL: "https://sevgili-testi-default-rtdb.firebaseio.com",
-  projectId: "sevgili-testi",
-  storageBucket: "sevgili-testi.firebasestorage.app",
-  messagingSenderId: "399260477557",
-  appId: "1:399260477557:web:584204a698d7bf145bb03c",
-  measurementId: "G-44P21XCZ7G"
-};
+            apiKey: "AIzaSyCM5WdZNSj9oFipNI-J3csHpOIvK8PjoLU",
+            authDomain: "sevgili-testi.firebaseapp.com",
+            databaseURL: "https://sevgili-testi-default-rtdb.firebaseio.com",
+            projectId: "sevgili-testi",
+            storageBucket: "sevgili-testi.firebasestorage.app",
+            messagingSenderId: "399260477557",
+            appId: "1:399260477557:web:584204a698d7bf145bb03c",
+            measurementId: "G-44P21XCZ7G"
+        };
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
@@ -533,10 +574,40 @@
         let playerId = 'player_' + Math.random().toString(36).substr(2, 9);
         let currentQ = 0;
         let isHost = false;
+        let musicStarted = false;
+
+        // Audio kontrol
+        const bgMusic = document.getElementById('bgMusic');
+        const musicBtn = document.getElementById('musicBtn');
+        
+        function startMusic() {
+            if (!musicStarted) {
+                bgMusic.volume = 0.3; // Səsi 30% et
+                bgMusic.play().then(() => {
+                    musicStarted = true;
+                    musicBtn.classList.add('playing');
+                    musicBtn.innerHTML = '🎶';
+                }).catch(e => {
+                    console.log("Musiqi oxutmaq mümkün olmadı:", e);
+                });
+            }
+        }
+        
+        function toggleMusic() {
+            if (bgMusic.paused) {
+                bgMusic.play();
+                musicBtn.classList.add('playing');
+                musicBtn.innerHTML = '🎶';
+            } else {
+                bgMusic.pause();
+                musicBtn.classList.remove('playing');
+                musicBtn.innerHTML = '🔇';
+            }
+        }
 
         // PROFESSIONAL PSIXOLOJI TEST SUALLARI (Big Five Modeli əsaslı)
         const questions = [
-            // AÇIQLIQ (Openness) - Yaradıcılıq, təcrübəyə açıqlıq
+            // AÇIQLIQ (Openness)
             { category: "openness", q: "Yeni və tanış olmadığım situasiyalara rahatlıqla uyğunlaşıram.", a: ["Tamamilə razıyam", "Razıyam", "Qismən razıyam", "Razı deyiləm"] },
             { category: "openness", q: "İmagine edilmiş və ya fantastik hekayələr mənə cazibədar gəlir.", a: ["Həmişə", "Adətən", "Bəzən", "Nadir hallarda"] },
             { category: "openness", q: "İncəsənət galeriyası və ya muzey ziyarəti məni həyacanlandırır.", a: ["Çox həyacanlandırır", "Maraqlıdır", "Təsirsiz", "Sıxıcıdır"] },
@@ -544,7 +615,7 @@
             { category: "openness", q: "Müəyyən bir mövzuda dərin bilik əldə etmək üçün saatlarla araşdırma edə bilərəm.", a: ["Tez-tez edirəm", "Bəzən edirəm", "Nadirən", "Heç etmirəm"] },
             { category: "openness", q: "Müxtəlif mədəniyyətlərin qaydaları mənə qəribə görünsə də, hörmətlə yanaşıram.", a: ["Tam hörmət", "Adətən hörmət", "Asan deyil", "Çətinləşir"] },
             
-            // VİCdanLILIQ (Conscientiousness) - Məsuliyyət, nizam-intizam
+            // VİCdanLILIQ (Conscientiousness)
             { category: "conscientiousness", q: "Tapşırıqları son dəqiqəyə saxlamaqdansa, planlı şəkildə vaxtında bitirməyi üstün tuturam.", a: ["Həmişə belədir", "Adətən belədir", "Bəzən", "Çətindir"] },
             { category: "conscientiousness", q: "Detallara diqqət yetirmək mənim üçün təbii bacarıqdır.", a: ["Çox təbii", "Təbii", "Orta səviyyədə", "Çətindir"] },
             { category: "conscientiousness", q: "Öhdəliklərimi yerinə yetirmək şəxsi şərəf məsələmdir.", a: ["Tamamilə", "Bəli", "Qismən", "Fərq etmir"] },
@@ -552,7 +623,7 @@
             { category: "conscientiousness", q: "Eşyalarımı və fikirlərimi sistemli şəkildə təşkil etməyi sevirəm.", a: ["Həmişə", "Adətən", "Bəzən", "Sevmirəm"] },
             { category: "conscientiousness", q: "Hədəfə çatmaq üçün lazımi qədər çalışmaq, istedaddan vacibdir.", a: ["Tam razı", "Razı", "Qismən", "Razı deyiləm"] },
             
-            // EKSTRAVERSIYA (Extraversion) - Sosial enerji
+            // EKSTRAVERSIYA (Extraversion)
             { category: "extraversion", q: "Böyük qrupların içərisində özümü enerjili hiss edirəm.", a: ["Həmişə", "Adətən", "Nadirən", "Heç vaxt"] },
             { category: "extraversion", q: "Tanış olmadığım insanlarla söhbətə başlamaq mənə çətinlik yaratmır.", a: ["Asandır", "Adətən asan", "Çətindir", "Çox çətindir"] },
             { category: "extraversion", q: "Hadisələrin mərkəzində olmaq məni həyacanlandırır.", a: ["Çox", "Bəli", "Orta", "Yox"] },
@@ -560,7 +631,7 @@
             { category: "extraversion", q: "Stranger (tanımadığım) insanlarla söhbət zamanı özümü ifadə etməkdən çəkinməm.", a: ["Heç çəkinmirəm", "Az çəkinirəm", "Çəkinirəm", "Çox çəkinirəm"] },
             { category: "extraversion", q: "Həyat dolu və enerjiyə tamaşaçılıqdan zövq almaqdan çox, aktiv iştirak etmək istəyirəm.", a: ["Tamamilə", "Bəli", "Fərq etməz", "Tamaşaçılıq kifayətdir"] },
             
-            // XOŞGÖRÜLÜLÜK (Agreeableness) - Əməkdaşlıq, empati
+            // XOŞGÖRÜLÜLÜK (Agreeableness)
             { category: "agreeableness", q: "Başqalarının hisslərini anlamağa çalışmaq mənim üçün önəmlidir.", a: ["Həmişə", "Adətən", "Bəzən", "Nadirən"] },
             { category: "agreeableness", q: "Mübahisələrdə qalib gəlməkdən vacib olan, münasibətləri qorumaqdır.", a: ["Tamamilə", "Bəli", "Bəzi hallarda", "Yox"] },
             { category: "agreeableness", q: "Başqalarının problemlərini dinləmək və dəstək olmaq mənə mənəvi rahatlıq verir.", a: ["Çox verir", "Verir", "Neytral", "Yorucudur"] },
@@ -568,7 +639,7 @@
             { category: "agreeableness", q: "Komanda işində başqalarının fikirlərini öz fikirlərimdən üstün tuta bilərəm.", a: ["Həmişə", "Adətən", "Bəzən", "Çətindir"] },
             { category: "agreeableness", q: "Kimsə incidilsə, onun yerinə özümü qoyur və hiss edirəm.", a: ["Dərhal", "Tez", "Sonra", "Çətin"] },
             
-            // NEVROTIZM (Neuroticism) - Emosional stabillik
+            // NEVROTIZM (Neuroticism)
             { category: "neuroticism", q: "Kiçik problemlər belə məni asanlıqla vərəq çıxara bilir.", a: ["Həmişə", "Tez-tez", "Nadirən", "Heç vaxt"] },
             { category: "neuroticism", q: "Tənqid edildiyimdə özümü müdafiə etməkdənsə, dərhal üzülürəm.", a: ["Həmişə", "Adətən", "Bəzən", "Nadirən"] },
             { category: "neuroticism", q: "Gələcəkdə nə olacağı barədə narahatlıq hissi tez-tez məni ələ alır.", a: ["Hər gün", "Tez-tez", "Nadirən", "Heç vaxt"] },
@@ -578,6 +649,7 @@
         ];
 
         function createRoom() {
+            startMusic(); // Musiqini başlat
             roomId = Math.floor(1000 + Math.random() * 9000).toString();
             isHost = true;
             
@@ -595,7 +667,6 @@
                     }
                 }
             }).then(() => {
-                // Kodu kopyala
                 navigator.clipboard.writeText(roomId);
                 
                 document.getElementById('menu').classList.add('hidden');
@@ -607,6 +678,7 @@
         }
 
         function joinRoom() {
+            startMusic(); // Musiqini başlat
             roomId = document.getElementById('roomInput').value.trim();
             
             if (!roomId || roomId.length !== 4 || !/^\d{4}$/.test(roomId)) {
@@ -633,7 +705,6 @@
                     return;
                 }
 
-                // Qoşul
                 db.ref('rooms/' + roomId + '/players/' + playerId).set({
                     joined: Date.now(),
                     answers: {},
@@ -667,7 +738,6 @@
                 const players = data.players || {};
                 const playerCount = Object.keys(players).length;
                 
-                // Badge yenilə
                 const badge = document.getElementById('playerBadge');
                 if (playerCount === 2) {
                     badge.innerHTML = `● 2/2 Psixoanalitik Hazır`;
@@ -675,11 +745,10 @@
                     badge.style.color = '#22543d';
                 }
                 
-                // Oyun başlasın
                 if (playerCount === 2 && !data.started && data.currentQuestion === 0) {
                     setTimeout(() => {
                         db.ref('rooms/' + roomId).update({ started: true });
-                    }, 1500); // 1.5 saniyə gözlə ki, animasiya görünsün
+                    }, 1500);
                 }
                 
                 if (data.started && !document.getElementById('game').classList.contains('hidden') === false && !data.finished) {
@@ -688,21 +757,17 @@
                     }
                 }
                 
-                // Sual dəyişimi
                 if (data.started && data.currentQuestion !== currentQ && data.currentQuestion < questions.length) {
                     if (data.currentQuestion > currentQ) {
-                        // Yeni suala keç
                         currentQ = data.currentQuestion;
                         showQuestion(currentQ);
                     }
                 }
                 
-                // Oyun bitdi
                 if (data.finished) {
                     showResult();
                 }
                 
-                // Cavab yoxlaması
                 if (data.started && currentQ < questions.length && !data.finished) {
                     checkAnswers(players);
                 }
@@ -719,11 +784,9 @@
             currentQ = index;
             const q = questions[index];
             
-            // Progress
             const percent = ((index + 1) / questions.length) * 100;
             document.getElementById('progress').style.width = percent + '%';
             
-            // Sual kartı animasiyası
             const card = document.querySelector('.question-card');
             if (card) {
                 card.style.animation = 'none';
@@ -734,7 +797,6 @@
             document.getElementById('questionText').textContent = q.q;
             document.getElementById('status').classList.remove('show');
             
-            // Cavablar
             const container = document.getElementById('answers');
             container.innerHTML = '';
             
@@ -750,7 +812,6 @@
         function submitAnswer(answerIndex, btn) {
             if (btn.disabled) return;
             
-            // UI
             document.querySelectorAll('.answer-btn').forEach(b => {
                 b.classList.remove('selected');
                 b.disabled = true;
@@ -758,7 +819,6 @@
             btn.classList.add('selected');
             btn.disabled = false;
             
-            // Firebase
             db.ref(`rooms/${roomId}/players/${playerId}/answers/${currentQ}`).set({
                 answer: answerIndex,
                 category: questions[currentQ].category,
@@ -767,7 +827,6 @@
             
             db.ref(`rooms/${roomId}/players/${playerId}/ready`).set(true);
             
-            // Status göstər
             document.getElementById('status').classList.add('show');
         }
 
@@ -775,17 +834,14 @@
             const playerList = Object.values(players);
             if (playerList.length < 2) return;
             
-            // Hər iki oyunçu hazırdır?
             const allReady = playerList.every(p => p.ready === true);
             
             if (allReady) {
-                // Hazır statusunu sıfırla
                 playerList.forEach((p, idx) => {
                     const pid = Object.keys(players)[idx];
                     db.ref(`rooms/${roomId}/players/${pid}/ready`).set(false);
                 });
                 
-                // Növbəti suala keç (host etsin)
                 if (isHost) {
                     setTimeout(() => {
                         const nextQ = currentQ + 1;
@@ -794,7 +850,7 @@
                         } else {
                             db.ref(`rooms/${roomId}/finished`).set(true);
                         }
-                    }, 1000); // 1 saniyə gözlə
+                    }, 1000);
                 }
             }
         }
@@ -803,7 +859,6 @@
             document.getElementById('game').classList.add('hidden');
             document.getElementById('result').classList.remove('hidden');
             
-            // Öz cavablarını analiz et
             db.ref(`rooms/${roomId}/players/${playerId}/answers`).once('value').then((snapshot) => {
                 const answers = snapshot.val() || {};
                 analyzeResult(Object.values(answers));
@@ -811,7 +866,6 @@
         }
 
         function analyzeResult(answerData) {
-            // Big Five skorları hesabla
             let scores = {
                 openness: 0,
                 conscientiousness: 0,
@@ -822,12 +876,10 @@
             
             answerData.forEach((data) => {
                 if (!data || !data.category) return;
-                // 0 = çox razı, 3 = razı deyil (tersss)
-                const value = 3 - data.answer; // 0->3, 1->2, 2->1, 3->0 (çevirdim)
+                const value = 3 - data.answer;
                 scores[data.category] += value;
             });
             
-            // Hər biri 6 sualdan ibarətdir (0-18 arası)
             const maxScore = 18;
             const percentages = {
                 openness: Math.round((scores.openness / maxScore) * 100),
@@ -837,13 +889,11 @@
                 neuroticism: Math.round((scores.neuroticism / maxScore) * 100)
             };
             
-            // Dominant xüsusiyyət tap
             let dominant = 'openness';
             let maxVal = -1;
             
-            // Neuroticism üçün ters - az olması yaxşıdır
             const adjustedScores = {...percentages};
-            adjustedScores.neuroticism = 100 - adjustedScores.neuroticism; // Stabilliyə çevir
+            adjustedScores.neuroticism = 100 - adjustedScores.neuroticism;
             
             Object.keys(adjustedScores).forEach(key => {
                 if (adjustedScores[key] > maxVal && key !== 'neuroticism') {
@@ -852,7 +902,6 @@
                 }
             });
             
-            // Ən yüksək neuroticism-dirsə (emosional stabillik aşağıdırsa)
             if (percentages.neuroticism > 70 && adjustedScores.neuroticism < maxVal) {
                 dominant = 'neuroticism';
             }
@@ -897,14 +946,12 @@
             
             const p = profiles[dominant];
             
-            // UI yenilə
             document.getElementById('resultIcon').textContent = p.icon;
             document.getElementById('resultTitle').textContent = p.title;
             document.getElementById('resultTitle').style.color = p.color;
             document.getElementById('resultDesc').textContent = p.desc;
             document.getElementById('adviceBox').innerHTML = `<strong>💡 Psixoloji Məsləhət:</strong> ${p.advice}`;
             
-            // Stats grid
             const statsHtml = `
                 <div class="stat-item">
                     <div class="stat-value">${percentages.openness}%</div>
@@ -934,7 +981,6 @@
             document.getElementById('statsGrid').innerHTML = statsHtml;
         }
         
-        // Cleanup
         window.onbeforeunload = function() {
             if (roomId) {
                 db.ref(`rooms/${roomId}/players/${playerId}`).remove();
