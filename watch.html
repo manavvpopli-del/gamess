@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HyperClone - Sinxron Brauzer</title>
+    <title>Real Screen Share - Film Party</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -12,7 +12,7 @@
         
         body {
             font-family: 'Segoe UI', system-ui, sans-serif;
-            background: #0f0f0f;
+            background: #0a0a0a;
             color: #fff;
             height: 100vh;
             overflow: hidden;
@@ -91,10 +91,9 @@
 
         /* App */
         #app { display: none; height: 100vh; flex-direction: column; }
-
+        
         .header {
             background: rgba(255,255,255,0.05);
-            backdrop-filter: blur(10px);
             padding: 15px 20px;
             display: flex;
             justify-content: space-between;
@@ -102,113 +101,81 @@
             border-bottom: 1px solid rgba(255,255,255,0.1);
         }
         
-        .room-tag {
-            background: rgba(102, 126, 234, 0.3);
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-family: monospace;
-            font-weight: bold;
-            border: 1px solid rgba(102, 126, 234, 0.5);
-        }
-
-        .main {
+        .main { flex: 1; display: flex; overflow: hidden; }
+        
+        /* Video/Screen Area */
+        .screen-area {
             flex: 1;
-            display: flex;
-            overflow: hidden;
-            position: relative;
-        }
-
-        /* Video Area */
-        .video-area {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
             background: #000;
             position: relative;
-        }
-        
-        #videoPlayer {
-            width: 100%;
-            height: 100%;
-            max-height: calc(100vh - 150px);
-        }
-
-        /* Shared Browser - THE KEY FEATURE */
-        .shared-browser {
-            position: absolute;
-            inset: 0;
-            background: #1a1a2e;
-            z-index: 100;
-            display: none;
+            display: flex;
             flex-direction: column;
         }
         
-        .shared-browser.active { display: flex; }
-        
-        .browser-toolbar {
-            background: #16213e;
-            padding: 12px;
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-        
-        .browser-toolbar input {
-            flex: 1;
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.2);
-            color: white;
-            padding: 10px 15px;
-            border-radius: 8px;
-            margin: 0;
-        }
-        
-        .browser-frame {
-            flex: 1;
-            border: none;
+        #mainVideo {
             width: 100%;
-            background: white;
+            height: 100%;
+            object-fit: contain;
+            background: #000;
         }
         
-        .browser-controls {
+        .screen-controls {
             position: absolute;
-            bottom: 20px;
+            bottom: 30px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(22, 33, 62, 0.95);
-            padding: 15px 25px;
-            border-radius: 16px;
-            border: 2px solid #667eea;
             display: flex;
             gap: 15px;
-            align-items: center;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-        }
-
-        /* Controls */
-        .controls {
-            background: rgba(255,255,255,0.05);
+            background: rgba(0,0,0,0.8);
             padding: 15px;
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-        
-        .btn-small {
-            width: auto;
-            padding: 10px 20px;
-            margin: 0;
-            font-size: 14px;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .btn-secondary {
-            background: rgba(255,255,255,0.1);
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
             border: 1px solid rgba(255,255,255,0.2);
         }
+        
+        .control-btn {
+            width: auto;
+            padding: 12px 24px;
+            margin: 0;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+        
+        .control-btn.stop { background: #ef4444; }
+        .control-btn.share { background: #10b981; }
+        
+        .status-badge {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(239, 68, 68, 0.9);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            animation: pulse 2s infinite;
+            z-index: 10;
+        }
+        
+        .status-badge.active { display: flex; }
+        .status-badge::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.8; } }
 
         /* Chat */
         .chat-panel {
@@ -220,7 +187,7 @@
         }
         
         .chat-header {
-            padding: 15px;
+            padding: 20px;
             background: rgba(255,255,255,0.05);
             border-bottom: 1px solid rgba(255,255,255,0.1);
         }
@@ -240,6 +207,12 @@
             border-radius: 12px;
             max-width: 85%;
             font-size: 14px;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
         .msg.own {
@@ -249,6 +222,14 @@
         
         .msg b { display: block; font-size: 12px; margin-bottom: 4px; opacity: 0.8; }
         
+        .msg.system {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fbbf24;
+            text-align: center;
+            align-self: center;
+            font-size: 13px;
+        }
+        
         .chat-input {
             padding: 15px;
             display: flex;
@@ -256,38 +237,66 @@
             background: rgba(255,255,255,0.05);
         }
         
-        .chat-input input { flex: 1; margin: 0; background: rgba(255,255,255,0.1); color: white; border: none; }
-        .chat-input button { width: 50px; margin: 0; border-radius: 50%; }
+        .chat-input input {
+            flex: 1;
+            margin: 0;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: none;
+        }
+        
+        .chat-input button {
+            width: 50px;
+            margin: 0;
+            border-radius: 50%;
+            padding: 0;
+        }
 
-        .status {
+        .waiting-message {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .waiting-message i {
+            font-size: 64px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .connection-status {
             position: absolute;
             top: 20px;
             right: 20px;
             background: rgba(0,0,0,0.8);
-            padding: 8px 16px;
+            padding: 10px 20px;
             border-radius: 20px;
             font-size: 13px;
             display: flex;
             align-items: center;
             gap: 8px;
-            z-index: 50;
+            border: 1px solid rgba(255,255,255,0.1);
         }
         
-        .status-dot {
+        .conn-dot {
             width: 8px;
             height: 8px;
-            background: #4ecca3;
+            background: #10b981;
             border-radius: 50%;
-            animation: blink 2s infinite;
         }
         
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-        
-        .hidden { display: none !important; }
-        
+        .conn-dot.connecting { background: #f59e0b; animation: blink 1s infinite; }
+        .conn-dot.error { background: #ef4444; }
+
         @media (max-width: 900px) {
             .chat-panel { position: absolute; right: 0; top: 60px; bottom: 0; transform: translateX(100%); transition: 0.3s; }
-            .chat-panel.open { transform: translateX(0); }
+            .chat-panel.open { transform: translateX(0); width: 100%; }
         }
     </style>
 </head>
@@ -295,7 +304,8 @@
 
 <div id="login">
     <div class="login-box">
-        <h2 style="text-align: center; margin-bottom: 20px; color: #764ba2;">🎬 Film Party</h2>
+        <h2 style="text-align: center; margin-bottom: 5px; color: #764ba2;">🎥 Real Screen Share</h2>
+        <p style="text-align: center; color: #666; margin-bottom: 25px; font-size: 14px;">Canlı ekran yayımı ilə film izlə</p>
         
         <div class="tabs">
             <button class="tab active" onclick="switchTab('create')">Yarat</button>
@@ -303,15 +313,21 @@
         </div>
         
         <div id="createTab">
-            <input type="text" id="createName" placeholder="Adınız">
-            <input type="text" id="createCode" placeholder="Otaq kodu (məsələn: FILM123)">
-            <button onclick="createRoom()">Otaq Yarat</button>
+            <input type="text" id="createName" placeholder="Adınız" maxlength="20">
+            <input type="text" id="createCode" placeholder="Otaq kodu (məsələn: FAMILY)" maxlength="15">
+            <button onclick="createRoom()">Otaq Yarat və Yayım Başlat</button>
+            <p style="font-size: 12px; color: #666; margin-top: 10px; text-align: center;">
+                💡 Kod yaradırsansa avtomatik moderator olursan
+            </p>
         </div>
         
         <div id="joinTab" style="display:none">
-            <input type="text" id="joinName" placeholder="Adınız">
-            <input type="text" id="joinCode" placeholder="Otaq kodu">
-            <button onclick="joinRoom()">Qoşul</button>
+            <input type="text" id="joinName" placeholder="Adınız" maxlength="20">
+            <input type="text" id="joinCode" placeholder="Moderatorun kodu" maxlength="15">
+            <button onclick="joinRoom()">Yayına Qoşul</button>
+            <p style="font-size: 12px; color: #666; margin-top: 10px; text-align: center;">
+                💡 Moderatorun ekranını canlı izləyəcəksən
+            </p>
         </div>
     </div>
 </div>
@@ -319,57 +335,58 @@
 <div id="app">
     <div class="header">
         <div style="display:flex; align-items:center; gap:10px;">
-            <b style="font-size:20px;">🎥 HyperClone</b>
+            <b style="font-size:20px;">🎬 Canlı Yayım</b>
             <span id="roleBadge" style="background:#f59e0b; padding:4px 12px; border-radius:20px; font-size:12px;">Moderator</span>
         </div>
         <div style="display:flex; gap:10px; align-items:center;">
-            <span id="userName" style="opacity:0.8;"></span>
-            <div class="room-tag" id="roomDisplay">CODE</div>
-            <button class="btn-small btn-secondary" onclick="copyCode()" style="padding:8px 15px;"><i class="fas fa-copy"></i></button>
+            <span id="roomCode" style="font-family:monospace; background:rgba(255,255,255,0.1); padding:6px 12px; border-radius:8px; font-weight:bold;"></span>
+            <button onclick="copyCode()" style="width:auto; padding:8px 15px; font-size:13px;"><i class="fas fa-copy"></i></button>
         </div>
     </div>
 
     <div class="main">
-        <div class="video-area">
-            <!-- Normal Video Player -->
-            <video id="videoPlayer" controls></video>
+        <div class="screen-area">
+            <!-- Local Video (Moderator) / Remote Video (Viewer) -->
+            <video id="mainVideo" autoplay playsinline></video>
             
-            <!-- Shared Browser Layer -->
-            <div class="shared-browser" id="sharedBrowser">
-                <div class="browser-toolbar">
-                    <button class="btn-small btn-secondary" onclick="closeBrowser()">
-                        <i class="fas fa-times"></i> Bağla
-                    </button>
-                    <input type="text" id="urlBar" placeholder="URL daxil et..." onkeypress="if(event.key==='Enter')navigate()">
-                    <button class="btn-small" onclick="navigate()">
-                        <i class="fas fa-arrow-right"></i> Get
-                    </button>
-                </div>
-                
-                <!-- Viewers see this iframe (synced) -->
-                <iframe id="browserFrame" class="browser-frame" sandbox="allow-same-origin allow-scripts allow-forms allow-popups"></iframe>
-                
-                <!-- Moderator Controls Overlay -->
-                <div class="browser-controls" id="browserControls">
-                    <div style="text-align:center;">
-                        <div style="font-size:13px; opacity:0.8; margin-bottom:8px;">Video tapdınız?</div>
-                        <button class="btn-small" onclick="grabVideo()" style="background:#4ecca3;">
-                            <i class="fas fa-play"></i> Bu Videonu Hamsına Göstər
-                        </button>
-                    </div>
-                </div>
+            <!-- Live Indicator -->
+            <div class="status-badge" id="liveBadge">
+                <i class="fas fa-circle"></i> CANLI YAYIM
             </div>
-
-            <div class="status">
-                <div class="status-dot"></div>
-                <span id="syncText">Hazır</span>
+            
+            <!-- Connection Status -->
+            <div class="connection-status" id="connStatus">
+                <div class="conn-dot" id="connDot"></div>
+                <span id="connText">Bağlanır...</span>
+            </div>
+            
+            <!-- Waiting Message for Viewers -->
+            <div class="waiting-message" id="waitingMsg" style="display:none;">
+                <i class="fas fa-tv"></i>
+                <h3>Gözləyir...</h3>
+                <p>Moderator ekran paylaşmağa başlayana qədər gözləyin.<br>Bu pəncərə avtomatik olaraq moderatorun ekranını göstərəcək.</p>
+            </div>
+            
+            <!-- Moderator Controls -->
+            <div class="screen-controls" id="modControls" style="display:none;">
+                <button class="control-btn share" onclick="startScreenShare()">
+                    <i class="fas fa-desktop"></i> Ekran Paylaş
+                </button>
+                <button class="control-btn share" onclick="startCamera()">
+                    <i class="fas fa-video"></i> Kamera
+                </button>
+                <button class="control-btn stop" onclick="stopShare()" style="display:none;" id="stopBtn">
+                    <i class="fas fa-stop"></i> Dayandır
+                </button>
             </div>
         </div>
 
         <div class="chat-panel">
             <div class="chat-header">
                 <b>💬 Söhbət</b>
-                <div style="font-size:13px; color:#4ecca3; margin-top:5px;"><span id="onlineCount">1</span> onlayn</div>
+                <div style="font-size:13px; color:#4ecca3; margin-top:5px;">
+                    <span id="onlineCount">1</span> onlayn
+                </div>
             </div>
             <div class="messages" id="chatBox"></div>
             <div class="chat-input">
@@ -378,19 +395,10 @@
             </div>
         </div>
     </div>
-
-    <!-- Bottom Controls -->
-    <div class="controls" id="bottomControls">
-        <button class="btn-small btn-secondary" onclick="toggleBrowser()" id="browserBtn">
-            <i class="fas fa-globe"></i> Brauzer Aç
-        </button>
-        <span style="opacity:0.6; font-size:14px; margin-left:10px;" id="helperText">
-            Brauzeri aç, film saytına gir, "Bu Videonu Hamsına Göstər" düyməsinə bas
-        </span>
-    </div>
 </div>
 
 <script>
+// Firebase Config
 const firebaseConfig = {
     apiKey: "AIzaSyCM5WdZNSj9oFipNI-J3csHpOIvK8PjoLU",
     authDomain: "sevgili-testi.firebaseapp.com",
@@ -405,9 +413,22 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-let currentUser = '', roomCode = '', isMod = false;
-let roomRef, videoRef, chatRef, browserRef;
-let isRemote = false;
+// Global Variables
+let currentUser = '';
+let roomCode = '';
+let isModerator = false;
+let localStream = null;
+let peerConnection = null;
+let roomRef = null;
+
+// WebRTC Configuration (STUN servers for NAT traversal)
+const rtcConfig = {
+    iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+        { urls: 'stun:stun2.l.google.com:19302' }
+    ]
+};
 
 function switchTab(t) {
     document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
@@ -416,239 +437,326 @@ function switchTab(t) {
     document.getElementById('joinTab').style.display = t === 'join' ? 'block' : 'none';
 }
 
+// Create Room (Moderator)
 function createRoom() {
     const name = document.getElementById('createName').value.trim();
     const code = document.getElementById('createCode').value.trim().toUpperCase();
+    
     if(!name || !code) return alert('Bütün xanaları doldurun!');
     
+    // Check if room exists
     db.ref('rooms/' + code).once('value').then(snap => {
-        if(snap.exists()) return alert('Bu kod artıq var!');
+        if(snap.exists()) return alert('Bu kod artıq istifadə olunur. Başqa kod yoxlayın.');
         
-        currentUser = name; roomCode = code; isMod = true;
-        db.ref('rooms/' + code).set({
-            creator: name,
+        currentUser = name;
+        roomCode = code;
+        isModerator = true;
+        
+        // Initialize room
+        roomRef = db.ref('rooms/' + roomCode);
+        roomRef.set({
+            creator: currentUser,
             created: firebase.database.ServerValue.TIMESTAMP,
-            video: {url:'', state:'paused', time:0},
-            browser: {open:false, url:'', lastUpdate:0}
+            streamActive: false,
+            viewers: 0
         });
-        init();
+        
+        enterRoom();
     });
 }
 
+// Join Room (Viewer)
 function joinRoom() {
     const name = document.getElementById('joinName').value.trim();
     const code = document.getElementById('joinCode').value.trim().toUpperCase();
+    
     if(!name || !code) return alert('Bütün xanaları doldurun!');
     
     db.ref('rooms/' + code).once('value').then(snap => {
-        if(!snap.exists()) return alert('Otaq tapılmadı!');
+        if(!snap.exists()) return alert('Otaq tapılmadı! Kodu yoxlayın.');
         
-        currentUser = name; roomCode = code; isMod = false;
-        init();
+        currentUser = name;
+        roomCode = code;
+        isModerator = false;
+        roomRef = db.ref('rooms/' + code);
+        
+        enterRoom();
     });
 }
 
-function init() {
+function enterRoom() {
     document.getElementById('login').style.display = 'none';
     document.getElementById('app').style.display = 'flex';
-    document.getElementById('userName').textContent = currentUser;
-    document.getElementById('roomDisplay').textContent = roomCode;
-    document.getElementById('roleBadge').textContent = isMod ? 'Moderator' : 'Tamaşaçı';
-    document.getElementById('roleBadge').style.background = isMod ? '#f59e0b' : '#64748b';
+    document.getElementById('roomCode').textContent = roomCode;
+    document.getElementById('roleBadge').textContent = isModerator ? 'Moderator' : 'Tamaşaçı';
+    document.getElementById('roleBadge').style.background = isModerator ? '#f59e0b' : '#64748b';
     
-    if(!isMod) {
-        document.getElementById('browserBtn').style.display = 'none';
-        document.getElementById('helperText').textContent = 'Moderator brauzerdə gəzir...';
-        document.getElementById('videoPlayer').controls = false;
+    if(isModerator) {
+        document.getElementById('modControls').style.display = 'flex';
+        document.getElementById('mainVideo').poster = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="100"><text x="50%" y="50%" font-family="Arial" font-size="16" fill="gray" text-anchor="middle" dominant-baseline="middle">Ekran paylaşmağa hazır</text></svg>';
     } else {
-        document.getElementById('browserControls').style.display = 'block';
+        document.getElementById('waitingMsg').style.display = 'flex';
+        setupViewerConnection();
     }
     
-    roomRef = db.ref('rooms/' + roomCode);
-    videoRef = roomRef.child('video');
-    chatRef = roomRef.child('chat');
-    browserRef = roomRef.child('browser');
+    setupChat();
+    updateConnectionStatus('connected', 'Qoşuldu');
+}
+
+// SCREEN SHARING (Moderator)
+async function startScreenShare() {
+    try {
+        // Get screen stream
+        localStream = await navigator.mediaDevices.getDisplayMedia({
+            video: {
+                cursor: "always",
+                width: { ideal: 1920 },
+                height: { ideal: 1080 }
+            },
+            audio: true
+        });
+        
+        const videoElement = document.getElementById('mainVideo');
+        videoElement.srcObject = localStream;
+        videoElement.muted = true; // Mute local to avoid echo
+        
+        document.getElementById('liveBadge').classList.add('active');
+        document.getElementById('stopBtn').style.display = 'flex';
+        document.getElementById('connText').textContent = 'Canlı yayım aktiv';
+        
+        // Update room status
+        roomRef.update({ streamActive: true, streamStarted: firebase.database.ServerValue.TIMESTAMP });
+        
+        // Listen for viewers joining
+        setupModeratorConnection();
+        
+        // Detect when user stops sharing via browser UI
+        localStream.getVideoTracks()[0].onended = () => {
+            stopShare();
+        };
+        
+    } catch(err) {
+        console.error('Error:', err);
+        alert('Ekran paylaşımı başlamadı. İcazə verdiyinə əmin ol.');
+    }
+}
+
+// Camera Share (Alternative)
+async function startCamera() {
+    try {
+        localStream = await navigator.mediaDevices.getUserMedia({ 
+            video: true, 
+            audio: true 
+        });
+        
+        const videoElement = document.getElementById('mainVideo');
+        videoElement.srcObject = localStream;
+        videoElement.muted = true;
+        
+        document.getElementById('liveBadge').classList.add('active');
+        document.getElementById('stopBtn').style.display = 'flex';
+        
+        roomRef.update({ streamActive: true });
+        setupModeratorConnection();
+        
+    } catch(err) {
+        alert('Kamera açılmadı: ' + err.message);
+    }
+}
+
+function stopShare() {
+    if(localStream) {
+        localStream.getTracks().forEach(track => track.stop());
+        localStream = null;
+    }
     
-    // Users
+    if(peerConnection) {
+        peerConnection.close();
+        peerConnection = null;
+    }
+    
+    document.getElementById('mainVideo').srcObject = null;
+    document.getElementById('liveBadge').classList.remove('active');
+    document.getElementById('stopBtn').style.display = 'none';
+    document.getElementById('connText').textContent = 'Yayım dayandırıldı';
+    
+    roomRef.update({ streamActive: false });
+    
+    // Clear signaling data
+    roomRef.child('signal').remove();
+}
+
+// WEBRTC SIGNALING THROUGH FIREBASE
+function setupModeratorConnection() {
+    // Listen for viewer offers
+    roomRef.child('signal/viewers').on('child_added', async (snap) => {
+        const viewerData = snap.val();
+        if(!viewerData || viewerData.type !== 'offer') return;
+        
+        console.log('Viewer offer received:', snap.key);
+        
+        // Create peer connection
+        const pc = new RTCPeerConnection(rtcConfig);
+        
+        // Add local stream
+        localStream.getTracks().forEach(track => {
+            pc.addTrack(track, localStream);
+        });
+        
+        // Handle ICE candidates
+        pc.onicecandidate = (event) => {
+            if(event.candidate) {
+                roomRef.child(`signal/viewers/${snap.key}/candidates`).push({
+                    candidate: event.candidate.toJSON(),
+                    type: 'moderator'
+                });
+            }
+        };
+        
+        // Set remote description (viewer's offer)
+        await pc.setRemoteDescription(new RTCSessionDescription(viewerData.offer));
+        
+        // Create answer
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+        
+        // Send answer back
+        roomRef.child(`signal/viewers/${snap.key}`).update({
+            type: 'answer',
+            answer: answer
+        });
+        
+        peerConnection = pc;
+        
+        // Listen for viewer's ICE candidates
+        roomRef.child(`signal/viewers/${snap.key}/candidates`).on('child_added', (candSnap) => {
+            const data = candSnap.val();
+            if(data && data.type === 'viewer') {
+                pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+            }
+        });
+        
+        updateConnectionStatus('connected', `Viewer connected: ${snap.key}`);
+    });
+}
+
+// VIEWER CONNECTION
+function setupViewerConnection() {
+    const viewerId = 'viewer_' + Math.random().toString(36).substr(2, 9);
+    
+    // Listen for stream start
+    roomRef.child('streamActive').on('value', async (snap) => {
+        if(snap.val() === true && !peerConnection) {
+            document.getElementById('waitingMsg').style.display = 'none';
+            updateConnectionStatus('connecting', 'Yayına qoşulur...');
+            
+            try {
+                // Create peer connection
+                const pc = new RTCPeerConnection(rtcConfig);
+                
+                // Handle incoming stream
+                pc.ontrack = (event) => {
+                    console.log('Stream received!');
+                    const videoElement = document.getElementById('mainVideo');
+                    videoElement.srcObject = event.streams[0];
+                    document.getElementById('liveBadge').classList.add('active');
+                    updateConnectionStatus('connected', 'Canlı yayım izlənilir');
+                };
+                
+                // Create offer
+                const offer = await pc.createOffer();
+                await pc.setLocalDescription(offer);
+                
+                // Send offer to moderator
+                const signalRef = roomRef.child('signal/viewers').push();
+                signalRef.set({
+                    type: 'offer',
+                    offer: offer,
+                    viewerName: currentUser,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                });
+                
+                // Handle ICE candidates
+                pc.onicecandidate = (event) => {
+                    if(event.candidate) {
+                        signalRef.child('candidates').push({
+                            candidate: event.candidate.toJSON(),
+                            type: 'viewer'
+                        });
+                    }
+                };
+                
+                // Listen for answer
+                signalRef.on('value', async (sigSnap) => {
+                    const data = sigSnap.val();
+                    if(data && data.type === 'answer' && pc.signalingState !== 'stable') {
+                        await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+                    }
+                });
+                
+                // Listen for moderator's ICE candidates
+                signalRef.child('candidates').on('child_added', (candSnap) => {
+                    const data = candSnap.val();
+                    if(data && data.type === 'moderator') {
+                        pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+                    }
+                });
+                
+                peerConnection = pc;
+                
+            } catch(err) {
+                console.error('Connection error:', err);
+                updateConnectionStatus('error', 'Bağlantı xətası');
+            }
+        } else if(snap.val() === false) {
+            // Stream stopped
+            document.getElementById('waitingMsg').style.display = 'flex';
+            document.getElementById('liveBadge').classList.remove('active');
+            document.getElementById('mainVideo').srcObject = null;
+            if(peerConnection) {
+                peerConnection.close();
+                peerConnection = null;
+            }
+            updateConnectionStatus('connected', 'Yayım gözlənilir');
+        }
+    });
+}
+
+// CHAT SYSTEM
+function setupChat() {
+    // Add user
     const userRef = roomRef.child('users/' + currentUser);
-    userRef.set({online:true, mod:isMod, joined:firebase.database.ServerValue.TIMESTAMP});
+    userRef.set({ 
+        online: true, 
+        isModerator: isModerator,
+        joined: firebase.database.ServerValue.TIMESTAMP 
+    });
     userRef.onDisconnect().remove();
     
+    // Count users
     roomRef.child('users').on('value', s => {
         document.getElementById('onlineCount').textContent = s.numChildren();
     });
     
-    // Browser Sync - THE MAGIC HAPPENS HERE
-    browserRef.on('value', snap => {
-        const data = snap.val();
-        if(!data) return;
-        
-        const browserDiv = document.getElementById('sharedBrowser');
-        const frame = document.getElementById('browserFrame');
-        
-        if(data.open) {
-            browserDiv.classList.add('active');
-            // Sync URL if changed and not typing
-            if(data.url && frame.src !== data.url) {
-                frame.src = data.url;
-                document.getElementById('urlBar').value = data.url;
-            }
-        } else {
-            browserDiv.classList.remove('active');
-        }
-    });
-    
-    // Video Sync
-    videoRef.on('value', snap => {
-        const data = snap.val();
-        if(!data || isRemote) return;
-        
-        isRemote = true;
-        const v = document.getElementById('videoPlayer');
-        
-        if(data.url && v.src !== data.url) {
-            v.src = data.url;
-            showStatus('🎬 Video yükləndi');
-            // Auto close browser for everyone when video starts
-            if(data.url.includes('.mp4') || data.url.includes('.webm')) {
-                document.getElementById('sharedBrowser').classList.remove('active');
-            }
-        }
-        
-        if(data.state === 'playing' && v.paused) {
-            v.currentTime = data.time || 0;
-            v.play();
-            showStatus('▶️ Oynadılır');
-        } else if(data.state === 'paused' && !v.paused) {
-            v.pause();
-            v.currentTime = data.time || 0;
-            showStatus('⏸️ Dayandırıldı');
-        }
-        
-        if(Math.abs(v.currentTime - data.time) > 1) {
-            v.currentTime = data.time;
-        }
-        
-        setTimeout(() => isRemote = false, 500);
-    });
-    
-    // Chat
-    chatRef.limitToLast(30).on('child_added', s => {
-        const m = s.val();
+    // Messages
+    roomRef.child('chat').limitToLast(30).on('child_added', (snap) => {
+        const m = snap.val();
         const div = document.createElement('div');
         div.className = 'msg ' + (m.user === currentUser ? 'own' : '');
-        div.innerHTML = `<b>${m.user}</b>${m.text}`;
+        if(m.system) div.className = 'msg system';
+        
+        div.innerHTML = m.system ? m.text : `<b>${m.user}</b>${m.text}`;
         document.getElementById('chatBox').appendChild(div);
         document.getElementById('chatBox').scrollTop = 9999;
     });
-    
-    // Setup controls if moderator
-    if(isMod) setupModControls();
 }
 
-function setupModControls() {
-    const v = document.getElementById('videoPlayer');
-    v.addEventListener('play', () => updateVideo('playing'));
-    v.addEventListener('pause', () => updateVideo('paused'));
-    v.addEventListener('seeked', () => updateVideo(v.paused ? 'paused' : 'playing'));
-    
-    setInterval(() => {
-        if(!v.paused && !isRemote) {
-            videoRef.child('time').set(v.currentTime);
-        }
-    }, 1000);
-}
-
-function updateVideo(state) {
-    const v = document.getElementById('videoPlayer');
-    videoRef.update({
-        state: state,
-        time: v.currentTime,
-        url: v.src,
-        updated: firebase.database.ServerValue.TIMESTAMP
-    });
-}
-
-// Browser Functions
-function toggleBrowser() {
-    if(!isMod) return;
-    const isOpen = document.getElementById('sharedBrowser').classList.contains('active');
-    browserRef.update({
-        open: !isOpen,
-        url: document.getElementById('browserFrame').src || 'https://archive.org/details/movies',
-        updatedBy: currentUser
-    });
-}
-
-function closeBrowser() {
-    if(!isMod) return;
-    browserRef.update({open: false});
-}
-
-function navigate() {
-    if(!isMod) return;
-    const url = document.getElementById('urlBar').value;
-    if(!url) return;
-    
-    // Add https if missing
-    let fullUrl = url;
-    if(!url.startsWith('http')) fullUrl = 'https://' + url;
-    
-    document.getElementById('browserFrame').src = fullUrl;
-    browserRef.update({
-        open: true,
-        url: fullUrl,
-        updatedBy: currentUser,
-        timestamp: firebase.database.ServerValue.TIMESTAMP
-    });
-}
-
-function grabVideo() {
-    if(!isMod) return;
-    
-    // Try to get current URL or prompt for video URL
-    const currentUrl = document.getElementById('browserFrame').src;
-    
-    // Check if it's a direct video
-    if(currentUrl.match(/\.(mp4|webm|ogg)(\?.*)?$/i)) {
-        loadVideoToRoom(currentUrl);
-    } else {
-        // For sites like archive.org, prompt to paste direct link
-        const videoUrl = prompt('Video linkini daxil et (tapdığın videonun üstünə sağ kliklə "Video ünvanini köçür" deyə bilərsən):', currentUrl);
-        if(videoUrl) loadVideoToRoom(videoUrl);
-    }
-}
-
-function loadVideoToRoom(url) {
-    // Close browser for everyone
-    browserRef.update({open: false});
-    
-    // Load video
-    document.getElementById('videoPlayer').src = url;
-    videoRef.set({
-        url: url,
-        state: 'paused',
-        time: 0,
-        updatedBy: currentUser,
-        updated: firebase.database.ServerValue.TIMESTAMP
-    });
-    
-    chatRef.push({
-        user: 'Sistem',
-        text: `🎬 ${currentUser} yeni video seçdi!`,
-        time: firebase.database.ServerValue.TIMESTAMP
-    });
-    
-    showStatus('✓ Video hər kəsə göndərildi');
-}
-
-// Chat
 function sendMsg() {
     const inp = document.getElementById('msgInput');
     const text = inp.value.trim();
     if(!text) return;
     
-    chatRef.push({
+    roomRef.child('chat').push({
         user: currentUser,
         text: text,
         time: firebase.database.ServerValue.TIMESTAMP
@@ -658,24 +766,21 @@ function sendMsg() {
 
 function copyCode() {
     navigator.clipboard.writeText(roomCode);
-    showStatus('✓ Kod kopyalandı');
+    alert('Kod kopyalandı: ' + roomCode);
 }
 
-function showStatus(t) {
-    document.getElementById('syncText').textContent = t;
-    setTimeout(() => document.getElementById('syncText').textContent = 'Sinxronizasiya aktiv', 3000);
+function updateConnectionStatus(type, text) {
+    const dot = document.getElementById('connDot');
+    const txt = document.getElementById('connText');
+    
+    dot.className = 'conn-dot ' + (type === 'connecting' ? 'connecting' : type === 'error' ? 'error' : '');
+    txt.textContent = text;
 }
 
-// Paste support
-document.addEventListener('paste', (e) => {
-    if(!isMod) return;
-    const text = e.clipboardData.getData('text');
-    if(text && (text.includes('.mp4') || text.includes('.webm'))) {
-        if(confirm('Kopyaladığın linki video olaraq yükləyim?')) {
-            loadVideoToRoom(text);
-        }
-    }
-});
+// Browser compatibility check
+if(!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+    alert('Brauzeriniz ekran paylaşımını dəstəkləmür. Chrome, Edge və ya Firefox istifadə edin.');
+}
 </script>
 
 </body>
