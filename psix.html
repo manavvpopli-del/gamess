@@ -439,35 +439,67 @@
             .code-box { font-size: 32px; letter-spacing: 5px; }
         }
         
-        .music-control {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(255,255,255,0.9);
-            padding: 10px 15px;
-            border-radius: 50px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        /* Yeni Dairəvi Davam Et Düyməsi */
+        .welcome-screen {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        
+        .welcome-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .welcome-text {
+            color: #4a5568;
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 40px;
+        }
+        
+        .circle-btn {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            font-size: 18px;
+            font-weight: 700;
             cursor: pointer;
-            z-index: 1000;
-            font-size: 20px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.5);
             transition: all 0.3s ease;
-            border: 2px solid #e2e8f0;
+            animation: pulse-scale 2s infinite;
         }
         
-        .music-control:hover {
+        .circle-btn:hover {
             transform: scale(1.1);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.6);
         }
         
-        .music-control.playing {
-            animation: musicPulse 2s infinite;
-            border-color: #667eea;
-            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+        .circle-btn:active {
+            transform: scale(0.95);
         }
         
-        @keyframes musicPulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+        @keyframes pulse-scale {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.7); }
+            50% { box-shadow: 0 0 0 20px rgba(102, 126, 234, 0); }
+        }
+        
+        .circle-btn span {
+            font-size: 24px;
         }
     </style>
 </head>
@@ -477,18 +509,29 @@
         <source src="mahni.mp3" type="audio/mpeg">
         Sizin brauzeriniz audio elementini dəstəkləmir.
     </audio>
-    
-    <!-- Musiqi kontrol düyməsi -->
-    <div class="music-control" id="musicBtn" onclick="toggleMusic()" title="Musiqi işə sal/durdur">
-        🎵
-    </div>
 
     <div class="container">
-        <h1>🧠 Psixoloji Spektr</h1>
-        <p class="subtitle">🌐 Onlayn Professional multi-dimensional şəxsiyyət analizi</p>
-        
-        <!-- Menyu -->
-        <div id="menu">
+        <!-- Yeni Başlangıç Ekranı -->
+        <div id="welcome" class="welcome-screen">
+            <div class="welcome-icon">🧠</div>
+            <h1>Psixoloji Spektr</h1>
+            <p class="welcome-text">
+                Dostunuzla birlikdə 30 suallıq Professional<br>
+                Big Five Şəxsiyyət Analizi
+            </p>
+            <button class="circle-btn" onclick="startGameAndMusic()">
+                <span>▶</span>
+                <div>Davam Et</div>
+            </button>
+            <p style="margin-top: 20px; font-size: 12px; color: #a0aec0;">
+                Davam et düyməsinə toxunduqda musiqi başlayacaq
+            </p>
+        </div>
+
+        <!-- Menyu (Əvvəlcə gizli) -->
+        <div id="menu" class="hidden">
+            <h1>🧠 Psixoloji Spektr</h1>
+            <p class="subtitle">Professional multi-dimensional şəxsiyyət analizi</p>
             <button onclick="createRoom()" style="margin-bottom: 15px;">
                 <span style="font-size: 20px; margin-right: 8px;">+</span> Yeni Sessiya Yarat
             </button>
@@ -501,7 +544,8 @@
 
         <!-- Gözləmə -->
         <div id="waiting" class="hidden">
-            <p style="text-align: center; color: #4a5568; font-weight: 500;">Sessiya kodu:</p>
+            <h1>🧠 Psixoloji Spektr</h1>
+            <p style="text-align: center; color: #4a5568; font-weight: 500; margin-top: 20px;">Sessiya kodu:</p>
             <div class="code-box" id="roomCodeDisplay">----</div>
             <p style="text-align: center; color: #718096; font-size: 14px;">
                 Bu kodu dostunuzla paylaşın<br>
@@ -574,35 +618,19 @@
         let playerId = 'player_' + Math.random().toString(36).substr(2, 9);
         let currentQ = 0;
         let isHost = false;
-        let musicStarted = false;
 
-        // Audio kontrol
         const bgMusic = document.getElementById('bgMusic');
-        const musicBtn = document.getElementById('musicBtn');
         
-        function startMusic() {
-            if (!musicStarted) {
-                bgMusic.volume = 0.3; // Səsi 30% et
-                bgMusic.play().then(() => {
-                    musicStarted = true;
-                    musicBtn.classList.add('playing');
-                    musicBtn.innerHTML = '🎶';
-                }).catch(e => {
-                    console.log("Musiqi oxutmaq mümkün olmadı:", e);
-                });
-            }
-        }
-        
-        function toggleMusic() {
-            if (bgMusic.paused) {
-                bgMusic.play();
-                musicBtn.classList.add('playing');
-                musicBtn.innerHTML = '🎶';
-            } else {
-                bgMusic.pause();
-                musicBtn.classList.remove('playing');
-                musicBtn.innerHTML = '🔇';
-            }
+        function startGameAndMusic() {
+            // Musiqini 100% səslə başlat
+            bgMusic.volume = 1.0;
+            bgMusic.play().catch(e => {
+                console.log("Musiqi oxutmaq mümkün olmadı:", e);
+            });
+            
+            // Welcome gizlət, Menyu göstər
+            document.getElementById('welcome').classList.add('hidden');
+            document.getElementById('menu').classList.remove('hidden');
         }
 
         // PROFESSIONAL PSIXOLOJI TEST SUALLARI (Big Five Modeli əsaslı)
@@ -623,7 +651,7 @@
             { category: "conscientiousness", q: "Eşyalarımı və fikirlərimi sistemli şəkildə təşkil etməyi sevirəm.", a: ["Həmişə", "Adətən", "Bəzən", "Sevmirəm"] },
             { category: "conscientiousness", q: "Hədəfə çatmaq üçün lazımi qədər çalışmaq, istedaddan vacibdir.", a: ["Tam razı", "Razı", "Qismən", "Razı deyiləm"] },
             
-            // EKSTRAVERSIYA (Extraversion)
+            // EKSTRAVERSIJA (Extraversion)
             { category: "extraversion", q: "Böyük qrupların içərisində özümü enerjili hiss edirəm.", a: ["Həmişə", "Adətən", "Nadirən", "Heç vaxt"] },
             { category: "extraversion", q: "Tanış olmadığım insanlarla söhbətə başlamaq mənə çətinlik yaratmır.", a: ["Asandır", "Adətən asan", "Çətindir", "Çox çətindir"] },
             { category: "extraversion", q: "Hadisələrin mərkəzində olmaq məni həyacanlandırır.", a: ["Çox", "Bəli", "Orta", "Yox"] },
@@ -649,7 +677,6 @@
         ];
 
         function createRoom() {
-            startMusic(); // Musiqini başlat
             roomId = Math.floor(1000 + Math.random() * 9000).toString();
             isHost = true;
             
@@ -678,7 +705,6 @@
         }
 
         function joinRoom() {
-            startMusic(); // Musiqini başlat
             roomId = document.getElementById('roomInput').value.trim();
             
             if (!roomId || roomId.length !== 4 || !/^\d{4}$/.test(roomId)) {
