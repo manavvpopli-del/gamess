@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MindBattle - Realtime Multiplayer Tapmaca</title>
+    
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
+        import { getDatabase, ref, set, onValue, update, remove, serverTimestamp, onDisconnect } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCM5WdZNSj9oFipNI-J3csHpOIvK8PjoLU",
+            authDomain: "sevgili-testi.firebaseapp.com",
+            databaseURL: "https://sevgili-testi-default-rtdb.firebaseio.com",
+            projectId: "sevgili-testi",
+            storageBucket: "sevgili-testi.firebasestorage.app",
+            messagingSenderId: "399260477557",
+            appId: "1:399260477557:web:584204a698d7bf145bb03c",
+            measurementId: "G-44P21XCZ7G"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        
+        window.firebaseDB = db;
+        window.firebaseRef = ref;
+        window.firebaseSet = set;
+        window.firebaseUpdate = update;
+        window.firebaseRemove = remove;
+        window.firebaseOnValue = onValue;
+        window.serverTimestamp = serverTimestamp;
+        window.onDisconnect = onDisconnect;
+    </script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            overflow-x: hidden;
+        }
+        
+        .bg-animation {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1; overflow: hidden;
+        }
+        
+        .bg-animation div {
+            position: absolute; border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            animation: float 20s infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.3; }
+            50% { transform: translateY(-100px) rotate(180deg); opacity: 0.1; }
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+            padding: 40px; max-width: 600px; width: 90%;
+            text-align: center; position: relative;
+        }
+        
+        h1 {
+            font-size: 2.5em; margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(255,255,255,0.5);
+            font-weight: 800;
+        }
+        
+        .subtitle { font-size: 1.1em; opacity: 0.9; margin-bottom: 30px; }
+        
+        input {
+            width: 100%; padding: 15px 20px; margin: 10px 0;
+            border: none; border-radius: 15px;
+            background: rgba(255, 255, 255, 0.15);
+            color: white; font-size: 1.1em; outline: none;
+            border: 2px solid rgba(255,255,255,0.1);
+        }
+        
+        input::placeholder { color: rgba(255,255,255,0.6); }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none; padding: 15px 40px; color: white;
+            font-size: 1.1em; border-radius: 50px;
+            cursor: pointer; margin: 10px; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 1px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: all 0.3s;
+        }
+        
+        .btn:hover { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(0,0,0,0.4); }
+        
+        .btn-option {
+            display: block; width: 100%; margin: 10px 0;
+            text-align: left; padding: 20px;
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+        
+        .btn-option:hover { background: rgba(255,255,255,0.2); transform: translateX(10px); }
+        .btn-option.correct { background: rgba(46, 204, 113, 0.6); border-color: #2ecc71; }
+        .btn-option.wrong { background: rgba(231, 76, 60, 0.6); border-color: #e74c3c; }
+        .btn-option.disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
+        
+        .selection-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr);
+            gap: 15px; margin: 30px 0;
+        }
+        
+        .selection-card {
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 20px; padding: 30px 15px;
+            cursor: pointer; transition: all 0.3s;
+        }
+        
+        .selection-card:hover {
+            transform: translateY(-5px); background: rgba(255,255,255,0.2);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+        }
+        
+        .selection-card.selected {
+            background: rgba(255,255,255,0.3);
+            border-color: #fff; box-shadow: 0 0 30px rgba(255,255,255,0.3);
+        }
+        
+        .timer-bar {
+            width: 100%; height: 10px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px; overflow: hidden; margin: 20px 0;
+        }
+        
+        .timer-fill {
+            height: 100%; background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);
+            transition: width 1s linear; border-radius: 10px;
+        }
+        
+        .score-board {
+            display: flex; justify-content: space-around;
+            margin: 20px 0; padding: 20px;
+            background: rgba(0,0,0,0.2); border-radius: 15px;
+        }
+        
+        .player-score { text-align: center; }
+        .player-score .score { font-size: 2em; font-weight: bold; color: #ffd700; }
+        
+        .question-box {
+            background: rgba(0,0,0,0.2); padding: 30px;
+            border-radius: 20px; margin: 20px 0;
+            font-size: 1.3em; min-height: 120px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        
+        .status-message {
+            padding: 15px; border-radius: 10px;
+            margin: 15px 0; font-weight: 600;
+        }
+        
+        .status-waiting { background: rgba(52, 152, 219, 0.3); border: 1px solid #3498db; }
+        .status-success { background: rgba(46, 204, 113, 0.3); border: 1px solid #2ecc71; }
+        .status-error { background: rgba(231, 76, 60, 0.3); border: 1px solid #e74c3c; }
+        
+        .room-code-display {
+            background: rgba(0,0,0,0.3); padding: 15px 30px;
+            border-radius: 15px; font-size: 2em; font-weight: bold;
+            letter-spacing: 5px; margin: 20px 0;
+            border: 2px dashed rgba(255,255,255,0.3);
+            font-family: monospace;
+        }
+        
+        .spinner {
+            width: 50px; height: 50px;
+            border: 5px solid rgba(255,255,255,0.3);
+            border-top-color: white; border-radius: 50%;
+            animation: spin 1s linear infinite; margin: 20px auto;
+        }
+        
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        .winner-crown { font-size: 4em; margin-bottom: 20px; animation: bounce 1s infinite; }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        .hidden { display: none !important; }
+        
+        @media (max-width: 600px) {
+            .container { padding: 20px; }
+            h1 { font-size: 1.8em; }
+            .selection-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation" id="bgAnimation"></div>
+
+    <div class="container">
+        <div id="loginScreen" class="screen">
+            <h1>🧠 MindBattle</h1>
+            <p class="subtitle">Real-time Multiplayer Tapmaca Oyunu</p>
+            <input type="text" id="playerName" placeholder="Adınızı daxil edin" maxlength="15">
+            <input type="text" id="roomCode" placeholder="Otaq kodu" maxlength="6" style="text-transform: uppercase;">
+            <button class="btn" onclick="joinRoom()">Oyuna Qoşul</button>
+            <button class="btn" onclick="createRoom()" style="background: rgba(255,255,255,0.2);">Yeni Otaq Yarat</button>
+        </div>
+
+        <div id="lobbyScreen" class="screen hidden">
+            <h2>Otaq: <span id="displayRoomCode"></span></h2>
+            <div class="room-code-display" id="roomCodeDisplay"></div>
+            <button class="btn" onclick="copyRoomCode()" style="padding: 8px 20px; font-size: 0.9em;">Kodu Kopyala</button>
+            
+            <div id="waitingMessage" class="status-message status-waiting">
+                Rəqibin qoşulması gözlənilir...
+                <div class="spinner"></div>
+            </div>
+
+            <div id="playerList" style="margin: 20px 0;"></div>
+
+            <div id="gameSettings" class="hidden">
+                <p style="margin: 20px 0; font-size: 1.1em;">Tapmaca sayını seçin:</p>
+                <div class="selection-grid">
+                    <div class="selection-card" onclick="selectQuestionCount(20)">
+                        <h3>20</h3>
+                        <p>Tapmaca</p>
+                    </div>
+                    <div class="selection-card" onclick="selectQuestionCount(40)">
+                        <h3>40</h3>
+                        <p>Tapmaca</p>
+                    </div>
+                    <div class="selection-card" onclick="selectQuestionCount(60)">
+                        <h3>60</h3>
+                        <p>Tapmaca</p>
+                    </div>
+                </div>
+                <div id="selectionStatus" style="margin-top: 15px; font-weight: 600;"></div>
+            </div>
+        </div>
+
+        <div id="gameScreen" class="screen hidden">
+            <div class="score-board">
+                <div class="player-score">
+                    <h4 id="player1Name">Siz</h4>
+                    <div class="score" id="score1">0</div>
+                </div>
+                <div style="font-size: 1.5em; font-weight: bold; opacity: 0.5; display: flex; align-items: center;">VS</div>
+                <div class="player-score">
+                    <h4 id="player2Name">Rəqib</h4>
+                    <div class="score" id="score2">0</div>
+                </div>
+            </div>
+
+            <div style="font-size: 1.2em; font-weight: bold; margin-bottom: 10px; color: #f5576c;">
+                Qalan vaxt: <span id="timeLeft">20</span>s
+            </div>
+            <div class="timer-bar">
+                <div class="timer-fill" id="timerBar" style="width: 100%;"></div>
+            </div>
+
+            <div class="question-box" id="questionText">Tapmaca yüklənir...</div>
+            <div id="optionsContainer" style="margin-top: 20px;"></div>
+            <div id="answerFeedback" style="margin-top: 20px; font-weight: 600; min-height: 30px;"></div>
+        </div>
+
+        <div id="resultScreen" class="screen hidden">
+            <div class="winner-crown">👑</div>
+            <h1 id="winnerText">Qalib!</h1>
+            <div style="display: flex; justify-content: center; gap: 40px; margin: 30px 0;">
+                <div style="text-align: center;">
+                    <div style="font-size: 0.9em; opacity: 0.8;">Siz</div>
+                    <div style="font-size: 2.5em; font-weight: bold; color: #ffd700;" id="finalScore1">0</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 0.9em; opacity: 0.8;">Rəqib</div>
+                    <div style="font-size: 2.5em; font-weight: bold; color: #ffd700;" id="finalScore2">0</div>
+                </div>
+            </div>
+            <div id="gameOverReason" style="margin: 20px 0; padding: 15px; border-radius: 10px; background: rgba(0,0,0,0.2);"></div>
+            <button class="btn" onclick="resetGame()">Yeni Oyun</button>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            { q: "Gündüz yatır, gecə qalxır. Nədir?", options: ["Ulduz", "Günəş", "Ay"], correct: 0 },
+            { q: "Su içində gül bitməz. Nədir?", options: ["Buz", "Daş", "Balıq"], correct: 0 },
+            { q: "Məni yelledikcə uzanıram. Nədir?", options: ["İp", "Yol", "Çay"], correct: 0 },
+            { q: "Başı var, ayağı yoxdur. Nədir?", options: ["Masa", "İnsan", "Heyvan"], correct: 0 },
+            { q: "Əli var, vurmur. Nədir?", options: ["Saat", "Döyüşçü", "Ağac"], correct: 0 },
+            { q: "Qulağı var, eşitmir. Nədir?", options: ["Kupa", "Daş", "Məktub"], correct: 0 },
+            { q: "Dişi var, çeynəməz. Nədir?", options: ["Tara", "Əjdaha", "Pərdə"], correct: 0 },
+            { q: "Yüzü var, görünməz. Nədir?", options: ["Pul", "Güzgü", "Vaxt"], correct: 0 },
+            { q: "Dili var, danışmaz. Nədir?", options: ["Ayaqqabı", "Qələm", "Kitab"], correct: 0 },
+            { q: "Qanadı var, uçmaz. Nədir?", options: ["Ev", "Quş", "Təyyarə"], correct: 0 },
+            { q: "Gözləri var, görməz. Nədir?", options: ["İynə", "Kartof", "Torpag"], correct: 0 },
+            { q: "Paltarı var, soyunmaz. Nədir?", options: ["Soğan", "İnsan", "Meymun"], correct: 0 },
+            { q: "Tükü var, darıxmaz. Nədir?", options: ["Yastıq", "Heyvan", "Bitki"], correct: 0 },
+            { q: "Ayağı var, gəzməz. Nədir?", options: ["Stul", "Masa", "Sandiqi"], correct: 0 },
+            { q: "Sümüyü var, əti yoxdur. Nədir?", options: ["Quruçay", "Daş", "Ağac"], correct: 0 },
+            { q: "Ürəyi var, döyünməz. Nədir?", options: ["Artişok", "İnsan", "Heyvan"], correct: 0 },
+            { q: "Nəfəsi var, yaşamaz. Nədir?", options: ["Külək", "Dərman", "Qaz"], correct: 0 },
+            { q: "Səsi var, danışmaz. Nədir?", options: ["Radio", "Telefon", "Televizor"], correct: 0 },
+            { q: "Boynu var, başı yoxdur. Nədir?", options: ["Şüşə", "Torba", "Qab"], correct: 0 },
+            { q: "Pəncəsi var, tutmaz. Nədir?", options: ["Stol", "Pişik", "Ayı"], correct: 0 },
+            { q: "Qulaq asar, eşitməz. Nədir?", options: ["Kürək", "Qulaq", "Məktub"], correct: 0 },
+            { q: "Dodağı var, öpməz. Nədir?", options: ["Çaydan", "İnsan", "Gül"], correct: 0 },
+            { q: "Qaşları var, gözü yoxdur. Nədir?", options: ["Kəpənək", "İynə", "Tərəvəz"], correct: 0 },
+            { q: "Saçları var, daramaz. Nədir?", options: ["Qar", "Xalça", "Paltar"], correct: 0 },
+            { q: "Ağzı var, yeməz. Nədir?", options: ["Çanta", "Şir", "İnsan"], correct: 0 },
+            { q: "Burnu var, iy duymaz. Nədir?", options: ["Ətir", "Papaq", "Mətbəx"], correct: 0 },
+            { q: "Beli var, əyməz. Nədir?", options: ["Dağ", "İnsan", "Əjdaha"], correct: 0 },
+            { q: "Dizi var, çökməz. Nədir?", options: ["Şalvar", "Stul", "Masa"], correct: 0 },
+            { q: "Dudağı var, danışmaz. Nədir?", options: ["Qab", "İnsan", "Quş"], correct: 0 },
+            { q: "Qılıncı var, vurmaz. Nədir?", options: ["Samuray", "Əjdaha", "Balıq"], correct: 0 },
+            { q: "Əti var, yeyilməz. Nədir?", options: ["Daş", "Heyvan", "Meyvə"], correct: 0 },
+            { q: "Sümüyü var, gəzməz. Nədir?", options: ["Balıq", "İnsan", "Quş"], correct: 0 },
+            { q: "Kanadı var, uçmaz. Nədir?", options: ["Vindov", "Kərgədan", "Ev"], correct: 0 },
+            { q: "Tüyü var, uçmaz. Nədir?", options: ["Pinqvin", "Toyuq", "Quş"], correct: 0 },
+            { q: "Buynuzu var, vurmaz. Nədir?", options: ["Kəpənək", "Keçi", "Öküz"], correct: 0 },
+            { q: "Quyruğu var, qovmaz. Nədir?", options: ["Ulduz", "Pişik", "İt"], correct: 0 },
+            { q: "Təpəsi var, başı yoxdur. Nədir?", options: ["Dağ", "Ev", "Ağac"], correct: 0 },
+            { q: "Kökü var, bitməz. Nədir?", options: ["Problem", "Ağac", "Çiçək"], correct: 0 },
+            { q: "Yarpağı var, solmaz. Nədir?", options: ["Kitab", "Ağac", "Gül"], correct: 0 },
+            { q: "Meyvəsi var, yeyilməz. Nədir?", options: ["Ağac", "Fındıq", "Alma"], correct: 0 },
+            { q: "Çiçəyi var, iy verməz. Nədir?", options: ["Rəsm", "Qızılgül", "Lalə"], correct: 0 },
+            { q: "Tikanı var, batmaz. Nədir?", options: ["Mübahisə", "Gül", "Kaktus"], correct: 0 },
+            { q: "Kölgəsi var, görünməz. Nədir?", options: ["Səs", "İnsan", "Ağac"], correct: 0 },
+            { q: "İzi var, görünməz. Nədir?", options: ["Vaxt", "Quş", "İnsan"], correct: 0 },
+            { q: "Köhnələr, ancaq yeni olar. Nədir?", options: ["Gün", "Ay", "İl"], correct: 0 },
+            { q: "Yuxarı baxar, aşağı düşər. Nədir?", options: ["Yağış", "Quş", "Günəş"], correct: 0 },
+            { q: "Yerində durar, hərəkət edər. Nədir?", options: ["Saat", "Daş", "Ağac"], correct: 0 },
+            { q: "Əksinə gedər, irəli gələr. Nədir?", options: ["Təkər", "İnsan", "Araba"], correct: 0 },
+            { q: "Hər kəsə çatar, heç kəs görməz. Nədir?", options: ["Hava", "Su", "Od"], correct: 0 },
+            { q: "Yeyilər, ancaq tox qalmaz. Nədir?", options: ["Mətbəx", "Yemək", "Soyuducu"], correct: 0 },
+            { q: "Dənizdə olar, islanmaz. Nədir?", options: ["Gəmi", "Balıq", "Quş"], correct: 0 },
+            { q: "Göyə baxar, yerdə qalar. Nədir?", options: ["Gül", "Ağac", "Daş"], correct: 0 },
+            { q: "Əl ilə tutular, görünməz. Nədir?", options: ["Söz", "Külək", "Su"], correct: 0 },
+            { q: "Dəyər, səs çıxarmaz. Nədir?", options: ["Pul", "Zərb", "Zərb"], correct: 0 },
+            { q: "Parlayar, isti verməz. Nədir?", options: ["Ay", "Günəş", "Od"], correct: 0 },
+            { q: "Yanar, yandırmaz. Nədir?", options: ["Mum", "Günəş", "Odun"], correct: 0 },
+            { q: "Soyuyar, isti verməz. Nədir?", options: ["Buz", "Külək", "Qar"], correct: 0 },
+            { q: "Qapağı var, içi boşdur. Nədir?", options: ["Şüşə", "Qutu", "Ev"], correct: 0 },
+            { q: "Açarı var, kilidi yoxdur. Nədir?", options: ["Saat", "Qapı", "Avtomobil"], correct: 0 },
+            { q: "Çuxuru var, torpaq yoxdur. Nədir?", options: ["Tiyə", "Qazma", "Çuxur"], correct: 0 },
+            { q: "Dəmir ilə vurarlar, ölməz. Nədir?", options: ["Dəmir", "Daş", "Taxta"], correct: 0 },
+            { q: "Su ilə əzilir, dağılmaz. Nədir?", options: ["Şəkər", "Duz", "Un"], correct: 0 }
+        ];
+
+        let db, currentRoom, playerId, playerName, isHost, roomRef, gameState, timerInterval, currentQuestion, hasAnswered, selectedCount, unsubscribe;
+
+        function initBackground() {
+            const container = document.getElementById('bgAnimation');
+            for (let i = 0; i < 15; i++) {
+                const div = document.createElement('div');
+                const size = Math.random() * 100 + 50;
+                div.style.width = size + 'px';
+                div.style.height = size + 'px';
+                div.style.left = Math.random() * 100 + '%';
+                div.style.top = Math.random() * 100 + '%';
+                div.style.animationDelay = Math.random() * 5 + 's';
+                div.style.animationDuration = (Math.random() * 10 + 10) + 's';
+                container.appendChild(div);
+            }
+        }
+
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                db = window.firebaseDB;
+                initBackground();
+            }, 1000);
+        });
+
+        function generateRoomCode() {
+            return Math.random().toString(36).substring(2, 8).toUpperCase();
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+            document.getElementById(screenId).classList.remove('hidden');
+        }
+
+        function showMessage(message, type = 'waiting') {
+            const div = document.createElement('div');
+            div.className = `status-message status-${type}`;
+            div.textContent = message;
+            const container = document.querySelector('.container');
+            container.insertBefore(div, container.firstChild);
+            setTimeout(() => div.remove(), 3000);
+        }
+
+        async function createRoom() {
+            playerName = document.getElementById('playerName').value.trim();
+            if (!playerName) { showMessage('Adınızı daxil edin!', 'error'); return; }
+
+            currentRoom = generateRoomCode();
+            isHost = true;
+            playerId = 'player1';
+            
+            document.getElementById('roomCodeDisplay').textContent = currentRoom;
+            document.getElementById('displayRoomCode').textContent = currentRoom;
+            
+            await setupRoom();
+            showScreen('lobbyScreen');
+            listenToRoom();
+        }
+
+        async function joinRoom() {
+            playerName = document.getElementById('playerName').value.trim();
+            currentRoom = document.getElementById('roomCode').value.trim().toUpperCase();
+            
+            if (!playerName) { showMessage('Adınızı daxil edin!', 'error'); return; }
+            if (!currentRoom) { showMessage('Otaq kodunu daxil edin!', 'error'); return; }
+
+            const roomSnapshot = await new Promise(resolve => {
+                const ref = window.firebaseRef(db, 'rooms/' + currentRoom);
+                window.firebaseOnValue(ref, (snap) => { resolve(snap); }, { onlyOnce: true });
+            });
+
+            if (!roomSnapshot.exists()) { showMessage('Otaq tapılmadı!', 'error'); return; }
+            
+            const roomData = roomSnapshot.val();
+            if (roomData.player2) { showMessage('Otaq doludur!', 'error'); return; }
+
+            isHost = false;
+            playerId = 'player2';
+            
+            document.getElementById('roomCodeDisplay').textContent = currentRoom;
+            document.getElementById('displayRoomCode').textContent = currentRoom;
+            
+            await window.firebaseUpdate(window.firebaseRef(db, 'rooms/' + currentRoom), {
+                player2: { name: playerName, score: 0, ready: false, selectedCount: 0, joinedAt: window.serverTimestamp() },
+                status: 'waiting'
+            });
+
+            showScreen('lobbyScreen');
+            listenToRoom();
+        }
+
+        async function setupRoom() {
+            const roomData = {
+                player1: { name: playerName, score: 0, ready: false, selectedCount: 0, joinedAt: window.serverTimestamp() },
+                status: 'waiting', currentQuestion: 0, gameStarted: false,
+                settings: { totalQuestions: 0 }
+            };
+            
+            await window.firebaseSet(window.firebaseRef(db, 'rooms/' + currentRoom), roomData);
+            const playerRef = window.firebaseRef(db, 'rooms/' + currentRoom + '/player1');
+            window.onDisconnect(playerRef).remove();
+        }
+
+        function copyRoomCode() {
+            navigator.clipboard.writeText(currentRoom).then(() => showMessage('Kod kopyalandı!', 'success'));
+        }
+
+        function listenToRoom() {
+            roomRef = window.firebaseRef(db, 'rooms/' + currentRoom);
+            unsubscribe = window.firebaseOnValue(roomRef, (snapshot) => {
+                if (!snapshot.exists()) { showMessage('Otaq bağlandı!', 'error'); setTimeout(() => location.reload(), 2000); return; }
+                
+                gameState = snapshot.val();
+                updateLobby();
+                if (gameState.status === 'playing') handleGameState();
+                else if (gameState.status === 'finished') showResults();
+            });
+        }
+
+        function updateLobby() {
+            const p1 = gameState.player1, p2 = gameState.player2;
+            let html = '';
+            
+            if (p1) html += `<div class="player-score" style="color: ${p1.ready ? '#2ecc71' : '#fff'}"><h4>${p1.name} ${p1.ready ? '✓' : ''}</h4><div style="font-size: 0.8em;">${p1.selectedCount > 0 ? p1.selectedCount + ' tapmaca' : 'Gözlənilir...'}</div></div>`;
+            
+            if (p2) {
+                html += `<div class="player-score" style="color: ${p2.ready ? '#2ecc71' : '#fff'}"><h4>${p2.name} ${p2.ready ? '✓' : ''}</h4><div style="font-size: 0.8em;">${p2.selectedCount > 0 ? p2.selectedCount + ' tapmaca' : 'Gözlənilir...'}</div></div>`;
+                document.getElementById('waitingMessage').classList.add('hidden');
+                document.getElementById('gameSettings').classList.remove('hidden');
+                
+                if (p1.selectedCount > 0 && p2.selectedCount > 0) {
+                    if (p1.selectedCount === p2.selectedCount && !gameState.gameStarted) startGame(p1.selectedCount);
+                    else if (p1.selectedCount !== p2.selectedCount) {
+                        document.getElementById('selectionStatus').textContent = 'Eyni sayda tapmaca seçməlisiniz!';
+                        document.getElementById('selectionStatus').style.color = '#e74c3c';
+                    }
+                }
+            } else {
+                document.getElementById('waitingMessage').classList.remove('hidden');
+                document.getElementById('gameSettings').classList.add('hidden');
+            }
+            document.getElementById('playerList').innerHTML = html;
+        }
+
+        function selectQuestionCount(count) {
+            selectedCount = count;
+            document.querySelectorAll('.selection-card').forEach((card, index) => {
+                card.classList.remove('selected');
+                if ([20, 40, 60][index] === count) card.classList.add('selected');
+            });
+            
+            const update = {};
+            update[playerId + '/selectedCount'] = count;
+            update[playerId + '/ready'] = true;
+            window.firebaseUpdate(roomRef, update);
+            
+            document.getElementById('selectionStatus').textContent = count + ' tapmaca seçildi. Rəqibin seçimi gözlənilir...';
+            document.getElementById('selectionStatus').style.color = '#f1c40f';
+        }
+
+        async function startGame(totalQuestions) {
+            const shuffled = [...questions].sort(() => 0.5 - Math.random());
+            const gameQuestions = shuffled.slice(0, totalQuestions);
+            
+            await window.firebaseUpdate(roomRef, {
+                status: 'playing', gameStarted: true,
+                settings: { totalQuestions: totalQuestions, questions: gameQuestions, startTime: window.serverTimestamp() },
+                currentQuestion: 0, answers: {}, questionStartTime: window.serverTimestamp()
+            });
+            showScreen('gameScreen');
+        }
+
+        function handleGameState() {
+            if (!gameState.settings || !gameState.settings.questions) return;
+            const qIndex = gameState.currentQuestion || 0;
+            const total = gameState.settings.totalQuestions;
+            
+            if (qIndex >= total) { endGame(); return; }
+            
+            document.getElementById('score1').textContent = gameState.player1?.score || 0;
+            document.getElementById('score2').textContent = gameState.player2?.score || 0;
+            document.getElementById('player1Name').textContent = gameState.player1?.name || 'Oyunçu 1';
+            document.getElementById('player2Name').textContent = gameState.player2?.name || 'Oyunçu 2';
+            
+            const currentQ = gameState.settings.questions[qIndex];
+            if (currentQ && (!currentQuestion || currentQuestion.q !== currentQ.q)) {
+                currentQuestion = currentQ;
+                loadQuestion(currentQ);
+            }
+            checkRoundResults();
+        }
+
+        function loadQuestion(q) {
+            hasAnswered = false;
+            document.getElementById('questionText').textContent = `Sual ${(gameState.currentQuestion || 0) + 1}/${gameState.settings.totalQuestions}: ${q.q}`;
+            const optionsDiv = document.getElementById('optionsContainer');
+            optionsDiv.innerHTML = '';
+            
+            q.options.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'btn btn-option';
+                btn.textContent = ['A', 'B', 'C'][index] + ') ' + opt;
+                btn.onclick = () => submitAnswer(index);
+                optionsDiv.appendChild(btn);
+            });
+            document.getElementById('answerFeedback').textContent = '';
+            startTimer();
+        }
+
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            let timeLeft = 20;
+            const timerBar = document.getElementById('timerBar');
+            const timerText = document.getElementById('timeLeft');
+            
+            timerBar.style.width = '100%';
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerText.textContent = timeLeft;
+                timerBar.style.width = (timeLeft / 20) * 100 + '%';
+                if (timeLeft <= 5) timerBar.style.background = '#e74c3c';
+                if (timeLeft <= 0) { clearInterval(timerInterval); if (!hasAnswered) submitAnswer(-1); }
+            }, 1000);
+        }
+
+        async function submitAnswer(answerIndex) {
+            if (hasAnswered) return;
+            hasAnswered = true;
+            if (timerInterval) clearInterval(timerInterval);
+            
+            document.querySelectorAll('.btn-option').forEach((btn, idx) => {
+                btn.classList.add('disabled');
+                if (idx === currentQuestion.correct) btn.classList.add('correct');
+                else if (idx === answerIndex && answerIndex !== currentQuestion.correct) btn.classList.add('wrong');
+            });
+            
+            const answerData = { answer: answerIndex, timestamp: window.serverTimestamp(), correct: answerIndex === currentQuestion.correct };
+            const update = {}; update['answers/' + playerId] = answerData;
+            await window.firebaseUpdate(roomRef, update);
+            
+            const feedback = document.getElementById('answerFeedback');
+            if (answerIndex === -1) { feedback.textContent = 'Vaxt bitdi!'; feedback.style.color = '#e74c3c'; }
+            else if (answerIndex === currentQuestion.correct) { feedback.textContent = 'Düzgün cavab!'; feedback.style.color = '#2ecc71'; }
+            else { feedback.textContent = 'Səhv cavab!'; feedback.style.color = '#e74c3c'; }
+        }
+
+        async function checkRoundResults() {
+            if (!gameState.answers) return;
+            const p1Answer = gameState.answers.player1;
+            const p2Answer = gameState.answers.player2;
+            
+            if (p1Answer && p2Answer && !gameState.processingRound) {
+                await window.firebaseUpdate(roomRef, { processingRound: true });
+                const p1Correct = p1Answer.correct, p2Correct = p2Answer.correct;
+                let p1Add = 0, p2Add = 0, roundMessage = '', resetGame = false;
+                
+                if (p1Correct && p2Correct) { p1Add = 5; p2Add = 5; roundMessage = 'Hər ikiniz düz bildiniz! Hər ikinizə 5 xal!'; }
+                else if (p1Correct && !p2Correct) { p1Add = 10; roundMessage = `${gameState.player1.name} düz tapdı! +10 xal`; }
+                else if (!p1Correct && p2Correct) { p2Add = 10; roundMessage = `${gameState.player2.name} düz tapdı! +10 xal`; }
+                else { resetGame = true; roundMessage = 'Hər ikiniz səhv tapdığınız üçün oyun sıfırlandı!'; }
+                
+                const feedback = document.getElementById('answerFeedback');
+                feedback.textContent = roundMessage;
+                feedback.style.color = resetGame ? '#e74c3c' : '#f1c40f';
+                
+                if (resetGame) {
+                    setTimeout(async () => {
+                        await window.firebaseUpdate(roomRef, { status: 'finished', resetReason: 'both_wrong', winner: 'none' });
+                    }, 2000);
+                    return;
+                }
+                
+                setTimeout(async () => {
+                    const currentQ = (gameState.currentQuestion || 0) + 1;
+                    const newP1Score = (gameState.player1.score || 0) + p1Add;
+                    const newP2Score = (gameState.player2.score || 0) + p2Add;
+                    await window.firebaseUpdate(roomRef, {
+                        currentQuestion: currentQ, 'player1/score': newP1Score, 'player2/score': newP2Score,
+                        answers: {}, processingRound: false, questionStartTime: window.serverTimestamp()
+                    });
+                }, 2000);
+            }
+        }
+
+        function endGame() {
+            const p1Score = gameState.player1?.score || 0, p2Score = gameState.player2?.score || 0;
+            let winner = p1Score > p2Score ? gameState.player1?.name : p2Score > p1Score ? gameState.player2?.name : 'Bərabərə';
+            window.firebaseUpdate(roomRef, { status: 'finished', winner: winner });
+        }
+
+        function showResults() {
+            showScreen('resultScreen');
+            const p1Score = gameState.player1?.score || 0, p2Score = gameState.player2?.score || 0;
+            document.getElementById('finalScore1').textContent = p1Score;
+            document.getElementById('finalScore2').textContent = p2Score;
+            
+            const winnerText = document.getElementById('winnerText');
+            const reasonDiv = document.getElementById('gameOverReason');
+            
+            if (gameState.resetReason === 'both_wrong') {
+                winnerText.textContent = 'Oyun Sıfırlandı!'; winnerText.style.color = '#e74c3c';
+                reasonDiv.textContent = 'Hər ikiniz eyni anda səhv cavab verdiyiniz üçün oyun başa çatdı.';
+                document.querySelector('.winner-crown').textContent = '💔';
+            } else {
+                if (gameState.winner === 'Bərabərə') {
+                    winnerText.textContent = 'Bərabərə!'; winnerText.style.color = '#f1c40f';
+                    document.querySelector('.winner-crown').textContent = '🤝';
+                    reasonDiv.textContent = 'Hər ikiniz eyni xal topladınız!';
+                } else {
+                    const isWinner = (gameState.winner === playerName);
+                    winnerText.textContent = isWinner ? 'Siz Qalib Gəldiniz!' : gameState.winner + ' Qalib Gəldi!';
+                    winnerText.style.color = isWinner ? '#2ecc71' : '#e74c3c';
+                    document.querySelector('.winner-crown').textContent = isWinner ? '👑' : '🥈';
+                    reasonDiv.textContent = isWinner ? 'Təbriklər! Rəqibinizi məğlub etdiniz.' : 'Növbəti dəfə daha yaxşı şans!';
+                }
+            }
+        }
+
+        function resetGame() {
+            if (unsubscribe) unsubscribe();
+            location.reload();
+        }
+
+        window.addEventListener('beforeunload', async () => {
+            if (currentRoom && playerId) {
+                const playerRef = window.firebaseRef(db, 'rooms/' + currentRoom + '/' + playerId);
+                await window.firebaseRemove(playerRef);
+            }
+        });
+    </script>
+</body>
+</html>
