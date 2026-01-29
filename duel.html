@@ -11,11 +11,11 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            touch-action: manipulation;
+            touch-action: none;
             -webkit-touch-callout: none;
             -webkit-user-select: none;
             user-select: none;
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
         }
 
         body {
@@ -30,12 +30,248 @@
         #gameContainer {
             width: 100%;
             height: 100vh;
-            background: linear-gradient(to bottom, #1a1a2e 0%, #16213e 100%);
+            background: linear-gradient(to bottom, #1a1f3a 0%, #2d3561 50%, #1a1f3a 100%);
             position: relative;
         }
 
-        /* Ana Menyu */
-        #mainMenu {
+        /* PREMIUM STICKMAN STYLES */
+        .stickman-container {
+            position: absolute;
+            bottom: 25%;
+            width: 100px;
+            height: 200px;
+            z-index: 10;
+            transition: all 0.15s ease;
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5));
+        }
+
+        .stickman-left { left: 12%; }
+        .stickman-right { right: 12%; transform: scaleX(-1); }
+
+        /* Stickman Premium Parts */
+        .stickman-head {
+            width: 45px;
+            height: 45px;
+            background: radial-gradient(circle at 30% 30%, #ffd700, #ff8c00);
+            border-radius: 50%;
+            margin: 0 auto;
+            border: 3px solid #000;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 5;
+        }
+
+        .stickman-head::after {
+            content: '😎';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+        }
+
+        .stickman-body {
+            width: 12px;
+            height: 70px;
+            background: linear-gradient(to bottom, #3498db, #2980b9);
+            margin: -5px auto 0;
+            border-radius: 6px;
+            position: relative;
+            z-index: 4;
+        }
+
+        .stickman-right .stickman-body {
+            background: linear-gradient(to bottom, #e74c3c, #c0392b);
+        }
+
+        .stickman-arm {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            width: 60px;
+            height: 12px;
+            background: linear-gradient(to right, #fff, #ddd);
+            border-radius: 6px;
+            transform-origin: left center;
+            transform: rotate(-30deg);
+            border: 2px solid #000;
+            z-index: 6;
+            transition: transform 0.1s;
+        }
+
+        .stickman-arm.shooting {
+            animation: shootRecoil 0.15s ease;
+        }
+
+        @keyframes shootRecoil {
+            0% { transform: rotate(-30deg); }
+            50% { transform: rotate(-60deg) translateX(-10px); }
+            100% { transform: rotate(-30deg); }
+        }
+
+        .stickman-leg {
+            position: absolute;
+            bottom: -50px;
+            width: 12px;
+            height: 50px;
+            background: linear-gradient(to bottom, #fff, #ccc);
+            border-radius: 6px;
+            border: 2px solid #000;
+        }
+
+        .stickman-leg.left { left: 20%; transform: rotate(-10deg); }
+        .stickman-leg.right { right: 20%; transform: rotate(10deg); }
+
+        .premium-gun {
+            position: absolute;
+            top: -8px;
+            right: -25px;
+            width: 55px;
+            height: 18px;
+            background: linear-gradient(to bottom, #666, #333);
+            border-radius: 4px;
+            border: 2px solid #000;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.5);
+        }
+
+        .premium-gun::after {
+            content: '';
+            position: absolute;
+            top: -5px;
+            right: 5px;
+            width: 15px;
+            height: 8px;
+            background: #444;
+            border-radius: 2px;
+        }
+
+        /* Covered/Hiding State */
+        .stickman-container.covered {
+            transform: translateY(80px) scale(0.85);
+            opacity: 0.6;
+        }
+
+        .stickman-right.covered {
+            transform: translateY(80px) scaleX(-1) scale(0.85);
+        }
+
+        /* Bullet - FIXED & UNLIMITED */
+        .bullet {
+            position: absolute;
+            width: 24px;
+            height: 8px;
+            background: linear-gradient(to right, #ffeb3b, #ff9800);
+            border-radius: 4px;
+            box-shadow: 0 0 20px #ffeb3b, 0 0 40px rgba(255,235,59,0.5);
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        .bullet::after {
+            content: '';
+            position: absolute;
+            right: -10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-left: 10px solid #ff9800;
+            border-top: 4px solid transparent;
+            border-bottom: 4px solid transparent;
+        }
+
+        /* Muzzle Flash */
+        .muzzle-flash {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: radial-gradient(circle, #fff 0%, #ffeb3b 30%, transparent 70%);
+            border-radius: 50%;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 99;
+        }
+
+        .flash-left { left: 18%; bottom: 40%; }
+        .flash-right { right: 18%; bottom: 40%; }
+
+        .flash-active {
+            animation: flashAnim 0.1s ease;
+        }
+
+        @keyframes flashAnim {
+            0% { opacity: 0; transform: scale(0); }
+            50% { opacity: 1; transform: scale(1.5); }
+            100% { opacity: 0; transform: scale(0); }
+        }
+
+        /* Controls - OPTIMIZED FOR MULTI-TOUCH */
+        .controls-container {
+            position: fixed;
+            bottom: 40px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 50px;
+            z-index: 1000;
+            pointer-events: none;
+        }
+
+        .game-btn {
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            border: 4px solid rgba(255,255,255,0.8);
+            cursor: pointer;
+            pointer-events: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 18px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 5px 15px rgba(255,255,255,0.2);
+            transition: all 0.05s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.3) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .game-btn:active {
+            transform: scale(0.92);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3), inset 0 3px 10px rgba(0,0,0,0.3);
+        }
+
+        .btn-cover {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+        }
+
+        .btn-fire {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+        }
+
+        .btn-icon {
+            font-size: 48px;
+            margin-bottom: 5px;
+        }
+
+        /* Other styles remain same... */
+        #mainMenu, #roomScreen, #joinScreen, #weaponSelect, #battleField, #gameOver {
             position: absolute;
             top: 0;
             left: 0;
@@ -45,38 +281,186 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            background: rgba(0,0,0,0.9);
-            z-index: 300;
+            background: rgba(0,0,0,0.95);
+            z-index: 100;
         }
 
-        .logo {
-            font-size: 64px;
+        .hidden { display: none !important; }
+
+        .health-bar-container {
+            position: absolute;
+            top: 30px;
+            width: 250px;
+            z-index: 50;
+        }
+
+        .health-left { left: 30px; }
+        .health-right { right: 30px; }
+
+        .health-bg {
+            width: 100%;
+            height: 35px;
+            background: rgba(0,0,0,0.6);
+            border-radius: 20px;
+            overflow: hidden;
+            border: 3px solid rgba(255,255,255,0.2);
+        }
+
+        .health-fill {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, #00ff88, #00cc6a);
+            transition: width 0.3s ease;
+            box-shadow: 0 0 20px rgba(0,255,136,0.4);
+        }
+
+        .health-text {
+            text-align: center;
+            margin-top: 8px;
+            font-weight: bold;
+            font-size: 18px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+        }
+
+        .walls {
+            position: absolute;
+            bottom: 20%;
+            width: 120px;
+            height: 220px;
+            background: linear-gradient(to right, #555, #777, #555);
+            border: 4px solid #333;
+            border-radius: 15px;
+            box-shadow: 0 0 40px rgba(0,0,0,0.5);
+        }
+
+        .wall-left { left: 8%; }
+        .wall-right { right: 8%; }
+
+        /* Weapon Select - SCROLLABLE */
+        #weaponSelect {
+            justify-content: flex-start;
+            padding: 80px 20px 150px;
+            overflow-y: auto;
+            background: #0f0f1e;
+        }
+
+        .select-title {
+            font-size: 36px;
+            margin-bottom: 40px;
             font-weight: 900;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #fff, #888);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            position: sticky;
+            top: 0;
+            background-color: #0f0f1e;
+            padding: 20px;
+            width: 100%;
+            text-align: center;
+            z-index: 10;
+        }
+
+        .weapons-wrapper {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        .weapon-card {
+            background: linear-gradient(145deg, #1e2345, #2a3055);
+            border: 3px solid transparent;
+            border-radius: 25px;
+            padding: 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .weapon-card.active {
+            border-color: #00ff88;
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,255,136,0.3);
+        }
+
+        .weapon-img {
+            width: 100%;
+            height: 140px;
+            object-fit: contain;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5));
+        }
+
+        /* Fixed Bottom Ready Button */
+        .bottom-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(0,0,0,0.9);
+            padding: 25px;
+            text-align: center;
+            border-top: 3px solid #333;
+            z-index: 100;
+        }
+
+        .ready-btn-main {
+            padding: 20px 80px;
+            font-size: 24px;
+            font-weight: 900;
+            border: none;
+            border-radius: 15px;
+            background: #333;
+            color: #666;
+            cursor: not-allowed;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            transition: all 0.3s;
+        }
+
+        .ready-btn-main.active {
+            background: linear-gradient(135deg, #00ff88, #00cc6a);
+            color: #000;
+            cursor: pointer;
+            box-shadow: 0 0 30px rgba(0,255,136,0.5);
+        }
+
+        .ready-btn-main.active:active {
+            transform: scale(0.95);
+        }
+
+        /* Menu Styles */
+        .logo-main {
+            font-size: 80px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #667eea, #764ba2);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             margin-bottom: 50px;
             text-transform: uppercase;
-            letter-spacing: 5px;
+            letter-spacing: 10px;
+            filter: drop-shadow(0 0 20px rgba(102,126,234,0.5));
         }
 
-        .menu-btn {
-            width: 280px;
-            padding: 20px;
-            margin: 10px 0;
-            font-size: 20px;
+        .menu-button {
+            width: 300px;
+            padding: 25px;
+            margin: 15px;
+            font-size: 22px;
+            font-weight: bold;
             border: none;
             border-radius: 15px;
             cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s;
             text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s;
         }
 
         .btn-create {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 10px 30px rgba(102,126,234,0.4);
         }
 
         .btn-join {
@@ -85,561 +469,186 @@
             border: 3px solid #764ba2;
         }
 
-        /* Otaq Kodu */
-        #roomScreen {
-            display: none;
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            background: rgba(0,0,0,0.95);
-            z-index: 250;
-        }
-
-        .code-display {
+        .code-box {
             font-size: 72px;
-            font-weight: bold;
+            font-weight: 900;
             color: #00ff88;
             letter-spacing: 20px;
-            margin: 30px 0;
             padding: 30px 50px;
-            background: rgba(255,255,255,0.1);
+            background: rgba(0,255,136,0.1);
+            border: 4px dashed #00ff88;
             border-radius: 20px;
-            border: 3px dashed #00ff88;
+            margin: 30px 0;
+            text-shadow: 0 0 20px rgba(0,255,136,0.5);
         }
 
-        /* Silah Seçimi - Düzəldilmiş */
-        #weaponSelect {
-            display: none;
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #0f0f1e;
-            z-index: 100;
-            overflow-y: auto;
-            padding: 100px 20px 150px 20px;
-        }
-
-        .select-title {
-            text-align: center;
-            font-size: 32px;
-            margin-bottom: 40px;
-            color: #fff;
-            position: sticky;
-            top: 0;
-            background: #0f0f1e;
-            padding: 20px;
-            z-index: 10;
-        }
-
-        .weapons-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-            max-width: 1000px;
-            margin: 0 auto 100px auto;
-            padding: 0 20px;
-        }
-
-        .weapon-card {
-            background: linear-gradient(145deg, #1e1e3f 0%, #2d2d5a 100%);
-            border: 3px solid transparent;
-            border-radius: 20px;
-            padding: 30px;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-align: center;
-            position: relative;
-        }
-
-        .weapon-card:hover, .weapon-card.active {
-            border-color: #00ff88;
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3);
-        }
-
-        .weapon-img {
-            width: 100%;
-            height: 150px;
-            object-fit: contain;
-            margin-bottom: 20px;
-            filter: drop-shadow(0 5px 15px rgba(0,0,0,0.5));
-        }
-
-        .weapon-name {
-            font-size: 28px;
-            font-weight: bold;
-            margin-bottom: 15px;
-            color: #fff;
-        }
-
-        .weapon-stats {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 20px;
-        }
-
-        .stat {
-            text-align: center;
-        }
-
-        .stat-num {
-            font-size: 24px;
-            font-weight: bold;
-            color: #00ff88;
-        }
-
-        .stat-label {
-            font-size: 12px;
-            color: #888;
-            margin-top: 5px;
-        }
-
-        /* Hazır Düyməsi - Fixed bottom */
-        .ready-container {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background: rgba(0,0,0,0.9);
-            padding: 20px;
-            text-align: center;
-            z-index: 50;
-            border-top: 2px solid #333;
-        }
-
-        .ready-btn {
-            width: 90%;
-            max-width: 400px;
-            padding: 20px;
-            font-size: 24px;
-            background: #333;
-            color: #666;
-            border: none;
-            border-radius: 15px;
-            font-weight: bold;
-            cursor: not-allowed;
-            transition: all 0.3s;
-        }
-
-        .ready-btn.active {
-            background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%);
-            color: #000;
-            cursor: pointer;
-            box-shadow: 0 0 30px rgba(0, 255, 136, 0.5);
-        }
-
-        /* Döyüş Meydanı */
-        #battleField {
-            display: none;
-            width: 100%;
-            height: 100%;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .ground {
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-            height: 30%;
-            background: linear-gradient(to bottom, #2c3e50 0%, #1a252f 100%);
-        }
-
-        .wall {
-            position: absolute;
-            bottom: 25%;
-            width: 100px;
-            height: 200px;
-            background: linear-gradient(to right, #555, #777);
-            border: 4px solid #333;
-            border-radius: 10px;
-        }
-
-        .wall-left { left: 10%; }
-        .wall-right { right: 10%; }
-
-        /* Stickman Xarakterlər */
-        .stickman {
-            position: absolute;
-            bottom: 30%;
-            width: 80px;
-            height: 160px;
-            transition: all 0.2s;
-            z-index: 10;
-        }
-
-        .stickman-left { left: 12%; }
-        .stickman-right { right: 12%; transform: scaleX(-1); }
-
-        .head {
-            width: 40px;
-            height: 40px;
-            background: #fff;
-            border-radius: 50%;
-            margin: 0 auto;
-            border: 3px solid #000;
-        }
-
-        .body {
-            width: 6px;
-            height: 60px;
-            background: #fff;
-            margin: 0 auto;
-            position: relative;
-        }
-
-        .arms {
-            position: absolute;
-            top: 10px;
-            left: 50%;
-            width: 50px;
-            height: 6px;
-            background: #fff;
-            transform: translateX(-50%) rotate(-45deg);
-            transform-origin: left center;
-        }
-
-        .legs {
-            position: absolute;
-            bottom: -50px;
-            left: 50%;
-            width: 6px;
-            height: 50px;
-            background: #fff;
-            transform: translateX(-50%);
-            box-shadow: 15px 0 0 #fff;
-        }
-
-        .gun {
-            position: absolute;
-            top: -10px;
-            right: -30px;
-            width: 50px;
-            height: 15px;
-            background: #666;
-            border-radius: 3px;
-            transform: rotate(-10deg);
-        }
-
-        .stickman.covered {
-            transform: translateY(80px) scale(0.8);
-            opacity: 0.6;
-        }
-
-        .stickman-right.covered {
-            transform: translateY(80px) scaleX(-1) scale(0.8);
-        }
-
-        .stickman.shooting .arms {
-            animation: shootAnim 0.2s;
-        }
-
-        @keyframes shootAnim {
-            0%, 100% { transform: translateX(-50%) rotate(-45deg); }
-            50% { transform: translateX(-50%) rotate(-60deg); }
-        }
-
-        /* Can Barları */
-        .health-container {
-            position: absolute;
-            top: 20px;
-            width: 200px;
-            z-index: 100;
-        }
-
-        .health-left { left: 20px; }
-        .health-right { right: 20px; }
-
-        .health-bar {
-            width: 100%;
-            height: 30px;
-            background: rgba(0,0,0,0.6);
-            border-radius: 15px;
-            overflow: hidden;
-            border: 2px solid rgba(255,255,255,0.2);
-        }
-
-        .health-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #00ff88 0%, #00cc6a 100%);
-            transition: width 0.3s;
-        }
-
-        .health-text {
-            text-align: center;
-            margin-top: 5px;
-            font-weight: bold;
-            font-size: 16px;
-        }
-
-        /* Premium Kontrol Düymələri - Hər zaman görünən */
-        .controls {
-            position: fixed;
-            bottom: 30px;
-            left: 0;
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            padding: 0 40px;
-            z-index: 200;
-            pointer-events: none;
-        }
-
-        .control-btn {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            border: 4px solid;
-            cursor: pointer;
-            pointer-events: auto;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-            font-weight: bold;
-            font-size: 16px;
-            text-transform: uppercase;
-            transition: all 0.1s;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-
-        .control-btn:active {
-            transform: scale(0.95);
-        }
-
-        .btn-cover {
-            background: rgba(52, 152, 219, 0.8);
-            border-color: #3498db;
-            color: white;
-        }
-
-        .btn-cover:active {
-            background: rgba(52, 152, 219, 1);
-            box-shadow: 0 0 30px rgba(52, 152, 219, 0.8);
-        }
-
-        .btn-fire {
-            background: rgba(231, 76, 60, 0.8);
-            border-color: #e74c3c;
-            color: white;
-        }
-
-        .btn-fire:active {
-            background: rgba(231, 76, 60, 1);
-            box-shadow: 0 0 30px rgba(231, 76, 60, 0.8);
-        }
-
-        .btn-icon {
-            font-size: 40px;
-        }
-
-        /* Güllə */
-        .bullet {
-            position: absolute;
-            width: 20px;
-            height: 6px;
-            background: #ffd700;
-            border-radius: 3px;
-            box-shadow: 0 0 20px #ffd700;
-            z-index: 50;
-        }
-
-        /* Oyun Sonu */
-        #gameOver {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.95);
-            z-index: 500;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-        }
-
-        .result-text {
-            font-size: 56px;
+        .result-title {
+            font-size: 64px;
             font-weight: 900;
             margin-bottom: 30px;
             text-transform: uppercase;
         }
 
-        .win { color: #00ff88; }
-        .lose { color: #e74c3c; }
+        .win { color: #00ff88; text-shadow: 0 0 30px rgba(0,255,136,0.5); }
+        .lose { color: #e74c3c; text-shadow: 0 0 30px rgba(231,76,60,0.5); }
+
+        input[type="text"] {
+            padding: 20px;
+            font-size: 32px;
+            text-align: center;
+            background: rgba(255,255,255,0.1);
+            border: 3px solid #667eea;
+            border-radius: 15px;
+            color: white;
+            width: 250px;
+            margin-bottom: 20px;
+            letter-spacing: 10px;
+            font-weight: bold;
+        }
 
         @media (max-width: 600px) {
-            .logo { font-size: 42px; }
-            .code-display { font-size: 48px; letter-spacing: 10px; }
-            .weapons-grid { grid-template-columns: 1fr; }
-            .control-btn { width: 100px; height: 100px; font-size: 14px; }
-            .stickman { width: 60px; height: 120px; }
-            .wall { width: 60px; height: 120px; }
+            .game-btn { width: 110px; height: 110px; font-size: 16px; }
+            .btn-icon { font-size: 40px; }
+            .controls-container { padding: 0 30px; bottom: 30px; }
+            .walls { width: 80px; height: 160px; }
         }
     </style>
 </head>
 <body>
 
 <div id="gameContainer">
-    <!-- Ana Menyu -->
+    <!-- Main Menu -->
     <div id="mainMenu">
-        <div class="logo">DUEL</div>
-        <button class="menu-btn btn-create" onclick="createRoom()">Yeni Oyun</button>
-        <button class="menu-btn btn-join" onclick="showJoin()">Oyuna Qoşul</button>
+        <div class="logo-main">DUEL</div>
+        <button class="menu-button btn-create" onclick="createRoom()">Yeni Oyun Yarat</button>
+        <button class="menu-button btn-join" onclick="showJoin()">Oyuna Qoşul</button>
     </div>
 
-    <!-- Otaq Kodu -->
-    <div id="roomScreen">
-        <h2 style="margin-bottom: 20px;">Otaq Kodunuz</h2>
-        <div class="code-display" id="roomCode">0000</div>
-        <button class="menu-btn btn-create" onclick="startWeaponSelect()" style="margin-top: 20px;">Davam Et</button>
+    <!-- Room Code -->
+    <div id="roomScreen" class="hidden">
+        <h2 style="margin-bottom: 20px; font-size: 24px; color: #aaa;">Otaq Kodunuzu Paylaşın</h2>
+        <div class="code-box" id="roomCodeDisplay">0000</div>
+        <button class="menu-button btn-create" onclick="goToWeapons()">Davam Et</button>
     </div>
 
-    <!-- Qoşulma -->
-    <div id="joinScreen" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 250; flex-direction: column; justify-content: center; align-items: center;">
-        <h2 style="margin-bottom: 30px;">Kod Daxil Edin</h2>
-        <input type="text" id="joinCode" maxlength="4" style="width: 200px; padding: 20px; font-size: 32px; text-align: center; background: rgba(255,255,255,0.1); border: 2px solid #667eea; border-radius: 10px; color: white; margin-bottom: 20px; letter-spacing: 10px;">
-        <button class="menu-btn btn-create" onclick="joinRoom()">Qoşul</button>
-        <button class="menu-btn btn-join" onclick="backToMenu()" style="margin-top: 10px;">Geri</button>
+    <!-- Join -->
+    <div id="joinScreen" class="hidden">
+        <h2 style="margin-bottom: 30px;">Otaq Kodu</h2>
+        <input type="text" id="codeInput" maxlength="4" placeholder="0000">
+        <button class="menu-button btn-create" onclick="joinRoom()">Qoşul</button>
+        <button class="menu-button btn-join" onclick="backMenu()">Geri</button>
     </div>
 
-    <!-- Silah Seçimi -->
-    <div id="weaponSelect">
-        <div class="select-title">Silahını Seç</div>
+    <!-- Weapon Select -->
+    <div id="weaponSelect" class="hidden">
+        <div class="select-title">SILAH SEÇ</div>
         
-        <div class="weapons-grid">
-            <!-- AKM -->
-            <div class="weapon-card" onclick="selectWeapon('akm')" id="w-akm">
-                <img src="akm.png" class="weapon-img" alt="AKM" onerror="this.style.display='none'">
-                <div style="font-size: 60px; margin-bottom: 10px;">🔫</div>
-                <div class="weapon-name">AKM</div>
-                <div class="weapon-stats">
-                    <div class="stat">
-                        <div class="stat-num">15</div>
-                        <div class="stat-label">Zərər</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-num" style="color: #e74c3c;">Ağır</div>
-                        <div class="stat-label">Atəş</div>
-                    </div>
-                </div>
+        <div class="weapons-wrapper">
+            <div class="weapon-card" onclick="pickWeapon('akm')" id="w-akm">
+                <img src="akm.png" class="weapon-img" onerror="this.parentElement.innerHTML+='<div style=font-size:60px>🔫</div>'">
+                <h3 style="font-size: 28px; margin: 15px 0; color: #ff6b6b;">AKM</h3>
+                <p style="color: #888;">Zərər: 15 | Atəş: Yavaş</p>
             </div>
-
-            <!-- M416 -->
-            <div class="weapon-card" onclick="selectWeapon('m416')" id="w-m416">
-                <img src="m416.png" class="weapon-img" alt="M416" onerror="this.style.display='none'">
-                <div style="font-size: 60px; margin-bottom: 10px;">🔫</div>
-                <div class="weapon-name">M416</div>
-                <div class="weapon-stats">
-                    <div class="stat">
-                        <div class="stat-num">10</div>
-                        <div class="stat-label">Zərər</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-num" style="color: #f1c40f;">Orta</div>
-                        <div class="stat-label">Atəş</div>
-                    </div>
-                </div>
+            
+            <div class="weapon-card" onclick="pickWeapon('m416')" id="w-m416">
+                <img src="m416.png" class="weapon-img" onerror="this.parentElement.innerHTML+='<div style=font-size:60px>🔫</div>'">
+                <h3 style="font-size: 28px; margin: 15px 0; color: #a29bfe;">M416</h3>
+                <p style="color: #888;">Zərər: 10 | Atəş: Orta</p>
             </div>
-
-            <!-- SCAR -->
-            <div class="weapon-card" onclick="selectWeapon('scar')" id="w-scar">
-                <img src="scar.png" class="weapon-img" alt="SCAR" onerror="this.style.display='none'">
-                <div style="font-size: 60px; margin-bottom: 10px;">🔫</div>
-                <div class="weapon-name">SCAR-L</div>
-                <div class="weapon-stats">
-                    <div class="stat">
-                        <div class="stat-num">8</div>
-                        <div class="stat-label">Zərər</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-num" style="color: #3498db;">Sürətli</div>
-                        <div class="stat-label">Atəş</div>
-                    </div>
-                </div>
+            
+            <div class="weapon-card" onclick="pickWeapon('scar')" id="w-scar">
+                <img src="scar.png" class="weapon-img" onerror="this.parentElement.innerHTML+='<div style=font-size:60px>🔫</div>'">
+                <h3 style="font-size: 28px; margin: 15px 0; color: #74b9ff;">SCAR-L</h3>
+                <p style="color: #888;">Zərər: 8 | Atəş: Sürətli</p>
             </div>
         </div>
 
-        <div class="ready-container">
-            <button class="ready-btn" id="readyBtn" onclick="confirmReady()" disabled>Hazırlan</button>
-            <div id="waitingText" style="display: none; margin-top: 15px; color: #f1c40f;">Rəqib gözlənilir...</div>
+        <div class="bottom-bar">
+            <button class="ready-btn-main" id="readyBtn" onclick="readyUp()" disabled>Hazırlan</button>
+            <div id="waitTxt" style="display:none; margin-top:15px; color:#f1c40f;">Rəqib gözlənilir...</div>
         </div>
     </div>
 
-    <!-- Döyüş -->
-    <div id="battleField">
-        <div class="ground"></div>
-        
-        <div class="wall wall-left"></div>
-        <div class="wall wall-right"></div>
-
-        <!-- Stickman 1 -->
-        <div class="stickman stickman-left covered" id="p1">
-            <div class="head"></div>
-            <div class="body">
-                <div class="arms"></div>
-                <div class="gun" id="g1"></div>
-                <div class="legs"></div>
-            </div>
-        </div>
-
-        <!-- Stickman 2 -->
-        <div class="stickman stickman-right covered" id="p2">
-            <div class="head"></div>
-            <div class="body">
-                <div class="arms"></div>
-                <div class="gun" id="g2"></div>
-                <div class="legs"></div>
-            </div>
-        </div>
-
-        <!-- Can -->
-        <div class="health-container health-left">
-            <div class="health-bar">
-                <div class="health-fill" id="h1" style="width: 100%;"></div>
+    <!-- Game -->
+    <div id="battleField" class="hidden">
+        <!-- Health -->
+        <div class="health-bar-container health-left">
+            <div class="health-bg">
+                <div class="health-fill" id="hf1" style="width:100%"></div>
             </div>
             <div class="health-text" id="ht1">100 HP</div>
         </div>
-
-        <div class="health-container health-right">
-            <div class="health-bar">
-                <div class="health-fill" id="h2" style="width: 100%; background: linear-gradient(90deg, #e74c3c 0%, #c0392b 100%);"></div>
+        
+        <div class="health-bar-container health-right">
+            <div class="health-bg">
+                <div class="health-fill" id="hf2" style="width:100%; background:linear-gradient(90deg,#ff6b6b,#ee5a52)"></div>
             </div>
             <div class="health-text" id="ht2">100 HP</div>
         </div>
 
-        <!-- Premium Kontrollər -->
-        <div class="controls">
-            <button class="control-btn btn-cover" onmousedown="setCover(false)" onmouseup="setCover(true)" ontouchstart="setCover(false)" ontouchend="setCover(true)">
+        <!-- Muzzle Flashes -->
+        <div class="muzzle-flash flash-left" id="mf1"></div>
+        <div class="muzzle-flash flash-right" id="mf2"></div>
+
+        <!-- Walls -->
+        <div class="walls wall-left"></div>
+        <div class="walls wall-right"></div>
+
+        <!-- PREMIUM STICKMANS -->
+        <div class="stickman-container stickman-left covered" id="s1">
+            <div class="stickman-head"></div>
+            <div class="stickman-body">
+                <div class="stickman-arm" id="a1">
+                    <div class="premium-gun"></div>
+                </div>
+                <div class="stickman-leg left"></div>
+                <div class="stickman-leg right"></div>
+            </div>
+        </div>
+
+        <div class="stickman-container stickman-right covered" id="s2">
+            <div class="stickman-head"></div>
+            <div class="stickman-body">
+                <div class="stickman-arm" id="a2">
+                    <div class="premium-gun"></div>
+                </div>
+                <div class="stickman-leg left"></div>
+                <div class="stickman-leg right"></div>
+            </div>
+        </div>
+
+        <!-- CONTROLS - OPTIMIZED -->
+        <div class="controls-container">
+            <button class="game-btn btn-cover" id="coverBtn" 
+                onpointerdown="handleCover(false)" 
+                onpointerup="handleCover(true)"
+                onpointerleave="handleCover(true)"
+                ontouchstart="handleCover(false)" 
+                ontouchend="handleCover(true)">
                 <span class="btn-icon">🛡️</span>
                 <span>Qalx</span>
             </button>
 
-            <button class="control-btn btn-fire" onclick="shoot()">
+            <button class="game-btn btn-fire" id="fireBtn"
+                onpointerdown="startFiring()"
+                onpointerup="stopFiring()"
+                onpointerleave="stopFiring()"
+                ontouchstart="startFiring()"
+                ontouchend="stopFiring()">
                 <span class="btn-icon">🔥</span>
                 <span>Atəş</span>
             </button>
         </div>
     </div>
 
-    <!-- Son -->
-    <div id="gameOver">
-        <div class="result-text" id="resText">Qələbə!</div>
-        <button class="menu-btn btn-create" onclick="location.reload()">Yeni Oyun</button>
+    <!-- Game Over -->
+    <div id="gameOver" class="hidden">
+        <div class="result-title" id="resText">Qələbə!</div>
+        <button class="menu-button btn-create" onclick="location.reload()">Yeni Oyun</button>
     </div>
 </div>
 
 <script>
-    // Firebase Config
     const firebaseConfig = {
         apiKey: "AIzaSyCM5WdZNSj9oFipNI-J3csHpOIvK8PjoLU",
         authDomain: "sevgili-testi.firebaseapp.com",
@@ -655,66 +664,55 @@
 
     let roomId = null;
     let playerNum = null;
-    let selectedWeapon = null;
+    let myWeapon = null;
     let isCovering = true;
     let gameActive = false;
-    let lastShot = 0;
+    let fireInterval = null;
+    let lastFireTime = 0;
 
-    const weapons = {
-        akm: { damage: 15, rate: 800 },
-        m416: { damage: 10, rate: 500 },
-        scar: { damage: 8, rate: 300 }
+    const weaponStats = {
+        akm: { damage: 15, rate: 600 },
+        m416: { damage: 10, rate: 400 },
+        scar: { damage: 8, rate: 250 }
     };
 
+    // Menu Functions
     function createRoom() {
         roomId = Math.floor(1000 + Math.random() * 9000).toString();
-        document.getElementById('roomCode').textContent = roomId;
-        document.getElementById('mainMenu').style.display = 'none';
-        document.getElementById('roomScreen').style.display = 'flex';
+        document.getElementById('roomCodeDisplay').textContent = roomId;
+        document.getElementById('mainMenu').classList.add('hidden');
+        document.getElementById('roomScreen').classList.remove('hidden');
     }
 
     function showJoin() {
-        document.getElementById('mainMenu').style.display = 'none';
-        document.getElementById('joinScreen').style.display = 'flex';
-        document.getElementById('joinScreen').style.flexDirection = 'column';
+        document.getElementById('mainMenu').classList.add('hidden');
+        document.getElementById('joinScreen').classList.remove('hidden');
     }
 
-    function backToMenu() {
-        document.getElementById('joinScreen').style.display = 'none';
-        document.getElementById('mainMenu').style.display = 'flex';
+    function backMenu() {
+        document.getElementById('joinScreen').classList.add('hidden');
+        document.getElementById('mainMenu').classList.remove('hidden');
     }
 
-    function startWeaponSelect() {
-        document.getElementById('roomScreen').style.display = 'none';
-        document.getElementById('weaponSelect').style.display = 'block';
-        initPlayer(1);
+    function goToWeapons() {
+        document.getElementById('roomScreen').classList.add('hidden');
+        document.getElementById('weaponSelect').classList.remove('hidden');
+        setupPlayer(1);
     }
 
     function joinRoom() {
-        const code = document.getElementById('joinCode').value;
+        const code = document.getElementById('codeInput').value;
         if (!code || code.length !== 4) {
             alert('4 rəqəmli kod daxil edin!');
             return;
         }
         roomId = code;
-        
-        db.ref('duel/' + roomId).once('value').then(snap => {
-            if (!snap.exists()) {
-                alert('Otaq tapılmadı!');
-                return;
-            }
-            const data = snap.val();
-            if (data.p2) {
-                alert('Otaq doludur!');
-                return;
-            }
-            document.getElementById('joinScreen').style.display = 'none';
-            document.getElementById('weaponSelect').style.display = 'block';
-            initPlayer(2);
-        });
+        document.getElementById('joinScreen').classList.add('hidden');
+        document.getElementById('weaponSelect').classList.remove('hidden');
+        setupPlayer(2);
     }
 
-    function initPlayer(num) {
+    function setupPlayer(num) {
         playerNum = num;
         db.ref(`duel/${roomId}/p${num}`).set({ joined: Date.now(), ready: false });
         
@@ -723,44 +721,40 @@
             if (!data) return;
             
             if (data.p1?.ready && data.p2?.ready && !gameActive) {
-                startBattle();
+                startGame();
             }
             
-            if (gameActive) syncGame(data);
+            if (gameActive && data.game) {
+                updateGame(data.game);
+            }
         });
     }
 
-    function selectWeapon(type) {
-        selectedWeapon = type;
-        
-        // Aktiv klassı təmizlə
+    function pickWeapon(type) {
+        myWeapon = type;
         document.querySelectorAll('.weapon-card').forEach(c => {
             c.classList.remove('active');
             c.style.opacity = '0.5';
         });
+        document.getElementById('w-' + type).classList.add('active');
+        document.getElementById('w-' + type).style.opacity = '1';
         
-        // Seçileni aktiv et
-        const card = document.getElementById('w-' + type);
-        card.classList.add('active');
-        card.style.opacity = '1';
-        
-        // Düyməni aktiv et
         const btn = document.getElementById('readyBtn');
         btn.disabled = false;
         btn.classList.add('active');
-        btn.textContent = 'Hazıram';
     }
 
-    function confirmReady() {
-        db.ref(`duel/${roomId}/p${playerNum}`).update({ weapon: selectedWeapon, ready: true });
+    function readyUp() {
+        db.ref(`duel/${roomId}/p${playerNum}`).update({ weapon: myWeapon, ready: true });
         document.getElementById('readyBtn').style.display = 'none';
-        document.getElementById('waitingText').style.display = 'block';
+        document.getElementById('waitTxt').style.display = 'block';
     }
 
-    function startBattle() {
+    // Game Functions
+    function startGame() {
         gameActive = true;
-        document.getElementById('weaponSelect').style.display = 'none';
-        document.getElementById('battleField').style.display = 'block';
+        document.getElementById('weaponSelect').classList.add('hidden');
+        document.getElementById('battleField').classList.remove('hidden');
         
         if (playerNum === 1) {
             db.ref(`duel/${roomId}/game`).set({
@@ -771,146 +765,256 @@
         }
     }
 
-    function setCover(cover) {
+    // FIXED: Cover handling
+    function handleCover(cover) {
         if (!gameActive) return;
         isCovering = cover;
         
-        const el = document.getElementById('p' + playerNum);
-        if (cover) el.classList.add('covered');
-        else el.classList.remove('covered');
+        const stickman = document.getElementById('s' + playerNum);
+        if (cover) {
+            stickman.classList.add('covered');
+        } else {
+            stickman.classList.remove('covered');
+        }
         
         db.ref(`duel/${roomId}/game/c${playerNum}`).set(cover);
     }
 
-    function shoot() {
+    // FIXED: Continuous firing with unlimited ammo
+    function startFiring() {
         if (!gameActive || isCovering) return;
         
+        // Fire immediately
+        fireBullet();
+        
+        // Then fire continuously based on weapon rate
+        const rate = weaponStats[myWeapon]?.rate || 400;
+        fireInterval = setInterval(() => {
+            if (!gameActive || isCovering) {
+                stopFiring();
+                return;
+            }
+            fireBullet();
+        }, rate);
+    }
+
+    function stopFiring() {
+        if (fireInterval) {
+            clearInterval(fireInterval);
+            fireInterval = null;
+        }
+    }
+
+    function fireBullet() {
         const now = Date.now();
-        const rate = weapons[selectedWeapon]?.rate || 500;
-        if (now - lastShot < rate) return;
-        lastShot = now;
+        const rate = weaponStats[myWeapon]?.rate || 400;
+        if (now - lastFireTime < rate) return;
+        lastFireTime = now;
         
-        // Səs
-        playSound();
+        // Visuals
+        const arm = document.getElementById('a' + playerNum);
+        const flash = document.getElementById('mf' + playerNum);
         
-        // Animasyon
-        const me = document.getElementById('p' + playerNum);
-        me.classList.add('shooting');
-        setTimeout(() => me.classList.remove('shooting'), 200);
+        arm.classList.add('shooting');
+        flash.classList.add('flash-active');
         
-        // Güllə
+        setTimeout(() => {
+            arm.classList.remove('shooting');
+            flash.classList.remove('flash-active');
+        }, 150);
+        
+        // Sound
+        playGunSound();
+        
+        // Create bullet - FIXED POSITIONS
         const bullet = document.createElement('div');
         bullet.className = 'bullet';
-        const start = playerNum === 1 ? 15 : 85;
-        const end = playerNum === 1 ? 85 : 15;
-        bullet.style.left = start + '%';
-        bullet.style.bottom = '35%';
-        document.getElementById('battleField').appendChild(bullet);
         
-        const anim = bullet.animate([
-            { left: start + '%' },
-            { left: end + '%' }
-        ], { duration: 200, easing: 'linear' });
+        const container = document.getElementById('gameContainer');
+        const rect = container.getBoundingClientRect();
         
-        anim.onfinish = () => {
+        // Calculate positions based on screen size
+        const startX = playerNum === 1 ? rect.width * 0.18 : rect.width * 0.82;
+        const endX = playerNum === 1 ? rect.width * 0.82 : rect.width * 0.18;
+        const yPos = rect.height * 0.45; // 45% from top
+        
+        bullet.style.left = startX + 'px';
+        bullet.style.top = yPos + 'px';
+        bullet.style.position = 'fixed';
+        
+        document.body.appendChild(bullet);
+        
+        // Animate
+        const animation = bullet.animate([
+            { left: startX + 'px', opacity: 1 },
+            { left: endX + 'px', opacity: 1 }
+        ], {
+            duration: 300,
+            easing: 'linear'
+        });
+        
+        animation.onfinish = () => {
             bullet.remove();
             checkHit();
         };
+        
+        // Sync with Firebase
+        db.ref(`duel/${roomId}/game/lastShot`).set({
+            player: playerNum,
+            time: now
+        });
     }
 
     function checkHit() {
         const enemy = playerNum === 1 ? 2 : 1;
+        
         db.ref(`duel/${roomId}/game/c${enemy}`).once('value').then(snap => {
-            if (!snap.val()) {
-                // Vuruldu
-                const hk = `h${enemy}`;
-                db.ref(`duel/${roomId}/game/${hk}`).once('value').then(hsnap => {
+            if (snap.val() === false) { // Enemy is not covered
+                const hKey = `h${enemy}`;
+                db.ref(`duel/${roomId}/game/${hKey}`).once('value').then(hsnap => {
                     let nh = (hsnap.val() || 100) - 10;
                     if (nh < 0) nh = 0;
-                    db.ref(`duel/${roomId}/game/${hk}`).set(nh);
-                    if (nh === 0) endGame(playerNum);
+                    
+                    db.ref(`duel/${roomId}/game/${hKey}`).set(nh);
+                    
+                    if (nh === 0) {
+                        endGame(playerNum);
+                    }
                 });
             }
         });
     }
 
-    function syncGame(data) {
-        if (data.game?.h1 !== undefined) updateHealth(1, data.game.h1);
-        if (data.game?.h2 !== undefined) updateHealth(2, data.game.h2);
-        
-        if (data.game?.c1 !== undefined) {
-            const p1 = document.getElementById('p1');
-            if (data.game.c1) p1.classList.add('covered');
-            else p1.classList.remove('covered');
+    function updateGame(data) {
+        // Health
+        if (data.h1 !== undefined) {
+            document.getElementById('hf1').style.width = data.h1 + '%';
+            document.getElementById('ht1').textContent = data.h1 + ' HP';
         }
-        if (data.game?.c2 !== undefined) {
-            const p2 = document.getElementById('p2');
-            if (data.game.c2) p2.classList.add('covered');
-            else p2.classList.remove('covered');
+        if (data.h2 !== undefined) {
+            document.getElementById('hf2').style.width = data.h2 + '%';
+            document.getElementById('ht2').textContent = data.h2 + ' HP';
+            
+            if (data.h2 <= 30) {
+                document.getElementById('hf2').style.background = 'linear-gradient(90deg, #ff6b6b, #ee5a52)';
+            }
         }
-    }
-
-    function updateHealth(num, val) {
-        document.getElementById('h' + num).style.width = val + '%';
-        document.getElementById('ht' + num).textContent = val + ' HP';
         
-        if (val <= 30) {
-            document.getElementById('h' + num).style.background = 'linear-gradient(90deg, #e74c3c 0%, #c0392b 100%)';
+        // Cover states
+        if (data.c1 !== undefined) {
+            const s1 = document.getElementById('s1');
+            if (data.c1) s1.classList.add('covered');
+            else s1.classList.remove('covered');
+        }
+        if (data.c2 !== undefined) {
+            const s2 = document.getElementById('s2');
+            if (data.c2) s2.classList.add('covered');
+            else s2.classList.remove('covered');
+        }
+        
+        // Enemy shooting visual
+        if (data.lastShot && data.lastShot.player !== playerNum) {
+            const now = Date.now();
+            if (now - data.lastShot.time < 500) {
+                const enemyNum = data.lastShot.player;
+                document.getElementById('a' + enemyNum).classList.add('shooting');
+                document.getElementById('mf' + enemyNum).classList.add('flash-active');
+                setTimeout(() => {
+                    document.getElementById('a' + enemyNum).classList.remove('shooting');
+                    document.getElementById('mf' + enemyNum).classList.remove('flash-active');
+                }, 150);
+            }
         }
     }
 
     function endGame(winner) {
         gameActive = false;
-        document.getElementById('gameOver').style.display = 'flex';
+        stopFiring();
+        document.getElementById('gameOver').classList.remove('hidden');
         const txt = document.getElementById('resText');
+        
         if (winner === playerNum) {
             txt.textContent = 'QƏLƏBƏ!';
-            txt.className = 'result-text win';
+            txt.className = 'result-title win';
         } else {
             txt.textContent = 'MƏĞLUBİYYƏT';
-            txt.className = 'result-text lose';
+            txt.className = 'result-title lose';
         }
+        
+        // Cleanup
+        setTimeout(() => {
+            db.ref(`duel/${roomId}`).remove();
+        }, 5000);
     }
 
-    function playSound() {
+    function playGunSound() {
         try {
             const AudioContext = window.AudioContext || window.webkitAudioContext;
             const ctx = new AudioContext();
             const osc = ctx.createOscillator();
             const gain = ctx.createGain();
             
-            if (selectedWeapon === 'akm') {
-                osc.frequency.setValueAtTime(200, ctx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(50, ctx.currentTime + 0.15);
-            } else if (selectedWeapon === 'm416') {
-                osc.frequency.setValueAtTime(400, ctx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.1);
+            const rate = weaponStats[myWeapon]?.rate || 400;
+            
+            if (myWeapon === 'akm') {
+                osc.frequency.setValueAtTime(180, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(40, ctx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.4, ctx.currentTime);
+            } else if (myWeapon === 'm416') {
+                osc.frequency.setValueAtTime(350, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.3, ctx.currentTime);
             } else {
-                osc.frequency.setValueAtTime(600, ctx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(150, ctx.currentTime + 0.08);
+                osc.frequency.setValueAtTime(500, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(120, ctx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.25, ctx.currentTime);
             }
             
-            gain.gain.setValueAtTime(0.3, ctx.currentTime);
             gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
             
             osc.connect(gain);
             gain.connect(ctx.destination);
             osc.start();
-            osc.stop(ctx.currentTime + 0.2);
+            osc.stop(ctx.currentTime + 0.25);
         } catch(e) {}
     }
 
-    // Klavye
+    // Keyboard support
+    let spacePressed = false;
+    let upPressed = false;
+    
     document.addEventListener('keydown', e => {
         if (!gameActive) return;
-        if (e.code === 'Space') { e.preventDefault(); shoot(); }
-        if (e.code === 'ArrowUp' || e.code === 'KeyW') { e.preventDefault(); setCover(false); }
+        
+        if (e.code === 'Space' && !spacePressed) {
+            e.preventDefault();
+            spacePressed = true;
+            startFiring();
+        }
+        if ((e.code === 'ArrowUp' || e.code === 'KeyW') && !upPressed) {
+            e.preventDefault();
+            upPressed = true;
+            handleCover(false);
+        }
     });
     
     document.addEventListener('keyup', e => {
-        if (!gameActive) return;
-        if (e.code === 'ArrowUp' || e.code === 'KeyW') setCover(true);
+        if (e.code === 'Space') {
+            spacePressed = false;
+            stopFiring();
+        }
+        if (e.code === 'ArrowUp' || e.code === 'KeyW') {
+            upPressed = false;
+            handleCover(true);
+        }
     });
+
+    // Cleanup on exit
+    window.onbeforeunload = () => {
+        if (roomId && playerNum) {
+            db.ref(`duel/${roomId}/p${playerNum}`).remove();
+        }
+    };
 </script>
 
 </body>
