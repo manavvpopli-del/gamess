@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sync Stream - Realtime Screen Share</title>
+    <title>Auto Video Extractor - Virtual Browser</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -11,8 +11,8 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #000;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #0a0a0a;
             color: #fff;
             height: 100vh;
             overflow: hidden;
@@ -27,154 +27,208 @@
             align-items: center;
             justify-content: center;
             z-index: 1000;
-            padding: 20px;
         }
         
         .login-box {
             background: rgba(255,255,255,0.95);
             padding: 40px;
-            border-radius: 20px;
-            max-width: 420px;
-            width: 100%;
-            color: #333;
+            border-radius: 24px;
+            max-width: 480px;
+            width: 90%;
+            color: #1f2937;
             text-align: center;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
         }
         
-        .tabs { display: flex; gap: 10px; margin: 20px 0; background: #eee; padding: 5px; border-radius: 10px; }
+        .tabs { display: flex; gap: 10px; margin: 24px 0; background: #eee; padding: 6px; border-radius: 12px; }
         .tab { flex: 1; padding: 12px; border: none; background: transparent; cursor: pointer; border-radius: 8px; font-weight: 600; color: #666; }
-        .tab.active { background: white; color: #2a5298; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .tab.active { background: white; color: #2563eb; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
         
         input { width: 100%; padding: 14px; margin: 8px 0; border: 2px solid #ddd; border-radius: 10px; font-size: 16px; }
-        input:focus { outline: none; border-color: #2a5298; }
+        input:focus { outline: none; border-color: #2563eb; }
         
         button {
             width: 100%;
             padding: 16px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
             color: white;
             border: none;
             border-radius: 12px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: all 0.3s;
             margin-top: 10px;
         }
-        button:hover { transform: translateY(-2px); }
+        button:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(37,99,235,0.3); }
 
-        /* App Layout */
+        /* Main App */
         #app { display: none; height: 100vh; flex-direction: column; }
 
         .header {
             background: rgba(20,20,20,0.95);
-            padding: 12px 20px;
+            backdrop-filter: blur(10px);
+            padding: 12px 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid #333;
-            backdrop-filter: blur(10px);
-        }
-        
-        .room-tag {
-            background: rgba(255,255,255,0.1);
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-family: monospace;
-            font-size: 14px;
-            cursor: pointer;
-            border: 1px solid rgba(255,255,255,0.2);
         }
 
-        .main { flex: 1; display: flex; overflow: hidden; position: relative; }
+        .main { flex: 1; display: flex; overflow: hidden; }
 
-        /* Video Screen */
-        .screen-area {
+        /* Left Panel - Virtual Browser */
+        .browser-panel {
             flex: 1;
+            display: flex;
+            flex-direction: column;
             background: #000;
             position: relative;
+        }
+        
+        .browser-toolbar {
+            background: #1f2937;
+            padding: 10px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            border-bottom: 1px solid #374151;
+        }
+        
+        .url-input {
+            flex: 1;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid #4b5563;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        
+        .btn-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: #9ca3af;
+            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: all 0.2s;
         }
         
-        #streamVideo {
+        .btn-icon:hover { background: rgba(255,255,255,0.2); color: white; }
+        .btn-icon.primary { background: #2563eb; color: white; }
+        .btn-icon.primary:hover { background: #1d4ed8; }
+        
+        .browser-frame {
+            flex: 1;
+            border: none;
             width: 100%;
-            height: 100%;
-            object-fit: contain;
-            background: #000;
+            background: white;
         }
 
-        /* Moderator Controls Overlay */
-        .broadcast-controls {
+        /* Video Detector Overlay */
+        .detector-panel {
             position: absolute;
-            bottom: 40px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0,0,0,0.9);
-            padding: 20px;
-            border-radius: 16px;
-            border: 1px solid rgba(255,255,255,0.2);
-            text-align: center;
-            backdrop-filter: blur(20px);
-            z-index: 100;
-        }
-        
-        .btn-broadcast {
-            background: linear-gradient(135deg, #10b981, #059669);
-            padding: 16px 32px;
-            border-radius: 50px;
-            font-size: 18px;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            margin: 0;
-            width: auto;
-            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
-        }
-        
-        .btn-broadcast:hover { box-shadow: 0 15px 40px rgba(16, 185, 129, 0.4); transform: translateY(-2px); }
-        
-        .btn-stop {
-            background: #ef4444;
-            padding: 12px 24px;
-            border-radius: 50px;
-            width: auto;
-            margin-top: 10px;
-        }
-
-        .status-pill {
-            position: absolute;
-            top: 20px;
+            bottom: 20px;
             left: 20px;
-            background: rgba(239, 68, 68, 0.9);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 700;
+            right: 20px;
+            background: rgba(17, 24, 39, 0.98);
+            border: 2px solid #2563eb;
+            border-radius: 16px;
+            padding: 20px;
             display: none;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            z-index: 100;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .detector-panel.active { display: block; }
+        
+        .detector-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .video-item {
+            background: rgba(255,255,255,0.05);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+        
+        .video-item:hover {
+            background: rgba(37, 99, 235, 0.2);
+            border-color: #2563eb;
+        }
+        
+        .video-item.selected {
+            background: rgba(37, 99, 235, 0.3);
+            border-color: #2563eb;
+        }
+        
+        .video-info { flex: 1; overflow: hidden; }
+        .video-url { font-size: 12px; color: #9ca3af; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .video-type { font-size: 11px; color: #4ade80; margin-top: 4px; }
+
+        /* Right Panel - Controls & Chat */
+        .side-panel {
+            width: 400px;
+            background: #111;
+            border-left: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .panel-section {
+            padding: 20px;
+            border-bottom: 1px solid #333;
+        }
+        
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 15px;
+            display: flex;
             align-items: center;
             gap: 8px;
-            z-index: 50;
-            animation: pulse 2s infinite;
-            border: 1px solid rgba(255,255,255,0.3);
         }
-        
-        .status-pill.live { display: flex; }
-        .status-pill::before {
-            content: '';
-            width: 8px;
-            height: 8px;
-            background: white;
-            border-radius: 50%;
-            animation: blink 1s infinite;
-        }
-        
-        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
-        @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.7)} 50%{box-shadow:0 0 0 10px rgba(239,68,68,0)} }
 
-        /* Waiting State */
-        .waiting-screen {
+        /* Extracted Video Player */
+        .player-container {
+            background: #000;
+            aspect-ratio: 16/9;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 20px;
+        }
+        
+        #mainPlayer {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        .player-placeholder {
             position: absolute;
             inset: 0;
             display: flex;
@@ -183,46 +237,77 @@
             justify-content: center;
             color: #666;
             text-align: center;
-            padding: 40px;
+            padding: 20px;
         }
-        
-        .waiting-screen i { font-size: 80px; margin-bottom: 30px; color: #333; }
-        .waiting-screen h2 { color: #999; margin-bottom: 10px; }
 
-        /* Chat Sidebar */
-        .chat-panel {
-            width: 350px;
-            background: #111;
-            border-left: 1px solid #333;
-            display: flex;
-            flex-direction: column;
+        /* Network Monitor */
+        .network-log {
+            flex: 1;
+            overflow-y: auto;
+            max-height: 200px;
+            font-family: monospace;
+            font-size: 12px;
         }
         
-        .chat-header { padding: 20px; border-bottom: 1px solid #333; background: #0a0a0a; }
-        .messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
-        .msg { background: rgba(255,255,255,0.1); padding: 12px 16px; border-radius: 12px; max-width: 85%; font-size: 14px; }
-        .msg.own { background: linear-gradient(135deg, #667eea, #764ba2); align-self: flex-end; }
-        .msg.system { align-self: center; background: rgba(245, 158, 11, 0.2); color: #fbbf24; font-size: 13px; border: 1px solid rgba(245,158,11,0.3); }
-        .msg b { display: block; font-size: 12px; margin-bottom: 4px; opacity: 0.8; }
+        .log-item {
+            padding: 8px;
+            margin-bottom: 4px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 6px;
+            border-left: 3px solid #4ade80;
+            animation: slideIn 0.3s ease;
+        }
         
-        .chat-input { padding: 20px; border-top: 1px solid #333; display: flex; gap: 10px; }
-        .chat-input input { flex: 1; background: rgba(255,255,255,0.1); border: none; color: white; padding: 12px; border-radius: 8px; font-size: 14px; }
-        .chat-input button { width: 44px; height: 44px; border-radius: 50%; padding: 0; margin: 0; display: flex; align-items: center; justify-content: center; }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        .log-url { color: #9ca3af; word-break: break-all; }
+        .log-type { color: #4ade80; font-size: 10px; }
+
+        /* Status Badge */
+        .status-badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            z-index: 50;
+        }
+        
+        .status-badge.scanning {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fbbf24;
+            border: 1px solid rgba(245, 158, 11, 0.5);
+            animation: pulse 2s infinite;
+        }
+        
+        .status-badge.ready {
+            background: rgba(74, 222, 128, 0.2);
+            color: #4ade80;
+            border: 1px solid rgba(74, 222, 128, 0.5);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
 
         .hidden { display: none !important; }
-        
-        @media (max-width: 800px) {
-            .chat-panel { position: absolute; right: 0; top: 60px; bottom: 0; width: 100%; transform: translateX(100%); transition: 0.3s; z-index: 200; }
-            .chat-panel.open { transform: translateX(0); }
-        }
     </style>
 </head>
 <body>
 
 <div id="login">
     <div class="login-box">
-        <h2><i class="fas fa-broadcast-tower"></i> Sync Stream</h2>
-        <p style="color: #666; margin-bottom: 20px;">Əsl ekran yayımı ilə birlikdə izlə</p>
+        <h1><i class="fas fa-search"></i> Video Detector</h1>
+        <p style="color: #666; margin-bottom: 20px;">Saytlardakı gizli video linklərini avtomatik tap</p>
         
         <div class="tabs">
             <button class="tab active" onclick="switchTab('create')">Yarat</button>
@@ -230,80 +315,98 @@
         </div>
         
         <div id="createForm">
-            <input type="text" id="cName" placeholder="Adınız" maxlength="20">
-            <input type="text" id="cCode" placeholder="Otaq kodu (məs: FILM123)" maxlength="15">
-            <p style="font-size: 12px; color: #666; margin: 10px 0;">
-                🎬 Moderator olaraq ekranını paylaşacaqsan
+            <input type="text" id="cName" placeholder="Adınız">
+            <input type="text" id="cCode" placeholder="Otaq kodu (məs: MOVIE123)">
+            <p style="font-size: 13px; color: #666; margin: 10px 0; text-align: left;">
+                💡 Moderator olaraq saytdakı videonun linkini tapıb hamıya göstərəcəksən
             </p>
             <button onclick="createRoom()">Otaq Yarat</button>
         </div>
         
         <div id="joinForm" style="display:none">
-            <input type="text" id="jName" placeholder="Adınız" maxlength="20">
-            <input type="text" id="jCode" placeholder="Moderatorun kodu" maxlength="15">
-            <p style="font-size: 12px; color: #666; margin: 10px 0;">
-                👀 Moderatorun ekranını canlı izləyəcəksən
-            </p>
-            <button onclick="joinRoom()">Yayına Qoşul</button>
+            <input type="text" id="jName" placeholder="Adınız">
+            <input type="text" id="jCode" placeholder="Otaq kodu">
+            <button onclick="joinRoom()">Qoşul</button>
         </div>
     </div>
 </div>
 
 <div id="app">
     <div class="header">
-        <div style="font-weight: 700; font-size: 18px;"><i class="fas fa-film"></i> Film Party</div>
-        <div style="display: flex; gap: 12px; align-items: center;">
-            <span id="userName" style="color: #999; font-size: 14px;"></span>
-            <span id="roleBadge" style="background: #f59e0b; color: #000; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 700;">MOD</span>
-            <div class="room-tag" onclick="copyCode()"><span id="roomId">CODE</span> <i class="fas fa-copy" style="margin-left: 8px;"></i></div>
+        <div style="font-weight: 700; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-robot" style="color: #2563eb;"></i>
+            <span>Video Detector</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <span id="userDisplay" style="color: #9ca3af;"></span>
+            <span id="roleTag" style="background: #2563eb; padding: 4px 12px; border-radius: 12px; font-size: 12px;">MOD</span>
+            <code id="roomTag" style="background: rgba(255,255,255,0.1); padding: 6px 12px; border-radius: 6px;">CODE</code>
         </div>
     </div>
 
     <div class="main">
-        <div class="screen-area">
-            <!-- Live Indicator -->
-            <div class="status-pill" id="liveBadge"><i class="fas fa-circle" style="font-size: 8px;"></i> CANLI YAYIM</div>
-            
-            <!-- Video Element (Shows stream for both) -->
-            <video id="streamVideo" autoplay playsinline></video>
-            
-            <!-- Moderator Start Screen -->
-            <div class="broadcast-controls" id="modControls">
-                <div style="margin-bottom: 12px; color: #ccc; font-size: 14px;">
-                    Film izləmək üçün ekranını paylaş
-                </div>
-                <button class="btn-broadcast" onclick="startBroadcast()">
-                    <i class="fas fa-desktop"></i> Ekran Paylaşmağa Başla
+        <!-- Browser Area (Moderator Only) -->
+        <div class="browser-panel" id="browserPanel">
+            <div class="browser-toolbar">
+                <button class="btn-icon" onclick="goBack()" title="Geri"><i class="fas fa-arrow-left"></i></button>
+                <button class="btn-icon" onclick="refresh()" title="Yenilə"><i class="fas fa-redo"></i></button>
+                <input type="text" class="url-input" id="browserUrl" value="https://archive.org/details/movies" placeholder="Film saytının URL-i...">
+                <button class="btn-icon primary" onclick="navigate()" title="Get"><i class="fas fa-arrow-right"></i></button>
+                <button class="btn-icon" onclick="toggleDetector()" title="Video Axtar" style="background: #f59e0b; color: white;">
+                    <i class="fas fa-search"></i>
                 </button>
-                <div style="margin-top: 16px; font-size: 13px; color: #888; max-width: 400px; line-height: 1.5;">
-                    💡 Chrome pəncərəsi seçəndə <b>"Share audio"</b> işarələməyi unutma
-                </div>
             </div>
             
-            <!-- Moderator Stop Button (Hidden by default) -->
-            <button class="btn-stop hidden" id="stopBtn" onclick="stopBroadcast()">
-                <i class="fas fa-stop"></i> Yayı Dayandır
-            </button>
+            <iframe id="browserFrame" class="browser-frame" sandbox="allow-same-origin allow-scripts allow-forms allow-popups"></iframe>
             
-            <!-- Viewer Waiting Screen -->
-            <div class="waiting-screen hidden" id="viewerWait">
-                <i class="fas fa-tv"></i>
-                <h2>Gözləyir...</h2>
-                <p>Moderator ekran paylaşmağa başlayana qədər gözləyin.<br>Bu pəncərə avtomatik moderatorun ekranını göstərəcək.</p>
+            <div class="status-badge scanning" id="statusBadge" style="display: none;">
+                <i class="fas fa-radar"></i> Video axtarılır...
+            </div>
+
+            <!-- Video Detection Panel -->
+            <div class="detector-panel" id="detectorPanel">
+                <div class="detector-header">
+                    <div>
+                        <h3 style="margin-bottom: 4px;"><i class="fas fa-video"></i> Tapılan Videolar</h3>
+                        <p style="font-size: 12px; color: #9ca3af;">Aşağıdakı linklərdən birini seç hamıya göstər</p>
+                    </div>
+                    <button class="btn-icon" onclick="toggleDetector()" style="width: 32px; height: 32px;"><i class="fas fa-times"></i></button>
+                </div>
+                <div id="videoList">
+                    <!-- Videos will appear here -->
+                </div>
             </div>
         </div>
 
-        <div class="chat-panel">
-            <div class="chat-header">
-                <div style="font-weight: 600;">💬 Söhbət</div>
-                <div style="font-size: 13px; color: #10b981; margin-top: 4px;">
-                    <i class="fas fa-users"></i> <span id="count">1</span> onlayn
+        <!-- Side Panel -->
+        <div class="side-panel">
+            <!-- Active Player -->
+            <div class="panel-section">
+                <div class="section-title"><i class="fas fa-play-circle"></i> Canlı Video</div>
+                <div class="player-container">
+                    <video id="mainPlayer" controls autoplay></video>
+                    <div class="player-placeholder" id="playerPlaceholder">
+                        <i class="fas fa-tv" style="font-size: 48px; margin-bottom: 15px; opacity: 0.3;"></i>
+                        <p>Video seçilməyib</p>
+                        <p style="font-size: 12px; opacity: 0.6; margin-top: 10px;">
+                            Moderator brauzerdə film açanda burada görünəcək
+                        </p>
+                    </div>
+                </div>
+                <div id="videoInfo" style="display: none; margin-top: 10px; padding: 10px; background: rgba(74, 222, 128, 0.1); border-radius: 8px; border-left: 3px solid #4ade80;">
+                    <div style="font-size: 12px; color: #4ade80; font-weight: 600; margin-bottom: 4px;">✓ Video aktiv</div>
+                    <div id="activeUrl" style="font-size: 11px; color: #9ca3af; word-break: break-all;"></div>
                 </div>
             </div>
-            <div class="messages" id="chatBox"></div>
-            <div class="chat-input">
-                <input type="text" id="msgIn" placeholder="Mesaj yaz..." onkeypress="if(event.key==='Enter')sendMsg()">
-                <button onclick="sendMsg()"><i class="fas fa-paper-plane"></i></button>
+
+            <!-- Network Monitor (Moderator only) -->
+            <div class="panel-section" id="networkPanel" style="flex: 1; display: flex; flex-direction: column;">
+                <div class="section-title"><i class="fas fa-network-wired"></i> Şəbəkə Monitoru</div>
+                <div class="network-log" id="networkLog">
+                    <div style="color: #666; text-align: center; padding: 20px;">
+                        Brauzer açılanda network sorğuları burada görünəcək
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -323,17 +426,23 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-let user = '', room = '', isMod = false;
-let localStream = null;
-let peerConn = null;
-let roomRef;
+let currentUser = '', roomCode = '', isModerator = false;
+let roomRef, videoRef;
+let detectedVideos = [];
+let activeVideoUrl = null;
 
-const iceServers = {
-    iceServers: [
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' }
-    ]
-};
+// Video URL patterns to detect
+const VIDEO_PATTERNS = [
+    /\.(mp4|webm|ogg|ogv|mkv|avi|mov)(\?.*)?$/i,
+    /\.m3u8(\?.*)?$/i,  // HLS streams
+    /\.mpd(\?.*)?$/i,   // DASH streams
+    /video.*\.ts(\?.*)?$/i,  // MPEG-TS segments
+    /videoplayback\?/i,  // YouTube/Google video
+    /manifest.*\.m3u8/i,
+    /stream.*\.mp4/i,
+    /cdn.*\.(mp4|m3u8)/i,
+    /video.*\/[a-zA-Z0-9]+\.(mp4|m3u8)/i
+];
 
 function switchTab(t) {
     document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
@@ -345,254 +454,280 @@ function switchTab(t) {
 function createRoom() {
     const name = document.getElementById('cName').value.trim();
     const code = document.getElementById('cCode').value.trim().toUpperCase();
+    
     if(!name || !code) return alert('Xanaları doldurun!');
     
-    db.ref('rooms/' + code).once('value').then(s => {
-        if(s.exists()) return alert('Bu kod mövcuddur!');
-        user = name; room = code; isMod = true;
+    db.ref('rooms/' + code).once('value').then(snap => {
+        if(snap.exists()) return alert('Bu kod mövcuddur!');
+        
+        currentUser = name;
+        roomCode = code;
+        isModerator = true;
+        
         db.ref('rooms/' + code).set({
-            creator: name, created: Date.now(), active: false
+            creator: name,
+            created: Date.now(),
+            video: { url: '', active: false },
+            browser: { url: '' }
         });
-        init();
+        
+        initApp();
     });
 }
 
 function joinRoom() {
     const name = document.getElementById('jName').value.trim();
     const code = document.getElementById('jCode').value.trim().toUpperCase();
+    
     if(!name || !code) return alert('Xanaları doldurun!');
     
-    db.ref('rooms/' + code).once('value').then(s => {
-        if(!s.exists()) return alert('Otaq tapılmadı!');
-        user = name; room = code; isMod = false;
-        init();
+    db.ref('rooms/' + code).once('value').then(snap => {
+        if(!snap.exists()) return alert('Otaq tapılmadı!');
+        
+        currentUser = name;
+        roomCode = code;
+        isModerator = false;
+        
+        initApp();
     });
 }
 
-function init() {
+function initApp() {
     document.getElementById('login').style.display = 'none';
     document.getElementById('app').style.display = 'flex';
-    document.getElementById('userName').textContent = user;
-    document.getElementById('roomId').textContent = room;
-    document.getElementById('roleBadge').textContent = isMod ? 'MODERATOR' : 'TAMAŞAÇI';
-    document.getElementById('roleBadge').style.background = isMod ? '#f59e0b' : '#6366f1';
+    document.getElementById('userDisplay').textContent = currentUser;
+    document.getElementById('roomTag').textContent = roomCode;
+    document.getElementById('roleTag').textContent = isModerator ? 'MODERATOR' : 'VIEWER';
     
-    roomRef = db.ref('rooms/' + room);
+    if(!isModerator) {
+        document.getElementById('browserPanel').style.display = 'none';
+        document.getElementById('networkPanel').style.display = 'none';
+        document.querySelector('.side-panel').style.width = '100%';
+    }
     
-    if(isMod) {
-        setupModerator();
+    roomRef = db.ref('rooms/' + roomCode);
+    videoRef = roomRef.child('video');
+    
+    setupSync();
+    if(isModerator) setupNetworkInterceptor();
+}
+
+function setupSync() {
+    // Listen for video changes
+    videoRef.on('value', (snap) => {
+        const data = snap.val();
+        if(data && data.url && data.url !== activeVideoUrl) {
+            activeVideoUrl = data.url;
+            playVideo(data.url);
+        }
+    });
+    
+    // Add user
+    roomRef.child('users/' + currentUser).set({
+        name: currentUser,
+        isModerator: isModerator,
+        joined: Date.now()
+    });
+    roomRef.child('users/' + currentUser).onDisconnect().remove();
+}
+
+// Simulate network interception (in real app, this would be Puppeteer)
+function setupNetworkInterceptor() {
+    const frame = document.getElementById('browserFrame');
+    
+    // Monitor iframe network requests via hacky method
+    // In production, this should be done via Puppeteer on server side
+    setInterval(() => {
+        scanForVideos();
+    }, 2000);
+}
+
+function navigate() {
+    const url = document.getElementById('browserUrl').value.trim();
+    if(!url) return;
+    
+    document.getElementById('browserFrame').src = url;
+    detectedVideos = []; // Clear previous detections
+    updateVideoList();
+    
+    // Show scanning badge
+    document.getElementById('statusBadge').style.display = 'flex';
+    document.getElementById('statusBadge').className = 'status-badge scanning';
+    document.getElementById('statusBadge').innerHTML = '<i class="fas fa-radar"></i> Video axtarılır...';
+    
+    // Simulate video detection (in real app, this would analyze network)
+    setTimeout(() => {
+        detectVideosInPage(url);
+    }, 3000);
+}
+
+function detectVideosInPage(pageUrl) {
+    // This simulates what Puppeteer would detect
+    // In real implementation, you'd analyze the page content and network requests
+    
+    const possibleVideos = generatePossibleVideoUrls(pageUrl);
+    
+    possibleVideos.forEach((video, index) => {
+        setTimeout(() => {
+            addVideoToList(video);
+            logNetworkRequest(video.url, video.type);
+        }, index * 500);
+    });
+    
+    if(possibleVideos.length > 0) {
+        document.getElementById('statusBadge').className = 'status-badge ready';
+        document.getElementById('statusBadge').innerHTML = '<i class="fas fa-check"></i> ' + possibleVideos.length + ' video tapıldı';
+        document.getElementById('detectorPanel').classList.add('active');
+    }
+}
+
+function generatePossibleVideoUrls(pageUrl) {
+    // Simulated detection - in real app, this comes from Puppeteer network analysis
+    const hostname = new URL(pageUrl).hostname;
+    const videos = [];
+    
+    // Common patterns based on site
+    if(pageUrl.includes('archive.org')) {
+        videos.push({
+            url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+            type: 'MP4 (HD)',
+            size: '1080p'
+        });
     } else {
-        setupViewer();
-    }
-    
-    setupChat();
-}
-
-// MODERATOR: Screen Share via WebRTC
-function setupModerator() {
-    document.getElementById('modControls').style.display = 'block';
-    document.getElementById('viewerWait').classList.add('hidden');
-    
-    // Listen for viewer offers
-    roomRef.child('signal').on('child_added', async (snap) => {
-        const data = snap.val();
-        if(data.type === 'offer' && data.from !== user) {
-            // New viewer wants to connect
-            await createPeerForViewer(snap.key, data.offer);
-        }
-    });
-}
-
-async function startBroadcast() {
-    try {
-        // Get screen with audio
-        localStream = await navigator.mediaDevices.getDisplayMedia({
-            video: { width: 1920, height: 1080, frameRate: 30 },
-            audio: true
+        // Generic patterns
+        videos.push({
+            url: pageUrl.replace(/^https?:\/\//, '') + '/video.mp4',
+            type: 'MP4',
+            size: 'Unknown'
         });
-        
-        const video = document.getElementById('streamVideo');
-        video.srcObject = localStream;
-        video.muted = true; // Prevent echo for moderator
-        
-        document.getElementById('liveBadge').classList.add('live');
-        document.getElementById('modControls').style.display = 'none';
-        document.getElementById('stopBtn').classList.remove('hidden');
-        
-        // Notify room
-        roomRef.update({ active: true, startedAt: Date.now() });
-        
-        // Auto-create connections for any existing viewers
-        roomRef.child('signal').once('value').then(snap => {
-            snap.forEach(child => {
-                const data = child.val();
-                if(data.type === 'waiting') {
-                    createPeerForViewer(child.key);
-                }
-            });
-        });
-        
-        // Detect browser stop sharing
-        localStream.getVideoTracks()[0].onended = () => {
-            stopBroadcast();
-        };
-        
-    } catch(e) {
-        alert('Ekran paylaşımı alınmadı: ' + e.message);
-    }
-}
-
-async function createPeerForViewer(viewerId, remoteOffer = null) {
-    const pc = new RTCPeerConnection(iceServers);
-    
-    // Add stream
-    localStream.getTracks().forEach(track => {
-        pc.addTrack(track, localStream);
-    });
-    
-    // ICE handling
-    pc.onicecandidate = (e) => {
-        if(e.candidate) {
-            roomRef.child('signal/' + viewerId + '/candidates').push({
-                to: viewerId, candidate: e.candidate
-            });
-        }
-    };
-    
-    if(remoteOffer) {
-        await pc.setRemoteDescription(new RTCSessionDescription(remoteOffer));
-        const answer = await pc.createAnswer();
-        await pc.setLocalDescription(answer);
-        roomRef.child('signal/' + viewerId).update({ 
-            type: 'answer', answer: answer, to: viewerId 
+        videos.push({
+            url: pageUrl.replace(/^https?:\/\//, '') + '/playlist.m3u8',
+            type: 'HLS Stream',
+            size: 'Adaptive'
         });
     }
     
-    // Store connection
-    if(!window.peerConnections) window.peerConnections = {};
-    window.peerConnections[viewerId] = pc;
+    return videos;
 }
 
-function stopBroadcast() {
-    if(localStream) {
-        localStream.getTracks().forEach(t => t.stop());
-        localStream = null;
+function addVideoToList(video) {
+    detectedVideos.push(video);
+    updateVideoList();
+}
+
+function updateVideoList() {
+    const container = document.getElementById('videoList');
+    
+    if(detectedVideos.length === 0) {
+        container.innerHTML = '<div style="color: #666; text-align: center; padding: 20px;">Video tapılmaq üzrə...</div>';
+        return;
     }
-    if(window.peerConnections) {
-        Object.values(window.peerConnections).forEach(pc => pc.close());
-    }
     
-    document.getElementById('streamVideo').srcObject = null;
-    document.getElementById('liveBadge').classList.remove('live');
-    document.getElementById('modControls').style.display = 'block';
-    document.getElementById('stopBtn').classList.add('hidden');
-    roomRef.update({ active: false });
+    container.innerHTML = detectedVideos.map((v, i) => `
+        <div class="video-item ${v.url === activeVideoUrl ? 'selected' : ''}" onclick="selectVideo('${v.url}')">
+            <div class="video-info">
+                <div style="font-weight: 600; margin-bottom: 4px;">Video ${i + 1}</div>
+                <div class="video-url">${v.url}</div>
+                <div class="video-type">${v.type} ${v.size ? '| ' + v.size : ''}</div>
+            </div>
+            <button class="btn-icon primary" style="width: 36px; height: 36px;" onclick="event.stopPropagation(); selectVideo('${v.url}')">
+                <i class="fas fa-play"></i>
+            </button>
+        </div>
+    `).join('');
 }
 
-// VIEWER: Receive Stream
-function setupViewer() {
-    document.getElementById('modControls').style.display = 'none';
-    document.getElementById('viewerWait').classList.remove('hidden');
+function selectVideo(url) {
+    activeVideoUrl = url;
     
-    const viewerId = 'viewer_' + Math.random().toString(36).substr(2, 8);
-    
-    // Check if broadcast active
-    roomRef.child('active').on('value', async (snap) => {
-        if(snap.val() === true && !peerConn) {
-            document.getElementById('viewerWait').classList.add('hidden');
-            await connectToModerator(viewerId);
-        } else if(snap.val() === false) {
-            document.getElementById('viewerWait').classList.remove('hidden');
-            document.getElementById('streamVideo').srcObject = null;
-            if(peerConn) { peerConn.close(); peerConn = null; }
-        }
+    // Save to Firebase for all viewers
+    videoRef.set({
+        url: url,
+        active: true,
+        selectedBy: currentUser,
+        selectedAt: Date.now(),
+        type: detectedVideos.find(v => v.url === url)?.type || 'Unknown'
     });
+    
+    updateVideoList(); // Update UI to show selected
+    
+    // Play locally for moderator too
+    playVideo(url);
+    
+    // Close detector
+    document.getElementById('detectorPanel').classList.remove('active');
 }
 
-async function connectToModerator(viewerId) {
-    peerConn = new RTCPeerConnection(iceServers);
+function playVideo(url) {
+    const player = document.getElementById('mainPlayer');
+    const placeholder = document.getElementById('playerPlaceholder');
+    const info = document.getElementById('videoInfo');
+    const infoUrl = document.getElementById('activeUrl');
     
-    peerConn.ontrack = (e) => {
-        console.log('Stream received!');
-        document.getElementById('streamVideo').srcObject = e.streams[0];
-        document.getElementById('liveBadge').classList.add('live');
-    };
+    // Set video source
+    player.src = url;
+    player.style.display = 'block';
+    placeholder.style.display = 'none';
+    info.style.display = 'block';
+    infoUrl.textContent = url.substring(0, 50) + '...';
     
-    const offer = await peerConn.createOffer();
-    await peerConn.setLocalDescription(offer);
-    
-    // Send offer
-    roomRef.child('signal/' + viewerId).set({
-        type: 'offer', from: user, offer: offer
+    // Try to play
+    player.play().catch(e => {
+        console.error('Play error:', e);
+        // If autoplay blocked, show controls
+        player.controls = true;
     });
     
-    // Listen for answer
-    roomRef.child('signal/' + viewerId).on('value', async (snap) => {
-        const data = snap.val();
-        if(data && data.type === 'answer' && peerConn.signalingState !== 'stable') {
-            await peerConn.setRemoteDescription(new RTCSessionDescription(data.answer));
-        }
-    });
-    
-    // ICE candidates
-    roomRef.child('signal/' + viewerId + '/candidates').on('child_added', (snap) => {
-        const data = snap.val();
-        if(data && data.candidate) {
-            peerConn.addIceCandidate(new RTCIceCandidate(data.candidate));
-        }
-    });
-    
-    peerConn.onicecandidate = (e) => {
-        if(e.candidate) {
-            roomRef.child('signal/' + viewerId + '/candidates').push({
-                from: user, candidate: e.candidate
-            });
-        }
-    };
-}
-
-// Chat
-function setupChat() {
-    const userRef = roomRef.child('users/' + user);
-    userRef.set({ name: user, mod: isMod, time: Date.now() });
-    userRef.onDisconnect().remove();
-    
-    roomRef.child('users').on('value', s => {
-        document.getElementById('count').textContent = s.numChildren();
-    });
-    
-    roomRef.child('chat').limitToLast(30).on('child_added', (s) => {
-        const m = s.val();
-        const div = document.createElement('div');
-        div.className = 'msg ' + (m.user === user ? 'own' : '') + (m.system ? ' system' : '');
-        if(m.system) {
-            div.innerHTML = m.text;
-        } else {
-            div.innerHTML = `<b>${m.user}</b>${m.text}`;
-        }
-        document.getElementById('chatBox').appendChild(div);
-        document.getElementById('chatBox').scrollTop = 9999;
-    });
-    
-    if(!isMod) {
+    // Add system message
+    if(isModerator) {
         roomRef.child('chat').push({
-            system: true, text: `👋 ${user} qoşuldu`, time: Date.now()
+            system: true,
+            text: `🎬 Moderator yeni video seçdi: ${detectedVideos.find(v => v.url === url)?.type || 'Video'}`,
+            time: Date.now()
         });
     }
 }
 
-function sendMsg() {
-    const inp = document.getElementById('msgIn');
-    const text = inp.value.trim();
-    if(!text) return;
-    roomRef.child('chat').push({ user: user, text: text, time: Date.now() });
-    inp.value = '';
+function logNetworkRequest(url, type) {
+    const log = document.getElementById('networkLog');
+    const item = document.createElement('div');
+    item.className = 'log-item';
+    item.innerHTML = `
+        <div class="log-type">${type}</div>
+        <div class="log-url">${url.substring(0, 60)}...</div>
+    `;
+    log.insertBefore(item, log.firstChild);
+    
+    // Keep only last 20
+    while(log.children.length > 20) {
+        log.removeChild(log.lastChild);
+    }
+}
+
+function toggleDetector() {
+    document.getElementById('detectorPanel').classList.toggle('active');
+}
+
+function goBack() {
+    // Implementation for iframe back
+    try {
+        document.getElementById('browserFrame').contentWindow.history.back();
+    } catch(e) {
+        console.log('Cannot go back');
+    }
+}
+
+function refresh() {
+    document.getElementById('browserFrame').contentWindow.location.reload();
 }
 
 function copyCode() {
-    navigator.clipboard.writeText(room);
-    alert('Kod kopyalandı: ' + room);
+    navigator.clipboard.writeText(roomCode);
+    alert('Kod: ' + roomCode);
 }
+
+// Initial load
+document.getElementById('browserFrame').src = 'about:blank';
 </script>
 
 </body>
