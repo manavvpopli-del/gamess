@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Duel - Multiplayer Atışma</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            touch-action: none;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        body {
+            background: #1a1a2e;
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+        }
+
+        #gameContainer {
+            width: 100%;
+            height: 100vh;
+            position: relative;
+            background: linear-gradient(to bottom, #16213e 0%, #0f3460 100%);
+        }
+
+        #weaponSelect {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .weapon-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            padding: 20px;
+            max-width: 900px;
+            width: 100%;
+        }
+
+        .weapon-card {
+            background: linear-gradient(145deg, #1e3c72 0%, #2a5298 100%);
+            border-radius: 20px;
+            padding: 25px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 3px solid transparent;
+        }
+
+        .weapon-card:hover, .weapon-card.selected {
+            border-color: #00ff88;
+            transform: translateY(-5px);
+        }
+
+        .weapon-icon { font-size: 50px; margin-bottom: 10px; }
+        .weapon-name { font-size: 22px; color: white; font-weight: bold; margin-bottom: 10px; }
+        .weapon-stats { color: #bdc3c7; font-size: 13px; margin: 3px 0; }
+
+        .ready-btn {
+            margin-top: 30px;
+            padding: 20px 60px;
+            font-size: 24px;
+            background: #e94560;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .ready-btn:disabled { background: #555; cursor: not-allowed; }
+
+        #battleField {
+            display: none;
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        .ground {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 30%;
+            background: linear-gradient(to bottom, #2c3e50 0%, #1a252f 100%);
+        }
+
+        .wall {
+            position: absolute;
+            bottom: 25%;
+            width: 60px;
+            height: 140px;
+            background: #7f8c8d;
+            border: 3px solid #2c3e50;
+            border-radius: 5px;
+        }
+
+        .wall-left { left: 15%; }
+        .wall-right { right: 15%; }
+
+        .player {
+            position: absolute;
+            bottom: 30%;
+            width: 60px;
+            height: 100px;
+            transition: all 0.2s;
+        }
+
+        .player-left { left: 17%; }
+        .player-right { right: 17%; transform: scaleX(-1); }
+
+        .player-body {
+            width: 100%;
+            height: 100%;
+            background: #3498db;
+            border-radius: 10px;
+            position: relative;
+        }
+
+        .player-right .player-body { background: #e74c3c; }
+
+        .player-head {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 40px;
+            background: #f1c40f;
+            border-radius: 50%;
+        }
+
+        .covered { transform: translateY(50px) scale(0.8); opacity: 0.7; }
+        .player-right.covered { transform: translateY(50px) scaleX(-1) scale(0.8); }
+
+        .health-bar {
+            position: absolute;
+            top: 20px;
+            width: 200px;
+            height: 25px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 15px;
+            overflow: hidden;
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+
+        .health-left { left: 20px; }
+        .health-right { right: 20px; }
+
+        .health-fill {
+            height: 100%;
+            background: #00ff88;
+            transition: width 0.3s;
+        }
+
+        .health-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 30px;
+            z-index: 100;
+        }
+
+        .control-btn {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            border: 3px solid white;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .control-btn:active { background: rgba(233, 69, 96, 0.5); }
+
+        .bullet {
+            position: absolute;
+            width: 10px;
+            height: 4px;
+            background: #f1c40f;
+            border-radius: 2px;
+            z-index: 10;
+        }
+
+        #gameOver {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 200;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            color: white;
+        }
+
+        .winner-text { font-size: 40px; font-weight: bold; margin-bottom: 20px; }
+
+        @media (max-width: 768px) {
+            .weapon-grid { grid-template-columns: 1fr; }
+            .control-btn { width: 80px; height: 80px; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="gameContainer">
+    <div id="weaponSelect">
+        <h1 style="color: #e94560; font-size: 36px;">DUEL</h1>
+        <p style="color: white; margin-bottom: 20px;">Silahını seç</p>
+        
+        <div class="weapon-grid">
+            <div class="weapon-card" onclick="selectWeapon('akm')" id="card-akm">
+                <div class="weapon-icon">🔫</div>
+                <div class="weapon-name">AKM</div>
+                <div class="weapon-stats">Zərər: 15 (Güclü)</div>
+                <div class="weapon-stats">Atəş: Yavaş</div>
+            </div>
+            
+            <div class="weapon-card" onclick="selectWeapon('m416')" id="card-m416">
+                <div class="weapon-icon">🔫</div>
+                <div class="weapon-name">M416</div>
+                <div class="weapon-stats">Zərər: 10 (Orta)</div>
+                <div class="weapon-stats">Atəş: Orta</div>
+            </div>
+            
+            <div class="weapon-card" onclick="selectWeapon('scar')" id="scar">
+                <div class="weapon-icon">🔫</div>
+                <div class="weapon-name">SCAR-L</div>
+                <div class="weapon-stats">Zərər: 8 (Zəif)</div>
+                <div class="weapon-stats">Atəş: Sürətli</div>
+            </div>
+        </div>
+        
+        <button class="ready-btn" id="readyBtn" onclick="confirmReady()" disabled>Hazırlan</button>
+        <div id="waitingText" style="display:none; color: #f1c40f; margin-top: 20px;">Rəqib gözlənilir...</div>
+    </div>
+
+    <div id="battleField">
+        <div class="health-bar health-left">
+            <div class="health-fill" id="health1" style="width: 100%;"></div>
+            <div class="health-text">100 HP</div>
+        </div>
+        
+        <div class="health-bar health-right">
+            <div class="health-fill" id="health2" style="width: 100%; background: #ff6b6b;"></div>
+            <div class="health-text">100 HP</div>
+        </div>
+        
+        <div class="wall wall-left"></div>
+        <div class="wall wall-right"></div>
+        
+        <div class="player player-left covered" id="player1">
+            <div class="player-head"></div>
+            <div class="player-body"></div>
+        </div>
+        
+        <div class="player player-right covered" id="player2">
+            <div class="player-head"></div>
+            <div class="player-body"></div>
+        </div>
+        
+        <div class="ground"></div>
+        
+        <div class="controls">
+            <button class="control-btn" onmousedown="toggleCover(false)" onmouseup="toggleCover(true)" ontouchstart="toggleCover(false)" ontouchend="toggleCover(true)">
+                Qalx<br>🛡️
+            </button>
+            
+            <button class="control-btn" onclick="shoot()" style="background: rgba(231, 76, 60, 0.4);">
+                Atəş<br>🔥
+            </button>
+        </div>
+    </div>
+
+    <div id="gameOver">
+        <div class="winner-text" id="winnerText">Qalib!</div>
+        <button class="ready-btn" onclick="location.reload()">Yeni Oyun</button>
+    </div>
+</div>
+
+<script>
+    // Firebase Config - PSIX ilə eyni
+    const firebaseConfig = {
+        apiKey: "AIzaSyCM5WdZNSj9oFipNI-J3csHpOIvK8PjoLU",
+        authDomain: "sevgili-testi.firebaseapp.com",
+        databaseURL: "https://sevgili-testi-default-rtdb.firebaseio.com",
+        projectId: "sevgili-testi",
+        storageBucket: "sevgili-testi.firebasestorage.app",
+        messagingSenderId: "399260477557",
+        appId: "1:399260477557:web:584204a698d7bf145bb03c"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    let roomId = null;
+    let playerNum = null;
+    let selectedWeapon = null;
+    let isCovering = true;
+    let gameActive = false;
+    
+    const weapons = {
+        akm: { damage: 15, rate: 800 },
+        m416: { damage: 10, rate: 500 },
+        scar: { damage: 8, rate: 300 }
+    };
+
+    // Otaq kodu yarat
+    roomId = Math.floor(1000 + Math.random() * 9000).toString();
+    alert("Otaq kodunuz: " + roomId + "\n\nBu kodu dostunuza deyin!");
+
+    db.ref('duel_rooms/' + roomId).once('value').then((snapshot) => {
+        if (!snapshot.val() || !snapshot.val().player1) {
+            playerNum = 1;
+            db.ref('duel_rooms/' + roomId + '/player1').set({ joined: true });
+        } else {
+            playerNum = 2;
+            db.ref('duel_rooms/' + roomId + '/player2').set({ joined: true });
+        }
+        
+        db.ref('duel_rooms/' + roomId).on('value', (snap) => {
+            const data = snap.val();
+            if (!data) return;
+            
+            if (data.weapon1 && data.weapon2 && !gameActive) {
+                startBattle(data);
+            }
+            
+            if (gameActive) syncGame(data);
+        });
+    });
+
+    function selectWeapon(type) {
+        selectedWeapon = type;
+        document.querySelectorAll('.weapon-card').forEach(c => c.classList.remove('selected'));
+        document.getElementById('card-' + type).classList.add('selected');
+        document.getElementById('readyBtn').disabled = false;
+    }
+
+    function confirmReady() {
+        db.ref('duel_rooms/' + roomId + '/weapon' + playerNum).set(selectedWeapon);
+        document.getElementById('readyBtn').style.display = 'none';
+        document.getElementById('waitingText').style.display = 'block';
+    }
+
+    function startBattle(data) {
+        gameActive = true;
+        document.getElementById('weaponSelect').style.display = 'none';
+        document.getElementById('battleField').style.display = 'block';
+        
+        if (playerNum === 1) {
+            db.ref('duel_rooms/' + roomId).update({ 
+                health1: 100, 
+                health2: 100,
+                started: true 
+            });
+        }
+    }
+
+    function toggleCover(cover) {
+        if (!gameActive) return;
+        isCovering = cover;
+        
+        const player = document.getElementById('player' + playerNum);
+        if (cover) player.classList.add('covered');
+        else player.classList.remove('covered');
+        
+        db.ref('duel_rooms/' + roomId + '/cover' + playerNum).set(cover);
+    }
+
+    let lastShot = 0;
+    function shoot() {
+        if (!gameActive || isCovering) return;
+        
+        const now = Date.now();
+        const rate = weapons[selectedWeapon].rate;
+        if (now - lastShot < rate) return;
+        lastShot = now;
+        
+        // Səs
+        playSound();
+        
+        // Güllə animasiyası
+        const bullet = document.createElement('div');
+        bullet.className = 'bullet';
+        const startX = playerNum === 1 ? window.innerWidth * 0.2 : window.innerWidth * 0.8;
+        const endX = playerNum === 1 ? window.innerWidth * 0.8 : window.innerWidth * 0.2;
+        bullet.style.left = startX + 'px';
+        bullet.style.bottom = '35%';
+        document.getElementById('battleField').appendChild(bullet);
+        
+        bullet.animate([{ left: startX + 'px' }, { left: endX + 'px' }], { 
+            duration: 300, 
+            easing: 'linear' 
+        }).onfinish = () => {
+            bullet.remove();
+            checkHit();
+        };
+    }
+
+    function checkHit() {
+        const enemy = playerNum === 1 ? 2 : 1;
+        db.ref('duel_rooms/' + roomId + '/cover' + enemy).once('value').then((snap) => {
+            if (!snap.val()) {
+                // Vuruldu
+                const dmg = weapons[selectedWeapon].damage;
+                const hKey = 'health' + enemy;
+                db.ref('duel_rooms/' + roomId + '/' + hKey).once('value').then((h) => {
+                    let newHealth = (h.val() || 100) - 10;
+                    if (newHealth <= 0) {
+                        newHealth = 0;
+                        endGame(playerNum);
+                    }
+                    db.ref('duel_rooms/' + roomId + '/' + hKey).set(newHealth);
+                });
+            }
+        });
+    }
+
+    function syncGame(data) {
+        // Canları yenilə
+        if (data.health1 !== undefined) {
+            document.getElementById('health1').style.width = data.health1 + '%';
+        }
+        if (data.health2 !== undefined) {
+            document.getElementById('health2').style.width = data.health2 + '%';
+        }
+        
+        // Cover vəziyyətini yenilə
+        if (data.cover1 !== undefined) {
+            const p1 = document.getElementById('player1');
+            if (data.cover1) p1.classList.add('covered');
+            else p1.classList.remove('covered');
+        }
+        if (data.cover2 !== undefined) {
+            const p2 = document.getElementById('player2');
+            if (data.cover2) p2.classList.add('covered');
+            else p2.classList.remove('covered');
+        }
+    }
+
+    function endGame(winner) {
+        gameActive = false;
+        document.getElementById('gameOver').style.display = 'flex';
+        document.getElementById('winnerText').textContent = winner === playerNum ? 'Qələbə! 🏆' : 'Məğlubiyyət';
+    }
+
+    function playSound() {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioContext();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        
+        if (selectedWeapon === 'akm') {
+            oscillator.frequency.setValueAtTime(150, audioCtx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.1);
+        } else if (selectedWeapon === 'm416') {
+            oscillator.frequency.setValueAtTime(300, audioCtx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(80, audioCtx.currentTime + 0.08);
+        } else {
+            oscillator.frequency.setValueAtTime(400, audioCtx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.06);
+        }
+        
+        gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + 0.15);
+    }
+
+    // Klaviatura kontrolu
+    document.addEventListener('keydown', (e) => {
+        if (e.code === 'Space') shoot();
+        if (e.code === 'ArrowUp' || e.code === 'KeyW') toggleCover(false);
+    });
+    
+    document.addEventListener('keyup', (e) => {
+        if (e.code === 'ArrowUp' || e.code === 'KeyW') toggleCover(true);
+    });
+</script>
+
+</body>
+</html>
