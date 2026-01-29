@@ -3,166 +3,361 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Film Party - Birlikdə İzlə</title>
+    <title>Premium Film Party</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
+        :root {
+            --primary: #6366f1;
+            --secondary: #8b5cf6;
+            --accent: #ec4899;
+            --dark: #0f172a;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
             color: #fff;
             height: 100vh;
             overflow: hidden;
         }
 
-        /* Login Screen */
+        /* Premium Login */
         #loginScreen {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 1000;
+            backdrop-filter: blur(20px);
         }
         
         .login-box {
-            background: rgba(255,255,255,0.95);
-            padding: 40px;
-            border-radius: 20px;
-            text-align: center;
-            color: #333;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            max-width: 400px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 50px;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
             width: 90%;
+            max-width: 450px;
+            text-align: center;
+            color: #1e293b;
+            position: relative;
+            overflow: hidden;
         }
         
-        .login-box h1 { color: #764ba2; margin-bottom: 10px; font-size: 32px; }
-        .login-box input {
+        .login-box::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+        }
+        
+        .login-box h1 { 
+            font-size: 36px; 
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .input-group {
+            position: relative;
+            margin: 25px 0;
+        }
+        
+        .input-group input {
             width: 100%;
-            padding: 15px;
-            margin: 20px 0;
-            border: 2px solid #ddd;
-            border-radius: 10px;
+            padding: 16px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
             font-size: 16px;
-            outline: none;
+            transition: all 0.3s;
+            background: #f8fafc;
         }
-        .login-box input:focus { border-color: #764ba2; }
         
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .btn-premium {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
             color: white;
             border: none;
-            padding: 15px 30px;
-            border-radius: 25px;
+            border-radius: 12px;
             font-size: 16px;
-            font-weight: bold;
+            font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s;
-            width: 100%;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
         }
-        .btn-primary:hover { transform: translateY(-2px); }
+        
+        .btn-premium:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.4);
+        }
+        
+        .btn-premium:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
 
         /* Main Layout */
         #app { display: none; height: 100vh; flex-direction: column; }
-        
+
         .top-bar {
-            background: rgba(0,0,0,0.3);
-            backdrop-filter: blur(10px);
-            padding: 15px 20px;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 16px 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            z-index: 100;
         }
         
-        .logo { font-size: 24px; font-weight: bold; display: flex; align-items: center; gap: 10px; }
-        
-        .room-controls {
+        .brand {
             display: flex;
-            gap: 10px;
             align-items: center;
+            gap: 12px;
+            font-size: 24px;
+            font-weight: 700;
         }
         
-        .room-code {
-            background: rgba(255,255,255,0.1);
+        .brand i { color: var(--accent); }
+        
+        .room-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            background: rgba(0,0,0,0.2);
             padding: 8px 16px;
-            border-radius: 20px;
-            font-family: monospace;
-            font-size: 14px;
-            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 50px;
+            border: 1px solid var(--glass-border);
         }
         
-        .btn-secondary {
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.2);
-            color: white;
-            padding: 8px 16px;
+        .user-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: #94a3b8;
+        }
+        
+        .user-badge .moderator {
+            color: #fbbf24;
+            font-weight: 600;
+        }
+        
+        .room-id {
+            font-family: 'Courier New', monospace;
+            background: rgba(99, 102, 241, 0.2);
+            color: #c7d2fe;
+            padding: 6px 12px;
             border-radius: 8px;
+            font-size: 13px;
             cursor: pointer;
             transition: all 0.3s;
-            font-size: 13px;
+            border: 1px solid rgba(99, 102, 241, 0.3);
         }
-        .btn-secondary:hover { background: rgba(255,255,255,0.2); }
+        
+        .room-id:hover {
+            background: rgba(99, 102, 241, 0.3);
+            transform: translateY(-1px);
+        }
 
         .main-layout {
             display: flex;
             flex: 1;
             overflow: hidden;
+            gap: 1px;
+            background: var(--glass-border);
         }
 
-        /* Left Side - Video Area */
+        /* Video Section */
         .video-section {
             flex: 1;
             display: flex;
             flex-direction: column;
-            padding: 20px;
-            gap: 15px;
+            background: var(--dark);
+            position: relative;
         }
 
         .video-container {
             flex: 1;
-            background: #000;
-            border-radius: 15px;
-            overflow: hidden;
             position: relative;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
         }
-
+        
         video {
             width: 100%;
             height: 100%;
-            object-fit: contain;
-        }
-
-        /* Browser Mode Overlay */
-        .browser-overlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: #1a1a2e;
-            display: none;
-            flex-direction: column;
-            z-index: 50;
+            max-height: calc(100vh - 200px);
         }
         
-        .browser-toolbar {
-            background: #16213e;
-            padding: 10px;
+        .sync-status {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px);
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-size: 13px;
             display: flex;
-            gap: 10px;
             align-items: center;
+            gap: 8px;
+            border: 1px solid rgba(255,255,255,0.1);
+            z-index: 10;
+        }
+        
+        .sync-dot {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+
+        /* Video Controls - Moderator Only */
+        .video-controls {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid var(--glass-border);
+            padding: 20px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .control-group {
+            display: flex;
+            gap: 8px;
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .video-input {
+            flex: 1;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--glass-border);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .video-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(0,0,0,0.5);
+        }
+        
+        .btn-control {
+            padding: 12px 20px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+        
+        .btn-control:hover {
+            background: var(--secondary);
+            transform: translateY(-1px);
+        }
+        
+        .btn-control.secondary {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid var(--glass-border);
+        }
+        
+        .btn-control.secondary:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .moderator-badge {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-left: auto;
+        }
+        
+        .viewer-message {
+            color: #94a3b8;
+            font-size: 13px;
+            font-style: italic;
+            width: 100%;
+            text-align: center;
+            padding: 10px;
+        }
+
+        /* Integrated Browser */
+        .browser-panel {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--dark);
+            z-index: 50;
+            display: none;
+            flex-direction: column;
+        }
+        
+        .browser-header {
+            background: rgba(15, 23, 42, 0.95);
+            padding: 12px 20px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            border-bottom: 1px solid var(--glass-border);
         }
         
         .browser-input {
             flex: 1;
-            background: #0f3460;
-            border: none;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--glass-border);
             color: white;
-            padding: 10px 15px;
-            border-radius: 20px;
-            outline: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 14px;
         }
         
         .browser-frame {
@@ -171,200 +366,231 @@
             width: 100%;
             background: white;
         }
-
-        /* Control Tabs */
-        .controls {
-            background: rgba(255,255,255,0.05);
-            border-radius: 15px;
-            padding: 15px;
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
         
-        .tab-btn {
-            background: rgba(255,255,255,0.1);
-            border: none;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .tab-btn.active { background: #e94560; }
-        .tab-btn:hover:not(.active) { background: rgba(255,255,255,0.2); }
-
-        .url-input-group {
-            display: flex;
-            gap: 10px;
-            flex: 1;
-            min-width: 300px;
-        }
-        
-        .url-input {
-            flex: 1;
-            background: rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,255,255,0.2);
-            color: white;
-            padding: 10px 15px;
-            border-radius: 8px;
-            outline: none;
-        }
-
-        /* Movie Library */
-        .movie-library {
-            display: none;
+        .video-detector {
             position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95);
-            z-index: 40;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.95);
             padding: 20px;
-            overflow-y: auto;
+            border-radius: 16px;
+            border: 1px solid var(--primary);
+            text-align: center;
+            display: none;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            max-width: 400px;
+            width: 90%;
         }
-        
-        .library-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        
-        .movie-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 20px;
-        }
-        
-        .movie-card {
-            background: rgba(255,255,255,0.1);
-            border-radius: 10px;
-            overflow: hidden;
-            cursor: pointer;
-            transition: transform 0.3s;
-            border: 2px solid transparent;
-        }
-        .movie-card:hover { transform: scale(1.05); border-color: #e94560; }
-        .movie-thumb {
-            width: 100%;
-            height: 280px;
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 48px;
-        }
-        .movie-info { padding: 15px; }
-        .movie-title { font-weight: bold; margin-bottom: 5px; }
-        .movie-year { font-size: 12px; opacity: 0.7; }
 
-        /* Right Side - Chat */
-        .sidebar {
-            width: 350px;
-            background: rgba(0,0,0,0.2);
-            border-left: 1px solid rgba(255,255,255,0.1);
+        /* Premium Chat Sidebar */
+        .chat-sidebar {
+            width: 380px;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
             display: flex;
             flex-direction: column;
+            border-left: 1px solid var(--glass-border);
         }
         
         .chat-header {
             padding: 20px;
-            background: rgba(255,255,255,0.05);
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 1px solid var(--glass-border);
+            background: rgba(0,0,0,0.2);
         }
         
-        .online-users { 
-            display: flex; 
-            align-items: center; 
-            gap: 5px; 
-            font-size: 14px; 
-            color: #4ecca3;
-            margin-top: 5px;
+        .chat-title {
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         
-        .chat-messages {
+        .online-count {
+            font-size: 12px;
+            color: #10b981;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .messages-container {
             flex: 1;
             overflow-y: auto;
             padding: 20px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 16px;
+            scroll-behavior: smooth;
         }
         
         .message {
-            background: rgba(255,255,255,0.1);
-            padding: 12px;
-            border-radius: 12px;
             max-width: 85%;
-            word-wrap: break-word;
+            animation: messageSlide 0.3s ease;
         }
+        
+        @keyframes messageSlide {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .message-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+            padding: 0 4px;
+        }
+        
+        .message-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: white;
+        }
+        
+        .message-author {
+            font-weight: 600;
+            font-size: 13px;
+            color: #e2e8f0;
+        }
+        
+        .message-time {
+            font-size: 11px;
+            color: #64748b;
+        }
+        
+        .message-bubble {
+            background: rgba(255,255,255,0.08);
+            padding: 12px 16px;
+            border-radius: 18px;
+            border-bottom-left-radius: 4px;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #f1f5f9;
+            word-wrap: break-word;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        
         .message.own {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             align-self: flex-end;
         }
-        .message-user { font-size: 12px; opacity: 0.8; margin-bottom: 4px; font-weight: bold; }
-        .message-text { font-size: 14px; line-height: 1.4; }
-        .message-time { font-size: 10px; opacity: 0.6; margin-top: 4px; text-align: right; }
+        
+        .message.own .message-bubble {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-bottom-right-radius: 4px;
+            border-bottom-left-radius: 18px;
+            color: white;
+        }
+        
+        .message.own .message-header {
+            flex-direction: row-reverse;
+        }
+        
+        .message.system {
+            align-self: center;
+            max-width: 90%;
+        }
+        
+        .message.system .message-bubble {
+            background: rgba(245, 158, 11, 0.15);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            color: #fbbf24;
+            font-size: 13px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            text-align: center;
+        }
+        
+        .message.system .message-header { display: none; }
 
-        .chat-input-area {
+        .chat-input-wrapper {
             padding: 20px;
-            background: rgba(255,255,255,0.05);
+            background: rgba(0,0,0,0.2);
+            border-top: 1px solid var(--glass-border);
+        }
+        
+        .chat-input-container {
             display: flex;
-            gap: 10px;
+            gap: 12px;
+            background: rgba(255,255,255,0.05);
+            padding: 6px;
+            border-radius: 24px;
+            border: 1px solid var(--glass-border);
+            transition: all 0.3s;
+        }
+        
+        .chat-input-container:focus-within {
+            border-color: var(--primary);
+            background: rgba(255,255,255,0.08);
         }
         
         .chat-input {
             flex: 1;
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.2);
+            background: transparent;
+            border: none;
             color: white;
-            padding: 12px;
-            border-radius: 20px;
+            padding: 10px 16px;
+            font-size: 14px;
             outline: none;
         }
-
-        /* Status Badge */
-        .sync-indicator {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(0,0,0,0.8);
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-size: 13px;
+        
+        .chat-input::placeholder { color: #64748b; }
+        
+        .send-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 8px;
-            backdrop-filter: blur(10px);
-        }
-        .sync-dot {
-            width: 8px;
-            height: 8px;
-            background: #4ecca3;
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-
-        /* Paste Modal */
-        .paste-modal {
-            display: none;
-            position: fixed;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            background: #16213e;
-            padding: 30px;
-            border-radius: 15px;
-            z-index: 100;
-            border: 2px solid #e94560;
-            text-align: center;
-            max-width: 400px;
+            justify-content: center;
+            transition: all 0.3s;
         }
         
-        @media (max-width: 768px) {
-            .sidebar { width: 100%; position: fixed; bottom: 0; height: 40%; }
-            .main-layout { flex-direction: column; }
+        .send-btn:hover {
+            background: var(--secondary);
+            transform: scale(1.05);
         }
+
+        /* Responsive */
+        @media (max-width: 968px) {
+            .chat-sidebar { 
+                position: absolute; 
+                right: 0; 
+                top: 60px; 
+                bottom: 0;
+                width: 100%;
+                max-width: 400px;
+                transform: translateX(100%);
+                transition: transform 0.3s;
+                z-index: 99;
+            }
+            .chat-sidebar.open { transform: translateX(0); }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { 
+            background: rgba(255,255,255,0.2); 
+            border-radius: 4px; 
+        }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
+
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
@@ -372,12 +598,19 @@
 <!-- Login Screen -->
 <div id="loginScreen">
     <div class="login-box">
-        <h1>🎬 Film Party</h1>
-        <p style="margin-bottom: 20px; color: #666;">Dostlarınla birlikdə film izlə</p>
-        <input type="text" id="usernameInput" placeholder="Adınızı daxil edin..." maxlength="20">
-        <button class="btn-primary" onclick="joinApp()">Otağa Daxil Ol</button>
-        <p style="margin-top: 15px; font-size: 12px; color: #999;">
-            💡 Yeni otaq yaratmaq və ya linklə qoşulmaq üçün daxil olun
+        <h1><i class="fas fa-film"></i> Film Party</h1>
+        <p style="color: #64748b; margin-bottom: 30px;">Premium sinxron izləmə təcrübəsi</p>
+        
+        <div class="input-group">
+            <input type="text" id="usernameInput" placeholder="İstifadəçi adınız" maxlength="20">
+        </div>
+        
+        <button class="btn-premium" onclick="joinRoom()">
+            <i class="fas fa-sign-in-alt"></i> Otağa Qoşul
+        </button>
+        
+        <p style="margin-top: 20px; font-size: 13px; color: #94a3b8;">
+            <i class="fas fa-shield-alt"></i> Otaq yaradan moderator olur
         </p>
     </div>
 </div>
@@ -385,96 +618,121 @@
 <!-- Main App -->
 <div id="app">
     <div class="top-bar">
-        <div class="logo">
-            🎥 Film Party
-            <span style="font-size: 14px; opacity: 0.8; font-weight: normal;">| <span id="currentUser">User</span></span>
+        <div class="brand">
+            <i class="fas fa-play-circle"></i>
+            <span>Film Party</span>
         </div>
-        <div class="room-controls">
-            <div class="online-users" style="margin-right: 15px;">
-                <span style="color: #4ecca3;">●</span>
-                <span id="userCount">1</span> nəfər onlayn
+        
+        <div class="room-info">
+            <div class="user-badge">
+                <i class="fas fa-user"></i>
+                <span id="currentUserDisplay">User</span>
+                <span id="moderatorTag" class="moderator hidden">(Moderator)</span>
             </div>
-            <div class="room-code" id="roomCode">ROOM: ABC123</div>
-            <button class="btn-secondary" onclick="copyLink()">🔗 Linki Kopyala</button>
-            <button class="btn-secondary" onclick="toggleFullscreen()">⛶ Tam Ekran</button>
+            <div class="room-id" onclick="copyRoomLink()" title="Kopyalamaq üçün kliklə">
+                <i class="fas fa-copy"></i> <span id="roomIdDisplay">ROOM</span>
+            </div>
         </div>
     </div>
 
     <div class="main-layout">
+        <!-- Video Section -->
         <div class="video-section">
             <div class="video-container" id="videoContainer">
-                <video id="videoPlayer" controls>
-                    <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4">
+                <video id="videoPlayer" controls playsinline>
+                    <source src="" type="video/mp4">
                 </video>
                 
-                <!-- Browser Overlay -->
-                <div class="browser-overlay" id="browserOverlay">
-                    <div class="browser-toolbar">
-                        <button class="btn-secondary" onclick="closeBrowser()">← Geri</button>
-                        <input type="text" class="browser-input" id="browserUrl" placeholder="https://..." value="https://archive.org/details/movies">
-                        <button class="btn-primary" style="width: auto; padding: 10px 20px;" onclick="loadBrowser()">Get</button>
+                <!-- Integrated Browser -->
+                <div class="browser-panel" id="browserPanel">
+                    <div class="browser-header">
+                        <button class="btn-control secondary" onclick="closeBrowser()">
+                            <i class="fas fa-arrow-left"></i> Geri
+                        </button>
+                        <input type="text" class="browser-input" id="browserAddress" 
+                               value="https://archive.org/details/movies" 
+                               placeholder="URL daxil et..." 
+                               onkeypress="if(event.key==='Enter')loadBrowser()">
+                        <button class="btn-control" onclick="loadBrowser()">
+                            <i class="fas fa-globe"></i> Get
+                        </button>
                     </div>
-                    <iframe class="browser-frame" id="browserFrame" sandbox="allow-same-origin allow-scripts allow-forms"></iframe>
-                    <div style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.9); padding: 15px; border-radius: 10px; text-align: center;">
-                        <p style="margin-bottom: 10px;">🎬 Video tapdınız?</p>
-                        <button class="btn-primary" onclick="extractVideoFromBrowser()">Bu Linki Film Party-yə Göndər</button>
+                    <iframe id="browserFrame" class="browser-frame" sandbox="allow-same-origin allow-scripts allow-forms allow-popups"></iframe>
+                    
+                    <div class="video-detector" id="videoDetector">
+                        <i class="fas fa-video" style="font-size: 24px; color: var(--primary); margin-bottom: 10px;"></i>
+                        <h4 style="margin-bottom: 8px;">Video Tapıldı!</h4>
+                        <p style="font-size: 13px; color: #94a3b8; margin-bottom: 16px;" id="detectedVideoName">Bu linki otağa əlavə etmək istəyirsən?</p>
+                        <div style="display: flex; gap: 10px; justify-content: center;">
+                            <button class="btn-control" onclick="useDetectedVideo()">
+                                <i class="fas fa-check"></i> Bəli, Əlavə Et
+                            </button>
+                            <button class="btn-control secondary" onclick="closeVideoDetector()">
+                                <i class="fas fa-times"></i> İmtina
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Movie Library -->
-                <div class="movie-library" id="movieLibrary">
-                    <div class="library-header">
-                        <h2>🎬 Hazır Film Kitabxanası</h2>
-                        <button class="btn-secondary" onclick="closeLibrary()">Bağla ✕</button>
-                    </div>
-                    <div class="movie-grid" id="movieGrid">
-                        <!-- Movies will be loaded here -->
-                    </div>
-                </div>
-
-                <div class="sync-indicator" id="syncStatus">
+                <div class="sync-status" id="syncStatus">
                     <div class="sync-dot"></div>
-                    <span>Sinxronizasiya aktiv</span>
+                    <span id="syncText">Sinxronizasiya aktiv</span>
                 </div>
             </div>
 
-            <div class="controls">
-                <button class="tab-btn active" onclick="showTab('direct')">🔗 Direct Link</button>
-                <button class="tab-btn" onclick="showTab('browser')">🌐 Brauzer Aç</button>
-                <button class="tab-btn" onclick="showTab('library')">🎬 Film Kitabxanası</button>
-                
-                <div class="url-input-group" id="directControls">
-                    <input type="text" class="url-input" id="videoUrl" placeholder="Video linkini bura yapışdır (Chrome-dan kopyaladığın link)...">
-                    <button class="btn-primary" style="width: auto;" onclick="loadVideo()">▶️ Bax</button>
+            <!-- Moderator Controls -->
+            <div class="video-controls" id="moderatorControls">
+                <div class="control-group">
+                    <input type="text" class="video-input" id="videoUrlInput" 
+                           placeholder="Video URL (MP4, WebM) - Chrome-dan kopyaladığın linki bura yapışdır...">
+                    <button class="btn-control" onclick="loadVideo()">
+                        <i class="fas fa-play"></i> Yüklə
+                    </button>
+                    <button class="btn-control secondary" onclick="openBrowser()">
+                        <i class="fas fa-search"></i> Brauzerdə Axtar
+                    </button>
+                </div>
+                <span class="moderator-badge" id="modBadge">Moderator</span>
+            </div>
+
+            <!-- Viewer Message -->
+            <div class="video-controls" id="viewerControls" style="display: none;">
+                <div class="viewer-message">
+                    <i class="fas fa-lock"></i> Yalnız moderator video əlavə edə bilər. Video dəyişdirildikdə avtomatik sinxronizasiya olunacaq.
                 </div>
             </div>
         </div>
 
-        <div class="sidebar">
+        <!-- Premium Chat -->
+        <div class="chat-sidebar">
             <div class="chat-header">
-                <div style="font-weight: bold; margin-bottom: 5px;">💬 Söhbət</div>
-                <div style="font-size: 12px; opacity: 0.7;">Mesajlar real-time göndərilir</div>
+                <div class="chat-title">
+                    <i class="fas fa-comments"></i> Canlı Söhbət
+                </div>
+                <div class="online-count">
+                    <i class="fas fa-circle" style="font-size: 8px;"></i>
+                    <span id="onlineCount">1</span> onlayn
+                </div>
             </div>
-            <div class="chat-messages" id="chatBox"></div>
-            <div class="chat-input-area">
-                <input type="text" class="chat-input" id="messageInput" placeholder="Mesaj yaz..." onkeypress="if(event.key==='Enter') sendMessage()">
-                <button class="btn-primary" style="width: 50px; border-radius: 50%;" onclick="sendMessage()">➤</button>
+            
+            <div class="messages-container" id="messagesContainer"></div>
+            
+            <div class="chat-input-wrapper">
+                <div class="chat-input-container">
+                    <input type="text" class="chat-input" id="messageInput" 
+                           placeholder="Mesajınızı yazın..." 
+                           onkeypress="if(event.key==='Enter')sendMessage()">
+                    <button class="send-btn" onclick="sendMessage()">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Paste Detection Modal -->
-<div class="paste-modal" id="pasteModal">
-    <h3 style="margin-bottom: 15px;">🔗 Link Tapıldı!</h3>
-    <p style="margin-bottom: 20px; opacity: 0.8;">Chrome-dan kopyaladığın linki yükləmək istəyirsən?</p>
-    <div id="detectedUrl" style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; margin-bottom: 20px; word-break: break-all; font-size: 12px;"></div>
-    <button class="btn-primary" onclick="useDetectedUrl()">Bəli, Yüklə</button>
-    <button class="btn-secondary" style="margin-left: 10px;" onclick="closePasteModal()">Xeyr</button>
-</div>
-
 <script>
-// Firebase Config
+// Firebase Configuration
 const firebaseConfig = {
     apiKey: "AIzaSyCM5WdZNSj9oFipNI-J3csHpOIvK8PjoLU",
     authDomain: "sevgili-testi.firebaseapp.com",
@@ -486,28 +744,23 @@ const firebaseConfig = {
     measurementId: "G-44P21XCZ7G"
 };
 
-// Initialize
+// Initialize Firebase
 firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
+const database = firebase.database();
 
-// State
+// Global State
 let currentUser = '';
 let roomId = '';
+let isModerator = false;
 let isRemoteUpdate = false;
-let lastClipboardText = '';
+let lastSyncTime = 0;
 let detectedVideoUrl = '';
+let roomRef = null;
+let videoRef = null;
+let chatRef = null;
+let usersRef = null;
 
-// Pre-defined movies (Free/Legal sources)
-const movieDatabase = [
-    { title: "Big Buck Bunny", year: "2008", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4", icon: "🐰" },
-    { title: "Elephant Dream", year: "2006", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4", icon: "🐘" },
-    { title: "Sintel", year: "2010", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4", icon: "🗡️" },
-    { title: "Tears of Steel", year: "2012", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4", icon: "🤖" },
-    { title: "For Bigger Blazes", year: "2015", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4", icon: "🔥" },
-    { title: "For Bigger Joyrides", year: "2015", url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4", icon: "🚗" }
-];
-
-// Room Management
+// Utility Functions
 function getRoomId() {
     const params = new URLSearchParams(window.location.search);
     let room = params.get('room');
@@ -518,200 +771,271 @@ function getRoomId() {
     return room;
 }
 
-function joinApp() {
-    const name = document.getElementById('usernameInput').value.trim();
-    if (!name) return alert('Zəhmət olmasa ad daxil edin!');
-    
-    currentUser = name;
-    roomId = getRoomId();
-    
-    document.getElementById('currentUser').textContent = name;
-    document.getElementById('roomCode').textContent = `ROOM: ${roomId}`;
-    document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('app').style.display = 'flex';
-    
-    initRoom();
-    initClipboardWatcher();
-    loadMovieLibrary();
+function generateAvatar(name) {
+    return name.charAt(0).toUpperCase();
 }
 
-function initRoom() {
-    const roomRef = db.ref(`rooms/${roomId}`);
-    const videoRef = roomRef.child('video');
-    const chatRef = roomRef.child('chat');
-    const usersRef = roomRef.child('users');
-    
-    // Add user
+function formatTime(timestamp) {
+    return new Date(timestamp).toLocaleTimeString('az-AZ', { 
+        hour: '2-digit', 
+        minute: '2-digit' 
+    });
+}
+
+// Join Room
+function joinRoom() {
+    const username = document.getElementById('usernameInput').value.trim();
+    if (!username) {
+        alert('Zəhmət olmasa istifadəçi adı daxil edin!');
+        return;
+    }
+
+    currentUser = username;
+    roomId = getRoomId();
+
+    document.getElementById('currentUserDisplay').textContent = currentUser;
+    document.getElementById('roomIdDisplay').textContent = roomId;
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+
+    initializeRoom();
+}
+
+// Initialize Room
+function initializeRoom() {
+    roomRef = database.ref(`rooms/${roomId}`);
+    videoRef = roomRef.child('video');
+    chatRef = roomRef.child('chat');
+    usersRef = roomRef.child('users');
+
+    // Check if room exists and set moderator
+    roomRef.once('value').then(snapshot => {
+        if (!snapshot.exists()) {
+            // Create room - first user is moderator
+            roomRef.set({
+                creator: currentUser,
+                createdAt: firebase.database.ServerValue.TIMESTAMP,
+                video: {
+                    url: '',
+                    state: 'paused',
+                    time: 0,
+                    lastUpdate: firebase.database.ServerValue.TIMESTAMP
+                }
+            });
+            isModerator = true;
+            setupModeratorUI();
+        } else {
+            // Check if current user is moderator
+            const data = snapshot.val();
+            isModerator = (data.creator === currentUser);
+            setupModeratorUI();
+            
+            // Load existing video if any
+            if (data.video && data.video.url) {
+                document.getElementById('videoPlayer').src = data.video.url;
+                if (data.video.state === 'playing') {
+                    document.getElementById('videoPlayer').currentTime = data.video.time || 0;
+                    document.getElementById('videoPlayer').play();
+                }
+            }
+        }
+    });
+
+    // Add user to room
     const userRef = usersRef.child(currentUser);
-    userRef.set({ online: true, joined: firebase.database.ServerValue.TIMESTAMP });
-    userRef.onDisconnect().remove();
-    
-    // Watch users
-    usersRef.on('value', snap => {
-        const count = snap.numChildren();
-        document.getElementById('userCount').textContent = count;
+    userRef.set({
+        online: true,
+        joinedAt: firebase.database.ServerValue.TIMESTAMP,
+        isModerator: isModerator
     });
     
-    // Watch video changes
-    videoRef.on('value', snap => {
-        const data = snap.val();
+    userRef.onDisconnect().remove();
+
+    // Listen to users
+    usersRef.on('value', snapshot => {
+        const count = snapshot.numChildren();
+        document.getElementById('onlineCount').textContent = count;
+    });
+
+    // Listen to video changes (Realtime Sync)
+    videoRef.on('value', snapshot => {
+        const data = snapshot.val();
         if (!data || isRemoteUpdate) return;
-        
-        isRemoteUpdate = true;
+
         const video = document.getElementById('videoPlayer');
         
-        if (data.url && video.src !== data.url) {
+        // URL changed
+        if (data.url && video.src !== data.url && data.url !== '') {
             video.src = data.url;
             showSync('🎬 Yeni video yükləndi');
         }
-        
+
+        // Sync play/pause
         if (data.state === 'playing' && video.paused) {
             video.currentTime = data.time || 0;
             video.play();
             showSync('▶️ Oynadılır');
         } else if (data.state === 'paused' && !video.paused) {
-                 video.pause();
+            video.pause();
             video.currentTime = data.time || 0;
             showSync('⏸️ Dayandırıldı');
         }
-        
-        if (data.time && Math.abs(video.currentTime - data.time) > 2) {
+
+        // Sync time if difference > 1 second (Low latency)
+        if (data.time && Math.abs(video.currentTime - data.time) > 1) {
             video.currentTime = data.time;
         }
-        
-        setTimeout(() => isRemoteUpdate = false, 500);
     });
-    
-    // Watch chat
-    chatRef.limitToLast(50).on('child_added', snap => {
-        const msg = snap.val();
-        addMessage(msg.user, msg.text, msg.timestamp, msg.user === currentUser);
+
+    // Listen to chat
+    chatRef.limitToLast(50).on('child_added', snapshot => {
+        const message = snapshot.val();
+        displayMessage(message);
     });
-    
-    // Setup video events
+
+    // Setup video event listeners
+    setupVideoSync();
+}
+
+// Setup UI based on role
+function setupModeratorUI() {
+    if (isModerator) {
+        document.getElementById('moderatorControls').style.display = 'flex';
+        document.getElementById('viewerControls').style.display = 'none';
+        document.getElementById('moderatorTag').classList.remove('hidden');
+        document.getElementById('modBadge').style.display = 'inline-block';
+    } else {
+        document.getElementById('moderatorControls').style.display = 'none';
+        document.getElementById('viewerControls').style.display = 'flex';
+        document.getElementById('moderatorTag').classList.add('hidden');
+        document.getElementById('modBadge').style.display = 'none';
+    }
+}
+
+// Video Synchronization
+function setupVideoSync() {
     const video = document.getElementById('videoPlayer');
-    video.addEventListener('play', () => updateVideoState('playing'));
-    video.addEventListener('pause', () => updateVideoState('paused'));
-    video.addEventListener('seeked', () => updateVideoState(video.paused ? 'paused' : 'playing'));
-    
-    // Periodic sync while playing
+
+    // Only moderator can control video
+    if (!isModerator) {
+        video.controls = false; // Disable controls for viewers
+        return;
+    }
+
+    video.addEventListener('play', () => {
+        if (isRemoteUpdate) return;
+        updateVideoState('playing');
+        showSync('▶️ Siz oynatdınız');
+    });
+
+    video.addEventListener('pause', () => {
+        if (isRemoteUpdate) return;
+        updateVideoState('paused');
+        showSync('⏸️ Siz dayandırdınız');
+    });
+
+    video.addEventListener('seeked', () => {
+        if (isRemoteUpdate) return;
+        const state = video.paused ? 'paused' : 'playing';
+        updateVideoState(state);
+        showSync('⏱️ Vaxt dəyişdirildi');
+    });
+
+    // High frequency sync for smooth experience
     setInterval(() => {
-        if (!video.paused && !isRemoteUpdate) {
+        if (!video.paused && !isRemoteUpdate && isModerator) {
             videoRef.child('time').set(video.currentTime);
+            videoRef.child('lastUpdate').set(firebase.database.ServerValue.TIMESTAMP);
         }
-    }, 2000);
+    }, 1000); // Sync every second
 }
 
 function updateVideoState(state) {
     const video = document.getElementById('videoPlayer');
-    db.ref(`rooms/${roomId}/video`).update({
+    videoRef.update({
         state: state,
         time: video.currentTime,
         url: video.src,
-        updatedBy: currentUser,
-        updatedAt: firebase.database.ServerValue.TIMESTAMP
+        lastUpdate: firebase.database.ServerValue.TIMESTAMP,
+        updatedBy: currentUser
     });
 }
 
-// Video Loading
+// Load Video (Moderator only)
 function loadVideo() {
-    const url = document.getElementById('videoUrl').value.trim();
+    if (!isModerator) {
+        alert('Yalnız moderator video əlavə edə bilər!');
+        return;
+    }
+
+    const url = document.getElementById('videoUrlInput').value.trim();
     if (!url) return;
-    
+
     const video = document.getElementById('videoPlayer');
     video.src = url;
-    updateVideoState('paused');
     
-    // Add to chat
-    sendSystemMessage(`${currentUser} yeni video yüklədi`);
-}
+    videoRef.set({
+        url: url,
+        state: 'paused',
+        time: 0,
+        lastUpdate: firebase.database.ServerValue.TIMESTAMP,
+        updatedBy: currentUser
+    });
 
-function loadFromLibrary(url, title) {
-    document.getElementById('videoPlayer').src = url;
-    updateVideoState('paused');
-    closeLibrary();
-    sendSystemMessage(`${currentUser} "${title}" filmini seçdi`);
-    showSync(`🎬 ${title} yükləndi`);
+    sendSystemMessage(`${currentUser} yeni video yüklədi`);
+    showSync('🎬 Video yükləndi');
 }
 
 // Browser Functions
-function showTab(tab) {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    event.target.classList.add('active');
-    
-    if (tab === 'browser') {
-        document.getElementById('browserOverlay').style.display = 'flex';
-        document.getElementById('directControls').style.display = 'none';
-    } else if (tab === 'library') {
-        document.getElementById('movieLibrary').style.display = 'block';
-    } else {
-        document.getElementById('browserOverlay').style.display = 'none';
-        document.getElementById('movieLibrary').style.display = 'none';
-        document.getElementById('directControls').style.display = 'flex';
-    }
+function openBrowser() {
+    if (!isModerator) return;
+    document.getElementById('browserPanel').style.display = 'flex';
+    loadBrowser();
 }
 
 function closeBrowser() {
-    document.getElementById('browserOverlay').style.display = 'none';
+    document.getElementById('browserPanel').style.display = 'none';
+    document.getElementById('videoDetector').style.display = 'none';
 }
 
 function loadBrowser() {
-    const url = document.getElementById('browserUrl').value;
+    const url = document.getElementById('browserAddress').value;
     if (url) {
         document.getElementById('browserFrame').src = url;
+        
+        // Try to detect video after 3 seconds
+        setTimeout(() => {
+            detectVideoInPage();
+        }, 3000);
     }
 }
 
-function extractVideoFromBrowser() {
+function detectVideoInPage() {
+    // In a real implementation, you'd use a proxy server or extension to detect video URLs
+    // For now, we'll show a manual input for the detected URL
     const currentUrl = document.getElementById('browserFrame').src;
-    document.getElementById('videoUrl').value = currentUrl;
+    
+    // Check if it's a direct video file
+    if (currentUrl.match(/\.(mp4|webm|ogg|m3u8)(\?.*)?$/i)) {
+        detectedVideoUrl = currentUrl;
+        document.getElementById('detectedVideoName').textContent = 'Direct video link tapıldı';
+        document.getElementById('videoDetector').style.display = 'block';
+    } else {
+        // For other sites, prompt user to paste direct link
+        document.getElementById('detectedVideoName').textContent = 'Video URL-ni üst sətrdən kopyalayıb "Yüklə" düyməsinə basın';
+        document.getElementById('videoDetector').style.display = 'block';
+        detectedVideoUrl = currentUrl;
+    }
+}
+
+function useDetectedVideo() {
+    document.getElementById('videoUrlInput').value = detectedVideoUrl;
     closeBrowser();
     loadVideo();
-    showTab('direct');
 }
 
-// Library Functions
-function loadMovieLibrary() {
-    const grid = document.getElementById('movieGrid');
-    movieDatabase.forEach(movie => {
-        const card = document.createElement('div');
-        card.className = 'movie-card';
-        card.onclick = () => loadFromLibrary(movie.url, movie.title);
-        card.innerHTML = `
-            <div class="movie-thumb">${movie.icon}</div>
-            <div class="movie-info">
-                <div class="movie-title">${movie.title}</div>
-                <div class="movie-year">${movie.year}</div>
-            </div>
-        `;
-        grid.appendChild(card);
-    });
-}
-
-function closeLibrary() {
-    document.getElementById('movieLibrary').style.display = 'none';
-}
-
-// Clipboard Watcher (Chrome-dan kopyalamağı tutmaq üçün)
-function initClipboardWatcher() {
-    document.addEventListener('paste', (e) => {
-        const text = e.clipboardData.getData('text');
-        if (text && (text.includes('.mp4') || text.includes('.webm') || text.includes('http'))) {
-            detectedVideoUrl = text;
-            document.getElementById('detectedUrl').textContent = text;
-            document.getElementById('pasteModal').style.display = 'block';
-        }
-    });
-}
-
-function useDetectedUrl() {
-    document.getElementById('videoUrl').value = detectedVideoUrl;
-    closePasteModal();
-    loadVideo();
-}
-
-function closePasteModal() {
-    document.getElementById('pasteModal').style.display = 'none';
+function closeVideoDetector() {
+    document.getElementById('videoDetector').style.display = 'none';
 }
 
 // Chat Functions
@@ -719,17 +1043,20 @@ function sendMessage() {
     const input = document.getElementById('messageInput');
     const text = input.value.trim();
     if (!text) return;
-    
-    db.ref(`rooms/${roomId}/chat`).push({
+
+    chatRef.push({
         user: currentUser,
         text: text,
-        timestamp: firebase.database.ServerValue.TIMESTAMP
+        timestamp: firebase.database.ServerValue.TIMESTAMP,
+        avatar: generateAvatar(currentUser),
+        isSystem: false
     });
+
     input.value = '';
 }
 
 function sendSystemMessage(text) {
-    db.ref(`rooms/${roomId}/chat`).push({
+    chatRef.push({
         user: 'Sistem',
         text: text,
         timestamp: firebase.database.ServerValue.TIMESTAMP,
@@ -737,47 +1064,49 @@ function sendSystemMessage(text) {
     });
 }
 
-function addMessage(user, text, time, isOwn) {
-    const box = document.getElementById('chatBox');
+function displayMessage(msg) {
+    const container = document.getElementById('messagesContainer');
     const div = document.createElement('div');
-    div.className = 'message' + (isOwn ? ' own' : '');
-    if (user === 'Sistem') div.style.background = 'rgba(233, 69, 96, 0.3)';
     
-    const timeStr = new Date(time).toLocaleTimeString('az-AZ', {hour: '2-digit', minute:'2-digit'});
-    div.innerHTML = `
-        <div class="message-user">${user}</div>
-        <div class="message-text">${escapeHtml(text)}</div>
-        <div class="message-time">${timeStr}</div>
-    `;
-    box.appendChild(div);
-    box.scrollTop = box.scrollHeight;
+    if (msg.isSystem) {
+        div.className = 'message system';
+        div.innerHTML = `<div class="message-bubble">${msg.text}</div>`;
+    } else {
+        const isOwn = msg.user === currentUser;
+        div.className = `message ${isOwn ? 'own' : ''}`;
+        div.innerHTML = `
+            <div class="message-header">
+                <div class="message-avatar">${msg.avatar || generateAvatar(msg.user)}</div>
+                <span class="message-author">${msg.user}</span>
+                <span class="message-time">${formatTime(msg.timestamp)}</span>
+            </div>
+            <div class="message-bubble">${escapeHtml(msg.text)}</div>
+        `;
+    }
+    
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
 }
 
 // Utilities
-function copyLink() {
+function copyRoomLink() {
     const url = window.location.href;
     navigator.clipboard.writeText(url).then(() => {
-        const btn = event.target;
-        const original = btn.textContent;
-        btn.textContent = '✓ Kopyalandı';
-        setTimeout(() => btn.textContent = original, 2000);
+        showSync('🔗 Link kopyalandı!');
+        setTimeout(() => showSync('Sinxronizasiya aktiv'), 2000);
     });
-}
-
-function toggleFullscreen() {
-    const elem = document.getElementById('videoContainer');
-    if (!document.fullscreenElement) {
-        elem.requestFullscreen().catch(() => {});
-    } else {
-        document.exitFullscreen();
-    }
 }
 
 function showSync(text) {
     const status = document.getElementById('syncStatus');
-    status.innerHTML = `<div class="sync-dot"></div><span>${text}</span>`;
+    const textEl = document.getElementById('syncText');
+    textEl.textContent = text;
+    status.style.opacity = '1';
+    
+    if (text.includes('Sinxronizasiya')) return;
+    
     setTimeout(() => {
-        status.innerHTML = `<div class="sync-dot"></div><span>Sinxronizasiya aktiv</span>`;
+        textEl.textContent = 'Sinxronizasiya aktiv';
     }, 3000);
 }
 
@@ -787,10 +1116,22 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// Check for room in URL on load
+// Handle paste events for easy URL sharing
+document.addEventListener('paste', (e) => {
+    if (!isModerator) return;
+    
+    const text = e.clipboardData.getData('text');
+    if (text && (text.includes('http') || text.includes('.mp4'))) {
+        document.getElementById('videoUrlInput').value = text;
+        // Auto load after short delay
+        setTimeout(() => loadVideo(), 500);
+    }
+});
+
+// Auto-join if name in URL
 window.onload = () => {
     roomId = getRoomId();
-    document.getElementById('roomCode').textContent = `ROOM: ${roomId}`;
+    document.getElementById('roomIdDisplay').textContent = roomId;
 };
 </script>
 
