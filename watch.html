@@ -2,55 +2,221 @@
 <html lang="az">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SyncRoom - Multiplayer Watch Party</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SyncRoom - Premium Watch Party</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://www.youtube.com/iframe_api"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; background: #0a0a0a; color: white; overflow: hidden; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         
-        .glass { background: rgba(20, 20, 30, 0.9); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
-        .glass-light { background: rgba(30, 30, 40, 0.7); backdrop-filter: blur(8px); }
+        * { font-family: 'Inter', sans-serif; }
         
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
+        body { background: #0a0a0a; color: white; overflow: hidden; touch-action: manipulation; }
         
-        .gradient-text { background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .glass { 
+            background: rgba(20, 20, 25, 0.85); 
+            backdrop-filter: blur(20px); 
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        }
         
-        .video-card { transition: all 0.2s; }
-        .video-card:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .glass-panel { 
+            background: rgba(30, 30, 35, 0.6); 
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { 
+            background: rgba(255,255,255,0.15); 
+            border-radius: 10px; 
+        }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
+        
+        .gradient-text { background: linear-gradient(135deg, #ff3333 0%, #cc0000 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
+        .message-bubble {
+            position: relative;
+            max-width: 85%;
+            padding: 10px 14px;
+            border-radius: 18px;
+            font-size: 14px;
+            line-height: 1.4;
+            animation: messageSlide 0.3s ease;
+            word-wrap: break-word;
+        }
+        
+        .message-self {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+        }
+        
+        .message-other {
+            background: rgba(60, 60, 70, 0.8);
+            color: #e5e7eb;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        .message-reply {
+            background: rgba(255,255,255,0.1);
+            border-left: 3px solid rgba(255,255,255,0.3);
+            padding: 6px 10px;
+            margin-bottom: 6px;
+            border-radius: 8px;
+            font-size: 12px;
+            opacity: 0.9;
+        }
+        
+        @keyframes messageSlide {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .avatar-upload {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 3px dashed rgba(255,255,255,0.3);
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+            background: rgba(255,255,255,0.05);
+        }
+        
+        .avatar-upload:hover { border-color: #ef4444; background: rgba(239, 68, 68, 0.1); }
+        .avatar-upload.has-image { border-style: solid; border-color: #ef4444; }
+        
+        .avatar-preview {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+        
+        .avatar-placeholder {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255,255,255,0.5);
+        }
+        
+        .user-pill {
+            transition: all 0.2s;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            position: relative;
+        }
+        
+        .status-active { background: #22c55e; box-shadow: 0 0 8px #22c55e; }
+        .status-background { background: #f59e0b; box-shadow: 0 0 8px #f59e0b; }
+        .status-inactive { background: #6b7280; }
         
         .viewer-overlay { position: absolute; inset: 0; z-index: 50; cursor: default; }
-        
-        .sync-pulse { animation: pulse 2s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
         
         .spinner { border: 3px solid rgba(255,255,255,0.1); border-left-color: #ef4444; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
         
-        .search-panel { transition: all 0.3s ease; }
-        .search-hidden { opacity: 0; pointer-events: none; transform: translateY(-10px); }
+        .sync-pulse { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
         
-        .change-video-btn { 
-            position: absolute; 
-            top: 1rem; 
-            right: 1rem; 
-            z-index: 40;
-            transition: all 0.2s;
+        .reply-indicator {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(30, 30, 35, 0.95);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 10px 16px;
+            border-radius: 12px;
+            z-index: 50;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
-        .change-video-btn:hover { transform: scale(1.05); }
+        
+        .notification-toast {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: rgba(30, 30, 35, 0.95);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            padding: 12px 16px;
+            border-radius: 12px;
+            z-index: 100;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            max-width: 300px;
+        }
+        
+        .notification-toast.show { transform: translateX(0); }
+        
+        .video-card {
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .video-card:hover { transform: translateY(-2px); background: rgba(255,255,255,0.1); }
+        
+        .change-video-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            z-index: 40;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(10px);
+        }
+        
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 4px 0;
+        }
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            background: rgba(255,255,255,0.5);
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-4px); }
+        }
     </style>
 </head>
 <body class="h-screen flex flex-col">
 
     <script>
-        // FIREBASE CONFIG - Əlavə edildi
         const firebaseConfig = {
             apiKey: "AIzaSyCM5WdZNSj9oFipNI-J3csHpOIvK8PjoLU",
             authDomain: "sevgili-testi.firebaseapp.com",
@@ -63,61 +229,65 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        
-        // YOUTUBE API KEY - Əlavə edildi
         const YOUTUBE_API_KEY = "AIzaSyBterRsxZoTvVbxlsOzESKWBDAY2B8BWc4";
         
         let userId = localStorage.getItem('syncUserId') || 'user_' + Math.random().toString(36).substr(2, 9);
         localStorage.setItem('syncUserId', userId);
         
-        let currentRoom = null;
-        let isHost = false;
-        let player = null;
-        let serverOffset = 0;
-        let ignoreUpdates = false;
-        let currentVideoId = null;
-        let syncInterval = null;
-        let isSearchOpen = false;
+        let currentRoom = null, isHost = false, player = null, serverOffset = 0;
+        let ignoreUpdates = false, currentVideoId = null;
+        let replyingTo = null, userName = '', userAvatar = '';
         
-        // Time Sync
-        db.ref(".info/serverTimeOffset").on("value", (snap) => {
-            serverOffset = snap.val() || 0;
-        });
-        
-        function getServerTime() {
-            return Date.now() + serverOffset;
-        }
+        db.ref(".info/serverTimeOffset").on("value", (snap) => { serverOffset = snap.val() || 0; });
+        const getServerTime = () => Date.now() + serverOffset;
     </script>
 
     <!-- LANDING PAGE -->
-    <div id="landing" class="flex-1 flex items-center justify-center p-4 bg-gradient-to-br from-gray-900 via-black to-gray-900">
-        <div class="max-w-md w-full space-y-6">
+    <div id="landing" class="flex-1 flex items-center justify-center p-4 bg-gradient-to-br from-gray-900 via-black to-gray-900 overflow-auto">
+        <div class="max-w-md w-full space-y-6 pb-10">
             <div class="text-center space-y-2">
-                <h1 class="text-5xl font-bold gradient-text">SyncRoom</h1>
-                <p class="text-gray-400">Gecikməsiz sinxron izləmə</p>
+                <h1 class="text-5xl font-bold gradient-text mb-2">SyncRoom</h1>
+                <p class="text-gray-400 text-sm">Premium sinxron izləmə və söhbət</p>
             </div>
 
-            <div class="glass rounded-2xl p-6 space-y-6 shadow-2xl">
+            <div class="glass rounded-3xl p-8 space-y-6 shadow-2xl">
+                <!-- Avatar Upload -->
+                <div class="flex flex-col items-center space-y-3">
+                    <label class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Profil Şəkli</label>
+                    <div class="avatar-upload" id="avatarUpload" onclick="document.getElementById('avatarInput').click()">
+                        <div class="avatar-placeholder">
+                            <i class="fas fa-camera text-2xl mb-1"></i>
+                            <span class="text-xs">Şəkil seç</span>
+                        </div>
+                        <img id="avatarPreview" class="avatar-preview hidden" alt="Avatar">
+                    </div>
+                    <input type="file" id="avatarInput" accept="image/*" class="hidden" onchange="handleAvatarSelect(event)">
+                    <p class="text-xs text-red-500 hidden" id="avatarError"><i class="fas fa-exclamation-circle mr-1"></i>Profil şəkli tələb olunur</p>
+                </div>
+
+                <!-- Name Input -->
                 <div class="space-y-3">
-                    <label class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Yeni Otaq Yarat</label>
-                    <input type="text" id="hostName" placeholder="Adınız" class="w-full px-4 py-3 rounded-lg bg-black/50 border border-gray-700 text-white focus:outline-none focus:border-red-600 transition">
-                    <button onclick="createRoom()" class="w-full py-3 bg-gradient-to-r from-red-700 to-red-900 rounded-lg font-bold hover:opacity-90 transition">
-                        Otaq Yarat
+                    <div>
+                        <label class="text-xs font-semibold text-gray-400 uppercase tracking-wider block mb-2">Adınız</label>
+                        <input type="text" id="hostName" placeholder="Adınızı daxil edin" class="w-full px-4 py-3 rounded-xl bg-black/40 border border-gray-700 text-white focus:outline-none focus:border-red-600 transition text-center font-medium">
+                    </div>
+                    
+                    <button onclick="createRoom()" id="createBtn" class="w-full py-3.5 bg-gradient-to-r from-red-700 to-red-900 rounded-xl font-bold hover:opacity-90 transition shadow-lg shadow-red-900/30 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fas fa-plus-circle mr-2"></i>Otaq Yarat
                     </button>
                 </div>
 
                 <div class="relative flex py-2 items-center">
                     <div class="flex-grow border-t border-gray-700"></div>
-                    <span class="px-2 text-gray-500 text-xs">VE YA</span>
+                    <span class="px-4 text-gray-500 text-xs font-medium">VE YA</span>
                     <div class="flex-grow border-t border-gray-700"></div>
                 </div>
 
                 <div class="space-y-3">
-                    <label class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Otağa Qoşul</label>
-                    <input type="text" id="joinRoomId" placeholder="Otaq Kodu" class="w-full px-4 py-3 rounded-lg bg-black/50 border border-gray-700 text-white uppercase focus:outline-none focus:border-red-600 transition">
-                    <input type="text" id="guestName" placeholder="Adınız" class="w-full px-4 py-3 rounded-lg bg-black/50 border border-gray-700 text-white focus:outline-none focus:border-red-600 transition">
-                    <button onclick="joinRoom()" class="w-full py-3 bg-gray-800 hover:bg-gray-700 rounded-lg font-bold transition border border-gray-700">
-                        Qoşul
+                    <input type="text" id="joinRoomId" placeholder="Otaq Kodu (ABC123)" class="w-full px-4 py-3 rounded-xl bg-black/40 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:border-red-600 transition uppercase text-center font-bold tracking-widest">
+                    
+                    <button onclick="joinRoom()" id="joinBtn" class="w-full py-3.5 bg-gray-800 hover:bg-gray-700 rounded-xl font-bold transition border border-gray-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fas fa-sign-in-alt mr-2"></i>Qoşul
                     </button>
                 </div>
             </div>
@@ -127,56 +297,54 @@
     <!-- ROOM INTERFACE -->
     <div id="room" class="hidden flex-1 flex flex-col h-screen bg-black">
         <!-- Header -->
-        <header class="glass border-b border-gray-800 h-14 flex items-center justify-between px-4 shrink-0 z-20">
+        <header class="glass border-b border-gray-800 h-16 flex items-center justify-between px-4 shrink-0 z-20">
             <div class="flex items-center space-x-4">
-                <h1 class="text-xl font-bold tracking-tight text-white">Sync<span class="text-red-600">Room</span></h1>
-                <div class="flex items-center space-x-2 px-3 py-1 rounded-lg bg-gray-900 border border-gray-800">
-                    <span class="text-xs text-gray-400 uppercase font-bold">Kod:</span>
-                    <span id="roomCode" class="font-mono text-red-400 font-bold tracking-widest">---</span>
+                <div class="flex items-center space-x-2">
+                    <h1 class="text-xl font-bold tracking-tight text-white">Sync<span class="text-red-600">Room</span></h1>
                 </div>
-                <div class="hidden md:flex items-center space-x-2 text-xs">
-                    <div class="w-2 h-2 rounded-full bg-green-500 sync-pulse"></div>
-                    <span class="text-gray-400" id="latencyDisplay">Sync</span>
+                <div class="hidden md:flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-gray-900/80 border border-gray-700">
+                    <span class="text-xs text-gray-400 uppercase font-bold tracking-wider">Kod:</span>
+                    <span id="roomCode" class="font-mono text-red-400 font-bold tracking-widest text-sm">---</span>
+                    <button onclick="copyCode()" class="ml-2 text-gray-500 hover:text-white transition text-xs p-1">
+                        <i class="fas fa-copy"></i>
+                    </button>
                 </div>
             </div>
             
             <div class="flex items-center space-x-3">
-                <span id="userType" class="px-3 py-1 rounded-full text-xs font-bold bg-gray-800 text-gray-300 border border-gray-700">İzləyici</span>
-                <button onclick="leaveRoom()" class="px-4 py-1.5 bg-red-600/10 text-red-500 border border-red-600/30 rounded-lg hover:bg-red-600/20 transition text-sm font-medium">
-                    Çıxış
+                <div id="activeUsersCount" class="hidden md:flex items-center space-x-2 px-3 py-1.5 rounded-full bg-gray-800/50 border border-gray-700 text-xs">
+                    <i class="fas fa-users text-gray-400"></i>
+                    <span class="text-gray-300" id="usersCountText">1 onlayn</span>
+                </div>
+                <span id="userType" class="px-3 py-1.5 rounded-full text-xs font-bold bg-gray-800 text-gray-300 border border-gray-700">İzləyici</span>
+                <button onclick="leaveRoom()" class="w-8 h-8 flex items-center justify-center bg-red-600/10 text-red-500 border border-red-600/30 rounded-full hover:bg-red-600/20 transition">
+                    <i class="fas fa-times"></i>
                 </button>
             </div>
         </header>
 
         <div class="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
             <!-- Video Section -->
-            <div class="flex-1 relative bg-black flex flex-col">
-                
-                <!-- CHANGE VIDEO BUTTON (Host Only - Yukarı sağda) -->
-                <button id="changeVideoBtn" onclick="toggleSearch()" class="hidden change-video-btn glass-light px-4 py-2 rounded-lg border border-gray-700 hover:border-red-500 text-sm font-bold text-white shadow-lg z-40" title="Video Dəyiş">
-                    <span class="flex items-center space-x-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                        <span>Video Dəyiş</span>
-                    </span>
+            <div class="flex-1 relative bg-black flex flex-col min-h-0">
+                <button id="changeVideoBtn" onclick="toggleSearch()" class="hidden change-video-btn glass px-4 py-2 rounded-xl border border-gray-700 hover:border-red-500 text-sm font-bold text-white shadow-lg">
+                    <i class="fas fa-film mr-2"></i>Video Dəyiş
                 </button>
 
-                <!-- SEARCH PANEL (Video seçildikdə gizlənəcək) -->
-                <div id="searchContainer" class="hidden search-panel absolute top-16 left-1/2 transform -translate-x-1/2 z-30 w-full max-w-2xl px-4">
-                    <div class="glass rounded-xl overflow-hidden shadow-2xl border border-gray-700">
+                <div id="searchContainer" class="hidden absolute top-16 left-1/2 transform -translate-x-1/2 z-30 w-full max-w-2xl px-4">
+                    <div class="glass rounded-2xl overflow-hidden shadow-2xl border border-gray-700">
                         <div class="flex items-center px-4 py-3 border-b border-gray-700 bg-gray-900/80">
-                            <svg class="w-5 h-5 text-gray-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                            <i class="fas fa-search text-gray-400 mr-3"></i>
                             <input type="text" id="searchQuery" placeholder="YouTube-da axtar..." class="flex-1 bg-transparent border-none outline-none text-white placeholder-gray-500 text-sm" onkeypress="if(event.key==='Enter') searchYouTube()">
                             <button onclick="searchYouTube()" class="px-4 py-1.5 bg-red-600 rounded-lg text-sm font-bold hover:bg-red-700 transition">Axtar</button>
-                            <button onclick="closeSearch()" class="ml-2 p-1 text-gray-400 hover:text-white">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            <button onclick="closeSearch()" class="ml-3 p-1.5 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition">
+                                <i class="fas fa-times"></i>
                             </button>
                         </div>
                         <div id="searchResults" class="hidden max-h-[50vh] overflow-y-auto p-3 bg-gray-900/95 space-y-2"></div>
                     </div>
                 </div>
 
-                <!-- Player -->
-                <div class="flex-1 relative flex items-center justify-center bg-black">
+                <div class="flex-1 relative flex items-center justify-center bg-black min-h-0">
                     <div id="playerWrapper" class="w-full h-full relative">
                         <div id="player"></div>
                         <div id="viewerOverlay" class="hidden viewer-overlay"></div>
@@ -186,56 +354,83 @@
                     </div>
                 </div>
 
-                <!-- Host Controls -->
-                <div id="hostControls" class="hidden glass border-t border-gray-800 p-3">
+                <div id="hostControls" class="hidden glass border-t border-gray-800 p-3 shrink-0">
                     <div class="max-w-3xl mx-auto flex items-center justify-center space-x-4">
-                        <div class="flex items-center space-x-2">
-                            <button onclick="playerControl('seek', -10)" class="p-2 hover:bg-gray-800 rounded-lg text-gray-300 transition" title="-10 saniye">
-                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M11 18V6l-8.5 6 8.5 6zm.5-6l8.5 6V6l-8.5 6z"/></svg>
-                            </button>
-                            
-                            <button id="playPauseBtn" onclick="playerControl('toggle')" class="w-10 h-10 bg-white text-black rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition shadow-lg">
-                                <svg id="playIcon" class="w-5 h-5 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                                <svg id="pauseIcon" class="w-5 h-5 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-                            </button>
-                            
-                            <button onclick="playerControl('seek', 10)" class="p-2 hover:bg-gray-800 rounded-lg text-gray-300 transition" title="+10 saniye">
-                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z"/></svg>
-                            </button>
-                        </div>
-
-                        <div class="flex-1 max-w-md px-4">
-                            <div class="text-xs text-gray-500 mb-1 truncate" id="currentVideoTitle">Video seçilməyib</div>
+                        <button onclick="playerControl('seek', -10)" class="p-2 hover:bg-white/10 rounded-xl text-gray-300 transition">
+                            <i class="fas fa-backward"></i>
+                        </button>
+                        <button id="playPauseBtn" onclick="playerControl('toggle')" class="w-12 h-12 bg-white text-black rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition shadow-lg shadow-white/20">
+                            <i class="fas fa-play ml-1" id="playIcon"></i>
+                            <i class="fas fa-pause hidden" id="pauseIcon"></i>
+                        </button>
+                        <button onclick="playerControl('seek', 10)" class="p-2 hover:bg-white/10 rounded-xl text-gray-300 transition">
+                            <i class="fas fa-forward"></i>
+                        </button>
+                        <div class="flex-1 max-w-md px-4 hidden sm:block">
+                            <div class="text-xs text-gray-400 mb-1 truncate" id="currentVideoTitle">Video seçilməyib</div>
                             <div class="w-full bg-gray-800 rounded-full h-1 overflow-hidden">
                                 <div id="progressBar" class="bg-red-600 h-full w-0 transition-all duration-1000"></div>
                             </div>
                         </div>
-
-                        <button onclick="forceSync()" class="px-3 py-1.5 bg-green-600/20 text-green-400 border border-green-600/30 rounded-lg text-xs font-bold hover:bg-green-600/30 transition" title="Hər kəslə sinxronlaşdır">
-                            Sinxronlaşdır
+                        <button onclick="forceSync()" class="px-3 py-1.5 bg-green-600/20 text-green-400 border border-green-600/30 rounded-lg text-xs font-bold hover:bg-green-600/30 transition">
+                            <i class="fas fa-sync-alt mr-1"></i>Sinxron
                         </button>
                     </div>
                 </div>
             </div>
 
             <!-- Sidebar -->
-            <div class="w-full lg:w-80 glass border-l border-gray-800 flex flex-col shrink-0">
-                <div class="p-4 border-b border-gray-800">
-                    <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">İştirakçılar</h3>
-                    <div id="usersList" class="space-y-2 max-h-32 overflow-y-auto"></div>
+            <div class="w-full lg:w-96 glass border-l border-gray-800 flex flex-col shrink-0 h-[40vh] lg:h-auto">
+                <!-- Active Users -->
+                <div class="p-4 border-b border-gray-800 shrink-0">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                            <i class="fas fa-users mr-1"></i>İştirakçılar
+                        </h3>
+                        <span class="text-[10px] text-gray-500" id="onlineCount">0 onlayn</span>
+                    </div>
+                    <div id="usersList" class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                        <!-- Users will be inserted here as pills -->
+                    </div>
                 </div>
 
-                <div class="flex-1 flex flex-col min-h-0">
-                    <div class="p-3 border-b border-gray-800 bg-gray-900/30">
-                        <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider">Söhbət</h3>
+                <!-- Chat -->
+                <div class="flex-1 flex flex-col min-h-0 bg-gradient-to-b from-transparent to-black/20">
+                    <div class="p-3 border-b border-gray-800/50 bg-gray-900/20 shrink-0 flex items-center justify-between">
+                        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                            <i class="fas fa-comments mr-1"></i>Söhbət
+                        </h3>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-2 h-2 rounded-full bg-green-500 sync-pulse"></div>
+                            <span class="text-[10px] text-gray-500">Canlı</span>
+                        </div>
                     </div>
                     
-                    <div id="chatMessages" class="flex-1 overflow-y-auto p-4 space-y-3 text-sm"></div>
+                    <div id="chatMessages" class="flex-1 overflow-y-auto p-4 space-y-4 scroll-smooth"></div>
                     
-                    <div class="p-3 border-t border-gray-800 bg-gray-900/30">
-                        <div class="flex space-x-2">
-                            <input type="text" id="messageInput" placeholder="Mesaj yaz..." class="flex-1 px-3 py-2 bg-black/50 border border-gray-700 rounded-lg text-sm focus:outline-none focus:border-red-600 transition text-white" onkeypress="if(event.key==='Enter') sendMessage()">
-                            <button onclick="sendMessage()" class="px-4 py-2 bg-red-700 hover:bg-red-600 rounded-lg text-white font-bold transition">→</button>
+                    <!-- Reply Indicator -->
+                    <div id="replyIndicator" class="reply-indicator mx-4 mb-2">
+                        <div class="flex-1">
+                            <div class="text-[10px] text-gray-400 mb-0.5">Cavab:</div>
+                            <div class="text-xs text-white truncate max-w-[200px]" id="replyText"></div>
+                        </div>
+                        <button onclick="cancelReply()" class="p-1 hover:bg-white/10 rounded text-gray-400">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Input -->
+                    <div class="p-4 border-t border-gray-800 bg-gray-900/40 shrink-0">
+                        <div class="relative flex items-end gap-2">
+                            <div class="flex-1 relative">
+                                <textarea id="messageInput" placeholder="Mesaj yaz..." rows="1" 
+                                    class="w-full px-4 py-3 pr-10 bg-black/40 border border-gray-700 rounded-2xl text-sm focus:outline-none focus:border-red-600 transition text-white resize-none overflow-hidden max-h-24"
+                                    oninput="autoResize(this)"
+                                    onkeypress="handleEnter(event)"></textarea>
+                                <button onclick="sendMessage()" class="absolute right-2 bottom-2 p-2 text-red-500 hover:text-red-400 transition">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -243,21 +438,85 @@
         </div>
     </div>
 
+    <!-- Notification Toast -->
+    <div id="notificationToast" class="notification-toast">
+        <div class="flex items-start gap-3">
+            <div class="w-8 h-8 rounded-full bg-yellow-500/20 flex items-center justify-center shrink-0">
+                <i class="fas fa-exclamation text-yellow-500 text-xs"></i>
+            </div>
+            <div>
+                <div class="text-xs font-bold text-white mb-0.5" id="notifTitle">Bildiriş</div>
+                <div class="text-xs text-gray-400" id="notifText">İstifadəçi saytı arxa plana aldı</div>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // Avatar handling
+        function handleAvatarSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            if (file.size > 2 * 1024 * 1024) {
+                alert('Şəkil 2MB-dan kiçik olmalıdır!');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                userAvatar = e.target.result;
+                document.getElementById('avatarPreview').src = userAvatar;
+                document.getElementById('avatarPreview').classList.remove('hidden');
+                document.querySelector('.avatar-placeholder').classList.add('hidden');
+                document.getElementById('avatarUpload').classList.add('has-image');
+                document.getElementById('avatarError').classList.add('hidden');
+                localStorage.setItem('userAvatar', userAvatar);
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        // Validation
+        function validateInputs() {
+            const name = document.getElementById('hostName').value.trim();
+            const avatar = document.getElementById('avatarPreview').src && !document.getElementById('avatarPreview').classList.contains('hidden');
+            
+            if (!name) {
+                alert('Zəhmət olmasa adınızı daxil edin!');
+                return false;
+            }
+            if (!avatar || userAvatar === '') {
+                document.getElementById('avatarError').classList.remove('hidden');
+                document.getElementById('avatarUpload').scrollIntoView({ behavior: 'smooth' });
+                return false;
+            }
+            document.getElementById('avatarError').classList.add('hidden');
+            return true;
+        }
+
         function generateRoomCode() {
             return Math.random().toString(36).substring(2, 8).toUpperCase();
         }
 
         async function createRoom() {
-            const name = document.getElementById('hostName').value.trim();
-            if (!name) return alert('Adınızı daxil edin!');
-
+            if (!validateInputs()) return;
+            
+            userName = document.getElementById('hostName').value.trim();
             const code = generateRoomCode();
+            
             await db.ref(`rooms/${code}`).set({
                 createdAt: firebase.database.ServerValue.TIMESTAMP,
                 hostId: userId,
                 currentVideo: null,
-                users: { [userId]: { name, isHost: true, joinedAt: firebase.database.ServerValue.TIMESTAMP } }
+                users: {
+                    [userId]: {
+                        name: userName,
+                        avatar: userAvatar,
+                        isHost: true,
+                        joinedAt: firebase.database.ServerValue.TIMESTAMP,
+                        status: 'active',
+                        focused: true
+                    }
+                }
             });
             
             enterRoom(code, true);
@@ -265,14 +524,21 @@
 
         async function joinRoom() {
             const code = document.getElementById('joinRoomId').value.trim().toUpperCase();
-            const name = document.getElementById('guestName').value.trim();
-            if (!code || !name) return alert('Bütün xanaları doldurun!');
-
+            if (!validateInputs()) return;
+            
+            userName = document.getElementById('hostName').value.trim();
+            if (!code) return alert('Otaq kodunu daxil edin!');
+            
             const snap = await db.ref(`rooms/${code}`).once('value');
             if (!snap.exists()) return alert('Otaq tapılmadı!');
-
+            
             await db.ref(`rooms/${code}/users/${userId}`).set({
-                name, isHost: false, joinedAt: firebase.database.ServerValue.TIMESTAMP
+                name: userName,
+                avatar: userAvatar,
+                isHost: false,
+                joinedAt: firebase.database.ServerValue.TIMESTAMP,
+                status: 'active',
+                focused: true
             });
             
             enterRoom(code, false);
@@ -286,21 +552,45 @@
             document.getElementById('room').classList.remove('hidden');
             document.getElementById('roomCode').textContent = code;
             document.getElementById('userType').textContent = host ? '👑 Moderator' : '👁️ İzləyici';
+            document.getElementById('userType').className = host ? 
+                'px-3 py-1.5 rounded-full text-xs font-bold bg-red-600/20 text-red-400 border border-red-600/30' : 
+                'px-3 py-1.5 rounded-full text-xs font-bold bg-blue-600/20 text-blue-400 border border-blue-600/30';
             
             if (host) {
-                document.getElementById('userType').className = 'px-3 py-1 rounded-full text-xs font-bold bg-red-600/20 text-red-400 border border-red-600/30';
                 document.getElementById('hostControls').classList.remove('hidden');
                 document.getElementById('changeVideoBtn').classList.remove('hidden');
-                // Moderator üçün başlanğıcda axtarış açıq
                 document.getElementById('searchContainer').classList.remove('hidden');
-                isSearchOpen = true;
             } else {
-                document.getElementById('userType').className = 'px-3 py-1 rounded-full text-xs font-bold bg-blue-600/20 text-blue-400 border border-blue-600/30';
                 document.getElementById('viewerOverlay').classList.remove('hidden');
             }
-
+            
             initPlayer();
             setupListeners();
+            setupVisibilityTracking();
+        }
+
+        // Visibility tracking
+        function setupVisibilityTracking() {
+            // Tab visibility
+            document.addEventListener('visibilitychange', () => {
+                const status = document.hidden ? 'background' : 'active';
+                db.ref(`rooms/${currentRoom}/users/${userId}/status`).set(status);
+                
+                // Notify host if viewer goes background
+                if (!isHost && document.hidden) {
+                    // This client went background, host will be notified via listener
+                }
+            });
+            
+            // Window focus
+            window.addEventListener('blur', () => {
+                db.ref(`rooms/${currentRoom}/users/${userId}/focused`).set(false);
+            });
+            
+            window.addEventListener('focus', () => {
+                db.ref(`rooms/${currentRoom}/users/${userId}/focused`).set(true);
+                db.ref(`rooms/${currentRoom}/users/${userId}/status`).set('active');
+            });
         }
 
         function initPlayer() {
@@ -308,40 +598,37 @@
                 setTimeout(initPlayer, 100);
                 return;
             }
-
+            
             player = new YT.Player('player', {
                 height: '100%',
                 width: '100%',
                 videoId: 'jfKfPfyJRdk',
                 playerVars: { 
-                    'autoplay': 0, 
-                    'controls': isHost ? 1 : 0,
-                    'disablekb': isHost ? 0 : 1,
-                    'rel': 0,
-                    'playsinline': 1
+                    autoplay: 0, 
+                    controls: isHost ? 1 : 0,
+                    disablekb: isHost ? 0 : 1,
+                    rel: 0,
+                    playsinline: 1
                 },
                 events: {
-                    'onReady': onPlayerReady,
-                    'onStateChange': onPlayerStateChange
+                    onReady: onPlayerReady,
+                    onStateChange: onPlayerStateChange
                 }
             });
             
-            document.getElementById('playerLoader').classList.add('hidden');
+            document.getElementById('playerLoader').style.display = 'none';
         }
 
         function onPlayerReady() {
             if (isHost) {
                 setInterval(() => {
-                    if (ignoreUpdates || !player || !player.getCurrentTime) return;
-                    const state = player.getPlayerState();
+                    if (ignoreUpdates || !player?.getCurrentTime) return;
                     db.ref(`rooms/${currentRoom}/currentVideo`).update({
                         time: player.getCurrentTime(),
-                        isPlaying: state === YT.PlayerState.PLAYING,
+                        isPlaying: player.getPlayerState() === YT.PlayerState.PLAYING,
                         timestamp: firebase.database.ServerValue.TIMESTAMP
                     });
                 }, 2000);
-            } else {
-                syncFromServer();
             }
         }
 
@@ -356,22 +643,12 @@
             });
         }
 
-        // Axtarış funksiyaları
+        // Search functions
         function toggleSearch() {
-            const container = document.getElementById('searchContainer');
-            isSearchOpen = !isSearchOpen;
-            
-            if (isSearchOpen) {
-                container.classList.remove('hidden');
-                setTimeout(() => document.getElementById('searchQuery').focus(), 100);
-            } else {
-                container.classList.add('hidden');
-                document.getElementById('searchResults').classList.add('hidden');
-            }
+            document.getElementById('searchContainer').classList.toggle('hidden');
         }
 
         function closeSearch() {
-            isSearchOpen = false;
             document.getElementById('searchContainer').classList.add('hidden');
             document.getElementById('searchResults').classList.add('hidden');
         }
@@ -379,13 +656,13 @@
         async function searchYouTube() {
             const query = document.getElementById('searchQuery').value.trim();
             if (!query) return;
-
+            
             const resultsDiv = document.getElementById('searchResults');
             resultsDiv.innerHTML = '<div class="flex justify-center p-4"><div class="spinner"></div></div>';
             resultsDiv.classList.remove('hidden');
-
+            
             try {
-                const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=10&q=${encodeURIComponent(query)}&type=video&key=${YOUTUBE_API_KEY}`);
+                const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=8&q=${encodeURIComponent(query)}&type=video&key=${YOUTUBE_API_KEY}`);
                 const data = await res.json();
                 
                 if (data.error) throw new Error(data.error.message);
@@ -393,31 +670,32 @@
                 resultsDiv.innerHTML = '';
                 data.items.forEach(item => {
                     const card = document.createElement('div');
-                    card.className = 'video-card flex space-x-3 p-2 rounded-lg bg-gray-800/50 hover:bg-gray-800 cursor-pointer border border-transparent hover:border-gray-700';
+                    card.className = 'video-card flex space-x-3 p-3 rounded-xl bg-gray-800/40 hover:bg-gray-800 border border-transparent hover:border-gray-600 transition group';
                     card.onclick = () => selectVideo(item.id.videoId, item.snippet.title);
                     card.innerHTML = `
-                        <img src="${item.snippet.thumbnails.medium.url}" class="w-24 h-16 object-cover rounded bg-gray-900">
-                        <div class="flex-1 min-w-0">
-                            <h4 class="text-xs font-bold text-white line-clamp-2 leading-tight">${item.snippet.title}</h4>
-                            <p class="text-[10px] text-gray-500 mt-1 truncate">${item.snippet.channelTitle}</p>
+                        <div class="relative w-32 h-20 shrink-0">
+                            <img src="${item.snippet.thumbnails.medium.url}" class="w-full h-full object-cover rounded-lg bg-gray-900">
+                            <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition rounded-lg">
+                                <i class="fas fa-play text-white text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="flex-1 min-w-0 py-0.5">
+                            <h4 class="text-sm font-bold text-white line-clamp-2 leading-snug mb-1">${item.snippet.title}</h4>
+                            <p class="text-xs text-gray-500">${item.snippet.channelTitle}</p>
                         </div>
                     `;
                     resultsDiv.appendChild(card);
                 });
             } catch (err) {
-                resultsDiv.innerHTML = `<div class="text-red-500 text-xs text-center p-2">${err.message}</div>`;
+                resultsDiv.innerHTML = `<div class="text-red-400 text-sm text-center p-4"><i class="fas fa-exclamation-triangle mr-2"></i>${err.message}</div>`;
             }
         }
 
         function selectVideo(id, title) {
             if (!isHost) return;
-            
             currentVideoId = id;
             player.loadVideoById(id);
             document.getElementById('currentVideoTitle').textContent = title;
-            document.getElementById('progressBar').style.width = '0%';
-            
-            // YENI: Video seçəndən sonra axtarışı bağla və kiçik düymə göstər
             closeSearch();
             
             db.ref(`rooms/${currentRoom}/currentVideo`).set({
@@ -433,16 +711,13 @@
             if (!isHost || !player) return;
             ignoreUpdates = true;
             setTimeout(() => ignoreUpdates = false, 500);
-
-            switch(action) {
-                case 'toggle':
-                    const state = player.getPlayerState();
-                    if (state === YT.PlayerState.PLAYING) player.pauseVideo();
-                    else player.playVideo();
-                    break;
-                case 'seek':
-                    player.seekTo(player.getCurrentTime() + val, true);
-                    break;
+            
+            if (action === 'toggle') {
+                const state = player.getPlayerState();
+                if (state === YT.PlayerState.PLAYING) player.pauseVideo();
+                else player.playVideo();
+            } else if (action === 'seek') {
+                player.seekTo(player.getCurrentTime() + val, true);
             }
         }
 
@@ -460,81 +735,161 @@
             });
         }
 
-        // Sync mənticiyi
+        // Chat functions
+        let lastMessageTime = 0;
+        
         function setupListeners() {
+            // Video sync for viewers
             if (!isHost) {
                 db.ref(`rooms/${currentRoom}/currentVideo`).on('value', (snap) => {
                     const data = snap.val();
-                    if (!data || !player || ignoreUpdates) return;
-
-                    // Video dəyişmişsə
+                    if (!data || !player) return;
+                    
                     if (data.id !== currentVideoId) {
                         currentVideoId = data.id;
                         player.loadVideoById(data.id);
                         document.getElementById('currentVideoTitle').textContent = data.title || 'Video';
                     }
-
-                    // Sinxronizasiya
+                    
                     const serverTime = getServerTime();
                     const latency = (serverTime - data.timestamp) / 1000;
                     const targetTime = data.time + (data.isPlaying ? latency : 0);
                     const current = player.getCurrentTime();
                     
-                    if (Math.abs(current - targetTime) > 1) {
-                        ignoreUpdates = true;
-                        player.seekTo(targetTime, true);
-                        setTimeout(() => ignoreUpdates = false, 300);
-                    }
-
-                    const isPlaying = player.getPlayerState() === YT.PlayerState.PLAYING;
-                    if (data.isPlaying && !isPlaying) {
-                        ignoreUpdates = true;
-                        player.playVideo();
-                        setTimeout(() => ignoreUpdates = false, 300);
-                    } else if (!data.isPlaying && isPlaying) {
-                        ignoreUpdates = true;
-                        player.pauseVideo();
-                        setTimeout(() => ignoreUpdates = false, 300);
-                    }
+                    if (Math.abs(current - targetTime) > 1) player.seekTo(targetTime, true);
                     
-                    document.getElementById('latencyDisplay').textContent = Math.round(latency*1000) + 'ms';
+                    const isPlaying = player.getPlayerState() === YT.PlayerState.PLAYING;
+                    if (data.isPlaying && !isPlaying) player.playVideo();
+                    else if (!data.isPlaying && isPlaying) player.pauseVideo();
                 });
             }
-
-            // İstifadəçilər
+            
+            // Users with status
             db.ref(`rooms/${currentRoom}/users`).on('value', (snap) => {
                 const users = snap.val() || {};
                 const list = document.getElementById('usersList');
                 list.innerHTML = '';
+                
+                let activeCount = 0;
+                let backgroundCount = 0;
+                
                 Object.entries(users).forEach(([uid, u]) => {
+                    if (u.status === 'active') activeCount++;
+                    if (u.status === 'background') backgroundCount++;
+                    
                     const div = document.createElement('div');
-                    div.className = 'flex items-center space-x-2 text-xs';
+                    div.className = 'user-pill flex items-center gap-2 px-3 py-2 rounded-full bg-gray-800/80 border border-gray-700 shrink-0';
+                    
+                    const statusClass = u.status === 'background' ? 'status-background' : u.focused === false ? 'status-inactive' : 'status-active';
+                    const statusTitle = u.status === 'background' ? 'Arxa planda' : u.focused === false ? 'Başqa pəncərədə' : 'Onlayn';
+                    
                     div.innerHTML = `
-                        <div class="w-2 h-2 rounded-full ${u.isHost ? 'bg-yellow-500' : 'bg-green-500'}"></div>
-                        <span class="${u.isHost ? 'text-yellow-400 font-bold' : 'text-gray-300'}">${u.name}</span>
+                        <div class="relative">
+                            <img src="${u.avatar || 'https://via.placeholder.com/32'}" class="w-8 h-8 rounded-full object-cover border border-gray-600">
+                            <div class="status-dot ${statusClass} absolute -bottom-0.5 -right-0.5 border-2 border-gray-800" title="${statusTitle}"></div>
+                        </div>
+                        <div class="flex flex-col min-w-0">
+                            <span class="text-xs font-bold ${u.isHost ? 'text-yellow-400' : 'text-gray-200'} truncate max-w-[80px]">${u.name}</span>
+                            ${uid === userId ? '<span class="text-[9px] text-gray-500">Siz</span>' : ''}
+                        </div>
                     `;
                     list.appendChild(div);
+                    
+                    // Notify host if user goes background
+                    if (isHost && u.status === 'background' && uid !== userId) {
+                        showNotification('İstifadəçi arxa planda', `${u.name} saytı arxa plana aldı`);
+                    }
                 });
+                
+                document.getElementById('usersCountText').textContent = `${activeCount + backgroundCount} onlayn`;
+                document.getElementById('onlineCount').textContent = `${activeCount} aktiv • ${backgroundCount} arxa planda`;
             });
-
-            // Chat
+            
+            // Chat with vibration
             db.ref(`rooms/${currentRoom}/chat`).on('child_added', (snap) => {
                 const msg = snap.val();
-                const div = document.createElement('div');
-                div.className = 'text-xs break-words';
                 const isMe = msg.userId === userId;
-                div.innerHTML = `
-                    <div class="${isMe ? 'text-right' : ''}">
-                        <span class="font-bold ${msg.isHost ? 'text-yellow-500' : 'text-blue-400'} text-[10px]">${msg.name}</span>
-                        <div class="inline-block px-2 py-1 rounded mt-0.5 ${isMe ? 'bg-red-900/50 text-red-100' : 'bg-gray-800 text-gray-200'}">
-                            ${escapeHtml(msg.text)}
-                        </div>
+                
+                // Vibrate if message from other and tab hidden or not focused
+                if (!isMe && (document.hidden || document.hasFocus() === false)) {
+                    if ('vibrate' in navigator) {
+                        navigator.vibrate([100, 50, 100]);
+                    }
+                }
+                
+                appendMessage(msg, snap.key);
+                lastMessageTime = Date.now();
+            });
+        }
+
+        function appendMessage(msg, msgId) {
+            const container = document.getElementById('chatMessages');
+            const isMe = msg.userId === userId;
+            
+            const div = document.createElement('div');
+            div.className = `flex ${isMe ? 'justify-end' : 'justify-start'} group`;
+            div.id = `msg-${msgId}`;
+            
+            let replyHtml = '';
+            if (msg.replyTo) {
+                replyHtml = `
+                    <div class="message-reply mb-1 ${isMe ? 'border-white/30' : 'border-gray-500'}">
+                        <div class="text-[10px] opacity-70 mb-0.5">${msg.replyTo.name}</div>
+                        <div class="truncate">${msg.replyTo.text}</div>
                     </div>
                 `;
-                const container = document.getElementById('chatMessages');
-                container.appendChild(div);
-                container.scrollTop = container.scrollHeight;
-            });
+            }
+            
+            div.innerHTML = `
+                ${!isMe ? `
+                <img src="${msg.avatar || 'https://via.placeholder.com/32'}" class="w-8 h-8 rounded-full object-cover mr-2 mt-1 border border-gray-700 shrink-0">
+                ` : ''}
+                
+                <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'} max-w-[85%]">
+                    ${!isMe ? `<span class="text-[10px] text-gray-400 mb-0.5 ml-1">${msg.name}</span>` : ''}
+                    <div class="message-bubble ${isMe ? 'message-self' : 'message-other'}">
+                        ${replyHtml}
+                        <div>${escapeHtml(msg.text)}</div>
+                        <div class="text-[10px] mt-1 opacity-70 flex items-center justify-between gap-2">
+                            <span>${new Date(msg.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                            ${isMe ? '<i class="fas fa-check-double text-[10px]"></i>' : ''}
+                        </div>
+                    </div>
+                    ${!isMe ? `
+                    <button onclick="startReply('${msgId}', '${msg.name}', '${msg.text.replace(/'/g, "\\'")}')" 
+                        class="opacity-0 group-hover:opacity-100 transition mt-0.5 px-2 py-0.5 text-[10px] text-gray-500 hover:text-white flex items-center gap-1">
+                        <i class="fas fa-reply"></i> Cavab
+                    </button>
+                    ` : ''}
+                </div>
+            `;
+            
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function startReply(msgId, name, text) {
+            replyingTo = { msgId, name, text };
+            document.getElementById('replyText').textContent = text.length > 30 ? text.substring(0, 30) + '...' : text;
+            document.getElementById('replyIndicator').style.display = 'flex';
+            document.getElementById('messageInput').focus();
+        }
+
+        function cancelReply() {
+            replyingTo = null;
+            document.getElementById('replyIndicator').style.display = 'none';
+        }
+
+        function handleEnter(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        }
+
+        function autoResize(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 96) + 'px';
         }
 
         function sendMessage() {
@@ -542,36 +897,63 @@
             const text = input.value.trim();
             if (!text) return;
             
-            const name = isHost ? document.getElementById('hostName').value : document.getElementById('guestName').value;
-            db.ref(`rooms/${currentRoom}/chat`).push({
-                userId, name, text, isHost,
+            const msgData = {
+                userId,
+                name: userName,
+                avatar: userAvatar,
+                text,
+                isHost,
                 time: firebase.database.ServerValue.TIMESTAMP
-            });
+            };
+            
+            if (replyingTo) {
+                msgData.replyTo = replyingTo;
+                cancelReply();
+            }
+            
+            db.ref(`rooms/${currentRoom}/chat`).push(msgData);
             input.value = '';
+            input.style.height = 'auto';
         }
 
-        function escapeHtml(t) {
-            const d = document.createElement('div');
-            d.textContent = t;
-            return d.innerHTML;
+        function showNotification(title, text) {
+            const toast = document.getElementById('notificationToast');
+            document.getElementById('notifTitle').textContent = title;
+            document.getElementById('notifText').textContent = text;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 4000);
         }
 
-        function syncFromServer() {
-            db.ref(`rooms/${currentRoom}/currentVideo`).once('value').then(snap => {
-                const data = snap.val();
-                if (data && player) player.loadVideoById(data.id);
-            });
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function copyCode() {
+            navigator.clipboard.writeText(currentRoom);
+            showNotification('Kopyalandı', 'Otaq kodu kopyalandı');
         }
 
         function leaveRoom() {
             if (currentRoom) {
                 db.ref(`rooms/${currentRoom}/users/${userId}`).remove();
-                if (isHost) setTimeout(() => db.ref(`rooms/${currentRoom}`).remove(), 3000);
+                if (isHost) setTimeout(() => db.ref(`rooms/${currentRoom}`).remove(), 2000);
             }
             location.reload();
         }
 
         window.onbeforeunload = leaveRoom;
+        
+        // Preload avatar if exists
+        const savedAvatar = localStorage.getItem('userAvatar');
+        if (savedAvatar) {
+            userAvatar = savedAvatar;
+            document.getElementById('avatarPreview').src = savedAvatar;
+            document.getElementById('avatarPreview').classList.remove('hidden');
+            document.querySelector('.avatar-placeholder').classList.add('hidden');
+            document.getElementById('avatarUpload').classList.add('has-image');
+        }
     </script>
 </body>
 </html>
