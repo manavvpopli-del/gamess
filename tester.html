@@ -274,4 +274,1313 @@
         .theme-btn { display: flex; align-items: center; gap: 6px; padding: 6px 12px; background: transparent; border: 1px solid var(--border-color); border-radius: 20px; color: white; font-size: 12px; cursor: pointer; transition: all 0.3s; touch-action: manipulation; }
         .theme-btn:hover { background: rgba(255,255,255,0.1); border-color: var(--primary-color); }
         .theme-btn i { color: var(--primary-color); }
-        .color-dot { width: 8px; height: 8px; border-radius: 50%; backgro
+        .color-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--primary-color); display: inline-block; }
+        
+        #searchResults { background: rgba(10, 10, 10, 0.98); max-height: 35vh; overflow-y: auto; }
+        
+        .hidden { display: none !important; }
+        
+        /* iOS specific fixes */
+        @supports (-webkit-touch-callout: none) {
+            .chat-container { height: calc(60vh - 56px); }
+            #videoSection { height: 40vh; }
+            .chat-textarea { font-size: 16px; }
+        }
+        
+        @media (hover: none) {
+            .user-chip:active { transform: scale(0.95); }
+            .send-btn:active { transform: scale(0.95); }
+            .msg-wrapper .reaction-btn { opacity: 1; }
+        }
+        
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        input, textarea { -webkit-user-select: text; user-select: text; }
+    </style>
+</head>
+<body class="h-screen flex flex-col theme-red">
+
+    <input type="file" id="avatarInput" style="display: none;" accept="image/*" onchange="handleAvatarSelect(event)">
+
+    <!-- LANDING PAGE -->
+    <div id="landing" class="flex-1 flex items-center justify-center p-4 bg-gradient-to-br from-neutral-950 via-red-950/20 to-neutral-950 overflow-auto">
+        <div class="max-w-md w-full space-y-6 pb-8">
+            <div class="text-center space-y-2">
+                <h1 class="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-rose-600 mb-2">📽️ KinoZal</h1>
+                <p class="text-red-200/60 text-sm">Demo - Test Mərhələsi</p>
+            </div>
+
+            <div class="glass-red rounded-3xl p-8 space-y-6 shadow-2xl">
+                <div class="flex flex-col items-center space-y-3">
+                    <label class="text-xs font-semibold uppercase tracking-wider" style="color: var(--primary-color)">Profil Şəkli</label>
+                    
+                    <div class="avatar-upload" id="avatarUpload" onclick="triggerAvatarUpload()">
+                        <div class="avatar-placeholder" id="avatarPlaceholder">
+                            <i class="fas fa-camera text-2xl mb-1"></i>
+                            <span class="text-xs">Şəkil seç</span>
+                        </div>
+                        <img id="avatarPreview" class="avatar-preview" src="" alt="Avatar">
+                    </div>
+                    
+                    <p class="text-xs hidden text-red-400" id="avatarError">
+                        <i class="fas fa-exclamation-circle mr-1"></i>Şəkil seçilməlidir
+                    </p>
+                    <p class="text-[10px] text-neutral-500">Maksimum 2MB</p>
+                </div>
+
+                <div class="space-y-3">
+                    <input type="text" id="hostName" placeholder="Adınızı daxil edin" 
+                        class="w-full px-4 py-3 rounded-xl bg-black/40 border text-white focus:outline-none transition text-center font-medium placeholder-white/30" 
+                        style="border-color: var(--border-color); font-size: 16px;">
+                    
+                    <button id="createRoomBtn" onclick="createRoom()" 
+                        class="w-full py-3.5 rounded-xl font-bold transition shadow-lg text-white hover:opacity-90 active:scale-95" 
+                        style="background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); box-shadow: 0 10px 30px var(--shadow-color);">
+                        <i class="fas fa-plus-circle mr-2"></i>Otaq Yarat
+                    </button>
+                </div>
+
+                <div class="relative flex items-center py-2">
+                    <div class="flex-grow border-t" style="border-color: var(--border-color)"></div>
+                    <span class="px-3 text-xs" style="color: var(--primary-light)">VE YA</span>
+                    <div class="flex-grow border-t" style="border-color: var(--border-color)"></div>
+                </div>
+
+                <div class="space-y-3">
+                    <input type="text" id="joinRoomId" placeholder="Otaq Kodu" 
+                        class="w-full px-4 py-3 rounded-xl bg-black/40 border text-white uppercase text-center font-bold tracking-widest focus:outline-none transition placeholder-white/30" 
+                        style="border-color: var(--border-color); font-size: 16px;">
+                    <button onclick="joinRoom()" 
+                        class="w-full py-3.5 bg-neutral-900 hover:bg-neutral-800 rounded-xl font-bold transition border text-white/90 active:scale-95" 
+                        style="border-color: var(--border-color)">
+                        <i class="fas fa-sign-in-alt mr-2"></i>Qoşul
+                    </button>
+                </div>
+
+                <!-- QURUCU GİRİŞİ -->
+                <div class="relative flex items-center py-2">
+                    <div class="flex-grow border-t" style="border-color: var(--border-color)"></div>
+                    <span class="px-3 text-xs" style="color: #8b5cf6">QURUCU</span>
+                    <div class="flex-grow border-t" style="border-color: var(--border-color)"></div>
+                </div>
+
+                <div class="space-y-3">
+                    <input type="text" id="creatorRoomId" placeholder="Otaq Kodu" 
+                        class="w-full px-4 py-3 rounded-xl bg-black/40 border text-white uppercase text-center font-bold tracking-widest focus:outline-none transition placeholder-white/30" 
+                        style="border-color: rgba(139, 92, 246, 0.4); font-size: 16px;">
+                    <input type="password" id="creatorCode" placeholder="Qurucu Kodu" 
+                        class="w-full px-4 py-3 rounded-xl bg-black/40 border text-white text-center font-bold tracking-widest focus:outline-none transition placeholder-white/30" 
+                        style="border-color: rgba(139, 92, 246, 0.4); font-size: 16px;">
+                    <button onclick="creatorJoin()" 
+                        class="w-full py-3.5 rounded-xl font-bold transition shadow-lg text-white hover:opacity-90 active:scale-95" 
+                        style="background: linear-gradient(135deg, #7c3aed, #4c1d95); box-shadow: 0 10px 30px rgba(124, 58, 237, 0.2);">
+                        <i class="fas fa-key mr-2"></i>Qurucu Girişi
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- THEME PICKER MODAL -->
+    <div id="themePicker" class="theme-picker">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-bold">🎨 Tema Seç</h3>
+            <button onclick="closeThemePicker()" class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="theme-grid" id="themeGrid"></div>
+        <p class="text-xs text-center mt-4 opacity-60">Yalnız moderator dəyişə bilər</p>
+    </div>
+
+    <!-- MODERATOR MODAL -->
+    <div id="userModal" class="fixed inset-0 modal-overlay hidden z-50 flex items-center justify-center p-4" onclick="if(event.target === this) closeUserModal()">
+        <div class="modal-content-red rounded-3xl p-6 w-full max-w-sm">
+            <div class="flex items-center gap-4 mb-6">
+                <img id="modalUserAvatar" src="" class="w-16 h-16 rounded-full object-cover" style="border: 2px solid var(--primary-color)">
+                <div class="flex-1">
+                    <h3 id="modalUserName" class="text-lg font-bold text-white"></h3>
+                    <p class="text-xs" style="color: var(--primary-light)" id="modalUserStatus">İzləyici</p>
+                </div>
+                <button onclick="closeUserModal()" class="ml-auto p-2 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded-full transition">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="space-y-3">
+                <h4 class="text-xs font-bold uppercase tracking-wider mb-2" style="color: var(--primary-color)">İcazələr</h4>
+                
+                <div class="flex items-center justify-between p-3 rounded-xl bg-neutral-900/80 border" style="border-color: var(--border-color)">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center" style="color: var(--primary-color)">
+                            <i class="fas fa-comment text-sm"></i>
+                        </div>
+                        <span class="text-sm font-medium text-neutral-200">Yazı Yazmaq</span>
+                    </div>
+                    <div class="toggle-switch active" id="permChat" onclick="togglePermission('chat')"></div>
+                </div>
+                
+                <div class="flex items-center justify-between p-3 rounded-xl bg-neutral-900/80 border" style="border-color: var(--border-color)">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center" style="color: var(--primary-color)">
+                            <i class="fas fa-eye text-sm"></i>
+                        </div>
+                        <span class="text-sm font-medium text-neutral-200">Video İzləmə</span>
+                    </div>
+                    <div class="toggle-switch active" id="permVideo" onclick="togglePermission('video')"></div>
+                </div>
+                
+                <div class="flex items-center justify-between p-3 rounded-xl bg-neutral-900/80 border" style="border-color: var(--border-color)">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center" style="color: var(--primary-color)">
+                            <i class="fas fa-film text-sm"></i>
+                        </div>
+                        <span class="text-sm font-medium text-neutral-200">Video Seçmə</span>
+                    </div>
+                    <div class="toggle-switch" id="permChangeVideo" onclick="togglePermission('changeVideo')"></div>
+                </div>
+            </div>
+            
+            <div class="mt-6">
+                <button onclick="kickUser()" class="danger-btn">
+                    <i class="fas fa-sign-out-alt mr-2"></i>Otaqdan At
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- REACTION PICKER TEMPLATE -->
+    <div id="emojiPickerTemplate" class="emoji-picker">
+        <button class="emoji-btn" onclick="addReaction('👍')">👍</button>
+        <button class="emoji-btn" onclick="addReaction('❤️')">❤️</button>
+        <button class="emoji-btn" onclick="addReaction('😂')">😂</button>
+        <button class="emoji-btn" onclick="addReaction('😮')">😮</button>
+        <button class="emoji-btn" onclick="addReaction('😢')">😢</button>
+        <button class="emoji-btn" onclick="addReaction('😡')">😡</button>
+        <button class="emoji-btn" onclick="addReaction('🎉')">🎉</button>
+        <button class="emoji-btn" onclick="addReaction('🔥')">🔥</button>
+        <button class="emoji-btn" onclick="addReaction('👏')">👏</button>
+        <button class="emoji-btn" onclick="addReaction('😍')">😍</button>
+        <button class="emoji-btn" onclick="addReaction('🤔')">🤔</button>
+        <button class="emoji-btn" onclick="addReaction('👎')">👎</button>
+    </div>
+
+    <!-- ROOM INTERFACE -->
+    <div id="room" class="hidden flex-1 flex flex-col relative">
+        <button class="cinema-toggle" onclick="toggleCinemaMode()" title="Sinema Rejimi">
+            <i class="fas fa-film text-xl"></i>
+        </button>
+        
+        <button class="cinema-exit" onclick="toggleCinemaMode()">
+            <i class="fas fa-compress"></i>
+            <span>Sinema rejimindən çıx</span>
+        </button>
+
+        <header class="glass-red border-b flex items-center justify-between px-4 shrink-0 z-20" style="border-color: var(--border-color); height: 56px; min-height: 56px;">
+            <div class="flex items-center space-x-3">
+                <h1 class="text-lg font-bold text-white">Kino<span id="headerPrimary" style="color: var(--primary-color)">Zal</span></h1>
+                
+                <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-black/40 border" style="border-color: var(--border-color)">
+                    <span class="text-[10px] uppercase font-bold" style="color: var(--primary-color)">Kod:</span>
+                    <span id="roomCode" class="font-mono font-bold text-sm tracking-wider" style="color: var(--primary-color)">---</span>
+                    <div class="flex items-center gap-1 ml-2 border-l pl-2" style="border-color: var(--border-color)">
+                        <button onclick="copyCode()" class="p-1.5 text-neutral-400 hover:text-white transition" title="Kopyala">
+                            <i class="fas fa-copy text-xs"></i>
+                        </button>
+                        <button onclick="shareCode()" class="p-1.5 text-neutral-400 hover:text-white transition" title="Paylaş">
+                            <i class="fas fa-share-alt text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-2">
+                <button onclick="openThemePicker()" class="theme-btn" title="Tema Dəyiş">
+                    <div class="color-dot"></div>
+                    <span class="hidden sm:inline">Tema</span>
+                    <i class="fas fa-palette"></i>
+                </button>
+
+                <span id="activeUsersCount" class="hidden md:flex items-center px-3 py-1 rounded-full text-xs border" style="background: var(--glass-bg); border-color: var(--border-color); color: var(--primary-color)">
+                    <i class="fas fa-users mr-1.5"></i>
+                    <span id="usersCountText">1</span>
+                </span>
+                
+                <span id="userType" class="px-3 py-1 rounded-full text-xs font-bold bg-neutral-900 border" style="border-color: var(--border-color)">İzləyici</span>
+                <button onclick="leaveRoom()" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 transition" style="color: var(--primary-color)">
+                    <i class="fas fa-times text-sm"></i>
+                </button>
+            </div>
+        </header>
+
+        <div class="main-container overflow-hidden">
+            <div id="videoSection">
+                <button id="changeVideoBtn" onclick="toggleSearch()" class="hidden absolute top-4 right-4 z-40 glass-red px-4 py-2 rounded-xl border text-sm font-bold text-white shadow-lg transition hover:scale-105" style="border-color: var(--border-color)">
+                    <i class="fas fa-film mr-2" style="color: var(--primary-color)"></i>Video Dəyiş
+                </button>
+
+                <div id="searchContainer" class="hidden absolute top-16 left-1/2 transform -translate-x-1/2 z-30 w-full max-w-lg px-4">
+                    <div class="glass-red rounded-2xl overflow-hidden shadow-2xl border" style="border-color: var(--border-color)">
+                        <div class="flex items-center px-4 py-3 border-b bg-neutral-950/50" style="border-color: var(--border-color)">
+                            <i class="fas fa-search mr-3" style="color: var(--primary-color)"></i>
+                            <input type="text" id="searchQuery" placeholder="YouTube-da axtar..." class="flex-1 bg-transparent border-none outline-none text-white placeholder-neutral-500 text-sm" onkeypress="if(event.key==='Enter') searchYouTube()">
+                            <button onclick="searchYouTube()" class="px-4 py-1.5 rounded-lg text-sm font-bold transition shadow-lg text-white" style="background: var(--primary-color)">Axtar</button>
+                            <button onclick="closeSearch()" class="ml-2 p-2 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded-lg transition">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div id="searchResults" class="hidden p-3 bg-neutral-950/98 space-y-2"></div>
+                    </div>
+                </div>
+
+                <div class="flex-1 relative flex items-center justify-center bg-black h-full">
+                    <div id="playerWrapper" class="w-full h-full relative">
+                        <div id="player"></div>
+                    </div>
+                    <div id="playerLoader" class="absolute inset-0 flex items-center justify-center bg-black z-10">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+
+                <div id="hostControls" class="hidden glass-red border-t p-3 z-30 absolute bottom-0 left-0 right-0" style="border-color: var(--border-color)">
+                    <div class="flex items-center justify-center space-x-6">
+                        <button onclick="playerControl('seek', -10)" class="p-2 transition" style="color: var(--primary-color)">
+                            <i class="fas fa-backward"></i>
+                        </button>
+                        <button id="playPauseBtn" onclick="playerControl('toggle')" class="w-12 h-12 rounded-full flex items-center justify-center hover:scale-105 transition shadow-lg text-white" style="background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); box-shadow: 0 0 20px var(--shadow-color)">
+                            <i class="fas fa-play ml-0.5" id="playIcon"></i>
+                            <i class="fas fa-pause hidden" id="pauseIcon"></i>
+                        </button>
+                        <button onclick="playerControl('seek', 10)" class="p-2 transition" style="color: var(--primary-color)">
+                            <i class="fas fa-forward"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-container">
+                <div class="users-bar">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-xs font-bold uppercase tracking-wider flex items-center gap-1" style="color: var(--primary-color)">
+                            <i class="fas fa-users text-[10px]"></i>
+                            İştirakçılar
+                        </h3>
+                        <span class="text-[11px] text-neutral-500 bg-neutral-900/50 px-2 py-0.5 rounded-full" id="onlineCount">0 onlayn</span>
+                    </div>
+                    <div id="usersList" class="flex gap-2 overflow-x-auto custom-scrollbar pb-1"></div>
+                </div>
+
+                <div id="replyIndicator" class="hidden reply-bar" style="margin: 8px 16px 0 16px;">
+                    <div class="flex-1 min-w-0">
+                        <div class="text-[10px] font-semibold mb-0.5 flex items-center gap-1" style="color: var(--primary-color)">
+                            <i class="fas fa-reply text-[8px]"></i> Cavab
+                        </div>
+                        <div class="text-xs text-neutral-300 truncate" id="replyText"></div>
+                    </div>
+                    <button onclick="cancelReply()" class="p-1.5 hover:bg-neutral-800 rounded-full text-neutral-400 hover:text-white transition">
+                        <i class="fas fa-times text-xs"></i>
+                    </button>
+                </div>
+
+                <div id="chatMessages" class="messages-scroll">
+                    <div id="typingIndicator" class="hidden typing-indicator">
+                        <div class="typing-dots">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                        <span id="typingText">kimsə yazır...</span>
+                    </div>
+                </div>
+                
+                <div class="chat-input-area">
+                    <div class="input-container">
+                        <textarea id="messageInput" placeholder="Mesaj yaz..." rows="1" 
+                            class="chat-textarea"
+                            oninput="autoResize(this); handleTyping()"
+                            onkeypress="handleKeyPress(event)"></textarea>
+                        <button onclick="sendMessage()" id="sendBtn" class="send-btn">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="notificationToast" class="notification-red fixed top-20 right-4 p-4 rounded-2xl z-50 transform translate-x-[150%] transition-transform duration-300 max-w-xs">
+        <div class="flex items-start gap-3">
+            <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0" style="color: var(--primary-color)">
+                <i class="fas fa-info"></i>
+            </div>
+            <div>
+                <div class="text-sm font-bold text-white mb-0.5" id="notifTitle">Bildiriş</div>
+                <div class="text-xs text-neutral-400 leading-relaxed" id="notifText">...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.onpageshow = function(event) {
+            if (event.persisted) {
+                window.location.reload();
+            }
+        };
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyCM5WdZNSj9oFipNI-J3csHpOIvK8PfyJRdk",
+            authDomain: "sevgili-testi.firebaseapp.com",
+            databaseURL: "https://sevgili-testi-default-rtdb.firebaseio.com",
+            projectId: "sevgili-testi",
+            storageBucket: "sevgili-testi.firebasestorage.app",
+            messagingSenderId: "399260477557",
+            appId: "1:399260477557:web:584204a698d7bf145bb03c",
+            measurementId: "G-44P21XCZ7G"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const YOUTUBE_API_KEY = "AIzaSyBterRsxZoTvVbxlsOzESKWBDAY2B8BWc4";
+        
+        let userId = localStorage.getItem('syncUserId');
+        if (!userId) {
+            userId = 'user_' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('syncUserId', userId);
+        }
+        
+        let currentRoom = null;
+        let isHost = false;
+        let isCreator = false; // Qurucu flag
+        let player = null;
+        let serverOffset = 0;
+        let currentVideoId = null;
+        let replyingTo = null;
+        let userName = '';
+        let userAvatar = localStorage.getItem('userAvatar') || '';
+        let selectedUserId = null;
+        let userPermissions = { chat: true, video: true, changeVideo: false };
+        let typingTimeout = null;
+        let cinemaMode = false;
+        let currentReactionMessageId = null;
+        let isSending = false;
+        let messageIds = new Set();
+        let playerReady = false;
+        
+        const themes = [
+            { id: 'red', name: 'Qırmızı', color: '#dc2626' },
+            { id: 'pink', name: 'Çəhrayı', color: '#ec4899' },
+            { id: 'green', name: 'Yaşıl', color: '#22c55e' },
+            { id: 'blue', name: 'Mavi', color: '#3b82f6' },
+            { id: 'black', name: 'Qara', color: '#525252' },
+            { id: 'gray', name: 'Boz', color: '#6b7280' },
+            { id: 'darkgreen', name: 'Tünd Yaşıl', color: '#059669' },
+            { id: 'lightblue', name: 'Açıq Mavi', color: '#06b6d4' },
+            { id: 'orange', name: 'Narıncı', color: '#f97316' }
+        ];
+        
+        db.ref(".info/serverTimeOffset").on("value", (snap) => { 
+            serverOffset = snap.val() || 0; 
+        });
+        
+        const getServerTime = () => Date.now() + serverOffset;
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            if (userAvatar) {
+                updateAvatarUI(userAvatar);
+            }
+        });
+        
+        function updateAvatarUI(imageData) {
+            const preview = document.getElementById('avatarPreview');
+            const placeholder = document.getElementById('avatarPlaceholder');
+            if (preview && placeholder) {
+                preview.src = imageData;
+                preview.classList.add('show');
+                placeholder.classList.add('hidden');
+            }
+        }
+        
+        function triggerAvatarUpload() {
+            const input = document.getElementById('avatarInput');
+            if (input) input.click();
+        }
+        
+        function handleAvatarSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            if (file.size > 2 * 1024 * 1024) { 
+                showNotification('Xəta', 'Şəkil 2MB-dan kiçik olmalıdır!'); 
+                return; 
+            }
+            
+            if (!file.type.startsWith('image/')) {
+                showNotification('Xəta', 'Yalnız şəkil faylları qəbul olunur!');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                userAvatar = e.target.result;
+                localStorage.setItem('userAvatar', userAvatar);
+                updateAvatarUI(userAvatar);
+                document.getElementById('avatarError')?.classList.add('hidden');
+                showNotification('Uğurlu', 'Profil şəkli seçildi');
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        function validateInputs() {
+            const name = document.getElementById('hostName')?.value.trim();
+            if (!name) { 
+                showNotification('Xəta', 'Adınızı daxil edin!'); 
+                return false; 
+            }
+            if (!userAvatar) { 
+                document.getElementById('avatarError')?.classList.remove('hidden');
+                showNotification('Xəta', 'Profil şəkli seçilməlidir');
+                return false; 
+            }
+            return true;
+        }
+
+        function generateRoomCode() {
+            return Math.random().toString(36).substring(2, 8).toUpperCase();
+        }
+
+        function initThemePicker() {
+            const grid = document.getElementById('themeGrid');
+            if (!grid) return;
+            
+            grid.innerHTML = '';
+            themes.forEach(theme => {
+                const btn = document.createElement('div');
+                btn.className = 'theme-option';
+                btn.style.background = `linear-gradient(135deg, ${theme.color}, ${theme.color}dd)`;
+                btn.onclick = () => changeTheme(theme.id);
+                btn.innerHTML = `
+                    <span class="theme-label">${theme.name}</span>
+                    <div style="width: 20px; height: 20px; border-radius: 50%; background: ${theme.color}; border: 2px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"></div>
+                `;
+                btn.dataset.theme = theme.id;
+                grid.appendChild(btn);
+            });
+            
+            const currentTheme = document.body.className.match(/theme-(\w+)/)?.[1] || 'red';
+            document.querySelectorAll('.theme-option').forEach(el => {
+                if (el.dataset.theme === currentTheme) el.classList.add('active');
+            });
+        }
+        
+        function openThemePicker() {
+            if (!isHost && !userPermissions.changeVideo && !isCreator) {
+                showNotification('İcazə yoxdur', 'Temanı yalnız moderator dəyişə bilər');
+                return;
+            }
+            document.getElementById('themePicker')?.classList.add('active');
+        }
+        
+        function closeThemePicker() {
+            document.getElementById('themePicker')?.classList.remove('active');
+        }
+        
+        function changeTheme(themeId) {
+            if (!currentRoom) return;
+            if (!isHost && !userPermissions.changeVideo && !isCreator) {
+                showNotification('İcazə yoxdur', 'Temanı yalnız moderator dəyişə bilər');
+                return;
+            }
+            
+            applyTheme(themeId);
+            
+            db.ref(`rooms/${currentRoom}/theme`).set({
+                color: themeId,
+                updatedBy: userId,
+                updatedAt: firebase.database.ServerValue.TIMESTAMP
+            });
+            
+            closeThemePicker();
+            showNotification('Tema dəyişdirildi', themes.find(t => t.id === themeId)?.name || '');
+        }
+        
+        function applyTheme(themeId) {
+            document.body.className = document.body.className.replace(/theme-\w+/g, '').trim();
+            document.body.classList.add(`theme-${themeId}`);
+            
+            document.querySelectorAll('.theme-option').forEach(el => {
+                el.classList.toggle('active', el.dataset.theme === themeId);
+            });
+        }
+
+        async function createRoom() {
+            if (!validateInputs()) return;
+            
+            userName = document.getElementById('hostName').value.trim();
+            const code = generateRoomCode();
+            
+            try {
+                await db.ref(`rooms/${code}`).set({
+                    createdAt: firebase.database.ServerValue.TIMESTAMP,
+                    hostId: userId,
+                    theme: { 
+                        color: 'red', 
+                        updatedBy: userId, 
+                        updatedAt: firebase.database.ServerValue.TIMESTAMP 
+                    },
+                    currentVideo: { 
+                        id: 'jfKfPfyJRdk', 
+                        title: 'Lofi Girl', 
+                        time: 0, 
+                        isPlaying: false, 
+                        updatedAt: firebase.database.ServerValue.TIMESTAMP 
+                    },
+                    users: { 
+                        [userId]: { 
+                            name: userName, 
+                            avatar: userAvatar, 
+                            isHost: true, 
+                            joinedAt: firebase.database.ServerValue.TIMESTAMP, 
+                            status: 'active' 
+                        }
+                    },
+                    permissions: {}
+                });
+                
+                enterRoom(code, true);
+            } catch (error) {
+                console.error("Error creating room:", error);
+                showNotification('Xəta', 'Otaq yaradılarkən xəta baş verdi');
+            }
+        }
+
+        async function joinRoom() {
+            const code = document.getElementById('joinRoomId')?.value.trim().toUpperCase();
+            
+            if (!validateInputs()) return;
+            if (!code) {
+                showNotification('Xəta', 'Kodu daxil edin!');
+                return;
+            }
+            
+            userName = document.getElementById('hostName').value.trim();
+            
+            try {
+                const roomSnap = await db.ref(`rooms/${code}`).once('value');
+                if (!roomSnap.exists()) {
+                    showNotification('Xəta', 'Otaq tapılmadı!');
+                    return;
+                }
+                
+                const roomData = roomSnap.val();
+                
+                if (roomData.theme?.color) {
+                    applyTheme(roomData.theme.color);
+                }
+                
+                await db.ref(`rooms/${code}/users/${userId}`).set({
+                    name: userName, 
+                    avatar: userAvatar, 
+                    isHost: false, 
+                    joinedAt: firebase.database.ServerValue.TIMESTAMP, 
+                    status: 'active'
+                });
+                
+                enterRoom(code, false);
+            } catch (error) {
+                console.error("Error joining room:", error);
+                showNotification('Xəta', 'Otağa qoşularkən xəta baş verdi');
+            }
+        }
+
+        // YENİ: Qurucu giriş funksiyası
+        async function creatorJoin() {
+            const roomCode = document.getElementById('creatorRoomId')?.value.trim().toUpperCase();
+            const creatorCode = document.getElementById('creatorCode')?.value.trim();
+            
+            if (!validateInputs()) return;
+            
+            if (!roomCode) {
+                showNotification('Xəta', 'Otaq kodunu daxil edin!');
+                return;
+            }
+            
+            if (creatorCode !== 'moderator123') {
+                showNotification('Xəta', 'Yanlış qurucu kodu!');
+                return;
+            }
+            
+            userName = document.getElementById('hostName').value.trim();
+            
+            try {
+                const roomSnap = await db.ref(`rooms/${roomCode}`).once('value');
+                if (!roomSnap.exists()) {
+                    showNotification('Xəta', 'Otaq tapılmadı!');
+                    return;
+                }
+                
+                const roomData = roomSnap.val();
+                
+                if (roomData.theme?.color) {
+                    applyTheme(roomData.theme.color);
+                }
+                
+                // Qurucu kimi əlavə et - isHost:true olaraq (bütün hüquqlar üçün)
+                await db.ref(`rooms/${roomCode}/users/${userId}`).set({
+                    name: userName + ' (Qurucu)', 
+                    avatar: userAvatar, 
+                    isHost: true, // Host hüquqları ver
+                    isCreator: true, // Qurucu flag
+                    joinedAt: firebase.database.ServerValue.TIMESTAMP, 
+                    status: 'active'
+                });
+                
+                isCreator = true; // Global flag set
+                enterRoom(roomCode, true); // Host kimi daxil ol
+                
+            } catch (error) {
+                console.error("Creator join error:", error);
+                showNotification('Xəta', 'Giriş zamanı xəta baş verdi');
+            }
+        }
+
+        function enterRoom(code, host) {
+            currentRoom = code;
+            isHost = host;
+            
+            document.getElementById('landing')?.classList.add('hidden');
+            document.getElementById('room')?.classList.remove('hidden');
+            document.getElementById('roomCode').textContent = code;
+            
+            const userType = document.getElementById('userType');
+            
+            if (isHost || isCreator) {
+                userType.textContent = isCreator ? '👑 Qurucu' : '👑 Moderator';
+                userType.style.background = 'rgba(234, 179, 8, 0.1)';
+                userType.style.color = '#fbbf24';
+                userType.style.borderColor = 'rgba(234, 179, 8, 0.3)';
+                
+                document.getElementById('hostControls')?.classList.remove('hidden');
+                document.getElementById('changeVideoBtn')?.classList.remove('hidden');
+                
+                // Qurucu üçün bütün icazələri aç
+                userPermissions = { chat: true, video: true, changeVideo: true };
+            } else {
+                userType.textContent = '👁️ İzləyici';
+                userType.style.color = 'var(--primary-color)';
+            }
+            
+            initThemePicker();
+            initPlayer();
+            setupRealTimeListeners();
+            setupVisibility();
+            
+            setTimeout(() => window.dispatchEvent(new Event('resize')), 100);
+        }
+
+        function setupVisibility() {
+            document.addEventListener('visibilitychange', () => {
+                if (!currentRoom) return;
+                db.ref(`rooms/${currentRoom}/users/${userId}/status`).set(document.hidden ? 'background' : 'active');
+            });
+            
+            window.addEventListener('blur', () => { 
+                if(currentRoom) db.ref(`rooms/${currentRoom}/users/${userId}/focused`).set(false); 
+            });
+            
+            window.addEventListener('focus', () => { 
+                if(currentRoom) { 
+                    db.ref(`rooms/${currentRoom}/users/${userId}/focused`).set(true); 
+                    db.ref(`rooms/${currentRoom}/users/${userId}/status`).set('active'); 
+                }
+            });
+        }
+
+        function toggleCinemaMode() {
+            cinemaMode = !cinemaMode;
+            document.body.classList.toggle('cinema-mode');
+            
+            if (cinemaMode) {
+                if (document.documentElement.requestFullscreen) {
+                    document.documentElement.requestFullscreen().catch(() => {});
+                }
+            } else {
+                if (document.exitFullscreen && document.fullscreenElement) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement && cinemaMode) {
+                cinemaMode = false;
+                document.body.classList.remove('cinema-mode');
+            }
+        });
+
+        function initPlayer() {
+            if (typeof YT === 'undefined' || !YT.Player) { 
+                setTimeout(initPlayer, 100); 
+                return; 
+            }
+            
+            try {
+                player = new YT.Player('player', {
+                    height: '100%', 
+                    width: '100%',
+                    videoId: 'jfKfPfyJRdk',
+                    playerVars: { 
+                        autoplay: 0, 
+                        controls: isHost || isCreator ? 1 : 0, 
+                        disablekb: isHost || isCreator ? 0 : 1, 
+                        rel: 0, 
+                        playsinline: 1,
+                        enablejsapi: 1,
+                        origin: window.location.origin
+                    },
+                    events: { 
+                        onReady: onPlayerReady, 
+                        onStateChange: onPlayerStateChange,
+                        onError: onPlayerError
+                    }
+                });
+            } catch(e) {
+                console.error("Player init error:", e);
+                setTimeout(initPlayer, 500);
+            }
+        }
+
+        function onPlayerReady() {
+            playerReady = true;
+            document.getElementById('playerLoader').style.display = 'none';
+            
+            if (isHost || isCreator) {
+                setInterval(() => {
+                    if (!player || !currentRoom) return;
+                    const state = player.getPlayerState();
+                    const time = player.getCurrentTime();
+                    
+                    db.ref(`rooms/${currentRoom}/currentVideo`).update({
+                        time: time,
+                        isPlaying: state === YT.PlayerState.PLAYING,
+                        updatedAt: firebase.database.ServerValue.TIMESTAMP
+                    });
+                }, 2000);
+            } else {
+                setInterval(() => {
+                    if (!player || !currentRoom) return;
+                    syncViewer();
+                }, 1000);
+            }
+        }
+
+        function syncViewer() {
+            if ((isHost || isCreator) || !playerReady) return;
+            
+            db.ref(`rooms/${currentRoom}/currentVideo`).once('value').then(snap => {
+                const video = snap.val();
+                if (!video) return;
+                
+                if (video.id && video.id !== currentVideoId) {
+                    currentVideoId = video.id;
+                    player.loadVideoById(video.id);
+                    showNotification('Yeni video', video.title?.substring(0, 40) + (video.title?.length > 40 ? '...' : '') || 'Video dəyişdirildi');
+                    return;
+                }
+                
+                if (video.time !== undefined && video.isPlaying !== undefined) {
+                    const currentTime = player.getCurrentTime() || 0;
+                    const timeDiff = Math.abs(currentTime - video.time);
+                    
+                    if (timeDiff > 3) {
+                        player.seekTo(video.time, true);
+                    }
+                    
+                    const state = player.getPlayerState();
+                    const isPlaying = state === YT.PlayerState.PLAYING;
+                    
+                    if (video.isPlaying && !isPlaying && state !== YT.PlayerState.BUFFERING) {
+                        player.playVideo();
+                    } else if (!video.isPlaying && isPlaying) {
+                        player.pauseVideo();
+                    }
+                }
+            });
+        }
+
+        function onPlayerStateChange(e) {
+            updatePlayIcon(e.data === YT.PlayerState.PLAYING);
+            
+            if ((!isHost && !isCreator) || !currentRoom) return;
+            
+            clearTimeout(window.stateChangeTimeout);
+            window.stateChangeTimeout = setTimeout(() => {
+                db.ref(`rooms/${currentRoom}/currentVideo`).update({
+                    isPlaying: e.data === YT.PlayerState.PLAYING,
+                    time: player.getCurrentTime(),
+                    updatedAt: firebase.database.ServerValue.TIMESTAMP
+                });
+            }, 500);
+        }
+
+        function onPlayerError(event) {
+            console.error("Player Error:", event.data);
+        }
+
+        function updatePlayIcon(playing) {
+            document.getElementById('playIcon')?.classList.toggle('hidden', playing);
+            document.getElementById('pauseIcon')?.classList.toggle('hidden', !playing);
+        }
+
+        function toggleSearch() { 
+            if (!isHost && !isCreator && !userPermissions.changeVideo) {
+                showNotification('İcazə yoxdur', 'Video dəyişmək üçün moderator olmalısınız');
+                return;
+            }
+            document.getElementById('searchContainer')?.classList.toggle('hidden'); 
+        }
+        
+        function closeSearch() { 
+            document.getElementById('searchContainer')?.classList.add('hidden'); 
+            document.getElementById('searchResults')?.classList.add('hidden');
+        }
+
+        async function searchYouTube() {
+            const query = document.getElementById('searchQuery')?.value.trim();
+            if (!query) return;
+            
+            const resultsDiv = document.getElementById('searchResults');
+            resultsDiv.innerHTML = '<div class="flex justify-center p-4"><div class="spinner"></div></div>';
+            resultsDiv.classList.remove('hidden');
+            
+            try {
+                const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=8&q=${encodeURIComponent(query)}&type=video&key=${YOUTUBE_API_KEY}`);
+                const data = await res.json();
+                
+                resultsDiv.innerHTML = '';
+                if (!data.items?.length) {
+                    resultsDiv.innerHTML = '<div class="text-xs text-center p-2 text-neutral-400">Nəticə tapılmadı</div>';
+                    return;
+                }
+                
+                data.items.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'flex space-x-3 p-2 rounded-lg bg-neutral-900/50 hover:bg-neutral-800 cursor-pointer transition';
+                    card.onclick = () => selectVideo(item.id.videoId, item.snippet.title);
+                    
+                    const thumb = item.snippet.thumbnails.medium?.url || item.snippet.thumbnails.default?.url;
+                    card.innerHTML = `
+                        <div class="relative w-28 h-16 shrink-0 rounded-lg overflow-hidden">
+                            <img src="${thumb}" class="w-full h-full object-cover" loading="lazy">
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h4 class="text-xs font-bold text-white line-clamp-2">${escapeHtml(item.snippet.title)}</h4>
+                        </div>
+                    `;
+                    resultsDiv.appendChild(card);
+                });
+            } catch (err) {
+                resultsDiv.innerHTML = '<div class="text-xs text-center p-2 text-red-400">Axtarış xətası</div>';
+            }
+        }
+
+        function selectVideo(id, title) {
+            if (!isHost && !isCreator && !userPermissions.changeVideo) return;
+            
+            currentVideoId = id;
+            if (player?.loadVideoById) {
+                player.loadVideoById(id);
+            }
+            
+            closeSearch();
+            
+            db.ref(`rooms/${currentRoom}/currentVideo`).set({
+                id: id, 
+                title: title, 
+                time: 0, 
+                isPlaying: true,
+                updatedBy: userId,
+                updatedAt: firebase.database.ServerValue.TIMESTAMP
+            });
+            
+            showNotification('Video dəyişdirildi', title.substring(0, 30) + (title.length > 30 ? '...' : ''));
+        }
+
+        function playerControl(action, val) {
+            if ((!isHost && !isCreator) || !player) return;
+            
+            if (action === 'toggle') {
+                const state = player.getPlayerState();
+                if (state === YT.PlayerState.PLAYING) {
+                    player.pauseVideo();
+                } else {
+                    player.playVideo();
+                }
+            } else if (action === 'seek') {
+                player.seekTo(player.getCurrentTime() + val, true);
+            }
+        }
+
+        function setupRealTimeListeners() {
+            if (!currentRoom) return;
+            
+            db.ref(`rooms/${currentRoom}/theme`).on('value', (snap) => {
+                const themeData = snap.val();
+                if (themeData?.color) {
+                    applyTheme(themeData.color);
+                }
+            });
+            
+            db.ref(`rooms/${currentRoom}/users`).on('value', (snap) => {
+                const users = snap.val() || {};
+                const list = document.getElementById('usersList');
+                list.innerHTML = '';
+                
+                let count = 0;
+                Object.entries(users).forEach(([uid, data]) => {
+                    if (data.status === 'active') {
+                        count++;
+                        const chip = document.createElement('div');
+                        chip.className = `user-chip ${data.isHost ? 'host' : ''}`;
+                        chip.onclick = () => openUserModal(uid, data);
+                        chip.innerHTML = `
+                            <img src="${data.avatar || 'https://via.placeholder.com/24'}" class="w-6 h-6 rounded-full object-cover" alt="">
+                            <span class="text-xs font-medium">${escapeHtml(data.name)}</span>
+                            ${data.isHost ? '<i class="fas fa-crown text-amber-400 text-[10px]"></i>' : ''}
+                        `;
+                        list.appendChild(chip);
+                    }
+                });
+                
+                document.getElementById('onlineCount').textContent = count + ' onlayn';
+                document.getElementById('usersCountText').textContent = count;
+            });
+            
+            db.ref(`rooms/${currentRoom}/messages`).limitToLast(50).on('child_added', (snap) => {
+                const msg = snap.val();
+                const msgId = snap.key;
+                if (msg && !messageIds.has(msgId)) {
+                    messageIds.add(msgId);
+                    displayMessage(msgId, msg);
+                }
+            });
+            
+            db.ref(`rooms/${currentRoom}/typing`).on('value', (snap) => {
+                const typing = snap.val() || {};
+                const now = Date.now();
+                const typingUsers = Object.entries(typing)
+                    .filter(([uid, data]) => uid !== userId && data.timestamp > now - 3000)
+                    .map(([_, data]) => data.name);
+                
+                const indicator = document.getElementById('typingIndicator');
+                if (typingUsers.length > 0) {
+                    indicator.classList.remove('hidden');
+                    document.getElementById('typingText').textContent = typingUsers.join(', ') + ' yazır...';
+                } else {
+                    indicator.classList.add('hidden');
+                }
+            });
+            
+            if (!isHost && !isCreator) {
+                db.ref(`rooms/${currentRoom}/permissions/${userId}`).on('value', (snap) => {
+                    const perms = snap.val();
+                    if (perms) {
+                        userPermissions = { ...userPermissions, ...perms };
+                        
+                        const changeBtn = document.getElementById('changeVideoBtn');
+                        if (perms.changeVideo) changeBtn?.classList.remove('hidden');
+                        else changeBtn?.classList.add('hidden');
+                        
+                        const msgInput = document.getElementById('messageInput');
+                        if (msgInput) {
+                            msgInput.disabled = perms.chat === false;
+                            msgInput.placeholder = perms.chat === false ? 'Yazı yazmaq qadağandır' : 'Mesaj yaz...';
+                        }
+                    }
+                });
+                
+                db.ref(`rooms/${currentRoom}/users/${userId}`).on('value', (snap) => {
+                    if (!snap.exists()) {
+                        alert('Siz otaqdan atıldınız!');
+                        location.reload();
+                    }
+                });
+            }
+        }
+
+        function handleTyping() {
+            if (!currentRoom) return;
+            
+            db.ref(`rooms/${currentRoom}/typing/${userId}`).set({
+                name: userName,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            });
+            
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => {
+                db.ref(`rooms/${currentRoom}/typing/${userId}`).remove();
+            }, 3000);
+        }
+
+        function displayMessage(msgId, msg) {
+            const container = document.getElementById('chatMessages');
+            if (document.getElementById('msg-' + msgId)) return;
+            
+            const isOwn = msg.userId === userId;
+            const wrapper = document.createElement('div');
+            wrapper.className = 'msg-wrapper';
+            wrapper.id = 'msg-' + msgId;
+            
+            const replyHtml = msg.replyTo ? `<div class="msg-reply">${escapeHtml(msg.replyTo.text)}</div>` : '';
+            const avatarHtml = `<img src="${msg.avatar || 'https://via.placeholder.com/32'}" class="msg-avatar" alt="" onclick="setReply('${msgId}', '${escapeHtml(msg.name)}', '${escapeHtml(msg.text)}')">`;
+            
+            wrapper.innerHTML = `
+                ${!isOwn ? avatarHtml : ''}
+                <div class="flex flex-col ${isOwn ? 'items-end' : 'items-start'} flex-1">
+                    ${!isOwn ? `<div class="msg-sender">${escapeHtml(msg.name)}</div>` : ''}
+                    <div class="msg-bubble ${isOwn ? 'msg-own' : 'msg-other'}" onclick="showReactionPicker('${msgId}')">
+                        ${replyHtml}
+                        <div class="break-words">${escapeHtml(msg.text)}</div>
+                        <div class="msg-meta">
+                            <span>${formatTime(msg.timestamp)}</span>
+                        </div>
+                    </div>
+                    <div class="reaction-bar" id="reactions-${msgId}"></div>
+                </div>
+            `;
+            
+            const typingIndicator = document.getElementById('typingIndicator');
+            container.insertBefore(wrapper, typingIndicator);
+            container.scrollTop = container.scrollHeight;
+            
+            db.ref(`rooms/${currentRoom}/messages/${msgId}/reactions`).on('value', (snap) => {
+                const reactions = snap.val() || {};
+                const bar = document.getElementById('reactions-' + msgId);
+                if (!bar) return;
+                
+                bar.innerHTML = '';
+                const counts = {};
+                Object.entries(reactions).forEach(([uid, emoji]) => {
+                    counts[emoji] = (counts[emoji] || 0) + 1;
+                });
+                
+                Object.entries(counts).forEach(([emoji, count]) => {
+                    const userReacted = reactions[userId] === emoji;
+                    const btn = document.createElement('div');
+                    btn.className = 'reaction-item ' + (userReacted ? 'user-reacted' : '');
+                    btn.innerHTML = `<span>${emoji}</span><span>${count}</span>`;
+                    btn.onclick = (e) => { e.stopPropagation(); toggleReaction(msgId, emoji); };
+                    bar.appendChild(btn);
+                });
+            });
+        }
+
+        function showReactionPicker(msgId) {
+            currentReactionMessageId = msgId;
+            
+            document.querySelectorAll('.emoji-picker').forEach(el => {
+                if (el.id !== 'emojiPickerTemplate') el.remove();
+            });
+            
+            const picker = document.getElementById('emojiPickerTemplate').cloneNode(true);
+            picker.id = 'activePicker';
+            picker.classList.add('show');
+            
+            const msgEl = document.getElementById('msg-' + msgId);
+            const bubble = msgEl.querySelector('.msg-bubble');
+            bubble.appendChild(picker);
+            
+            setTimeout(() => {
+                document.addEventListener('click', function close(e) {
+                    if (!e.target.closest('.emoji-picker')) {
+                        picker.remove();
+                        document.removeEventListener('click', close);
+                    }
+                }, { once: true });
+            }, 100);
+        }
+
+        function addReaction(emoji) {
+            if (currentReactionMessageId) {
+                toggleReaction(currentReactionMessageId, emoji);
+                document.getElementById('activePicker')?.remove();
+            }
+        }
+
+        function toggleReaction(msgId, emoji) {
+            const ref = db.ref(`rooms/${currentRoom}/messages/${msgId}/reactions/${userId}`);
+            ref.once('value').then(snap => {
+                if (snap.val() === emoji) {
+                    ref.remove();
+                } else {
+                    ref.set(emoji);
+                }
+            });
+        }
+
+        function setReply(msgId, name, text) {
+            replyingTo = { id: msgId, name, text: text.length > 30 ? text.substring(0, 30) + '...' : text };
+            document.getElementById('replyIndicator').classList.remove('hidden');
+            document.getElementById('replyText').textContent = name + ': ' + replyingTo.text;
+            document.getElementById('messageInput').focus();
+        }
+
+        function cancelReply() {
+            replyingTo = null;
+            document.getElementById('replyIndicator').classList.add('hidden');
+        }
+
+        function sendMessage() {
+            if (isSending) return;
+            
+            const input = document.getElementById('messageInput');
+            const text = input.value.trim();
+            if (!text || !currentRoom) return;
+            
+            if (!isHost && !isCreator && userPermissions.chat === false) {
+                showNotification('Xəta', 'Sizə yazı yazmaq qadağan edilib');
+                return;
+            }
+            
+            isSending = true;
+            
+            const msg = {
+                type: 'text',
+                text: text,
+                userId: userId,
+                name: userName,
+                avatar: userAvatar,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            };
+            
+            if (replyingTo) {
+                msg.replyTo = replyingTo;
+                cancelReply();
+            }
+            
+            db.ref(`rooms/${currentRoom}/messages`).push(msg).then(() => {
+                input.value = '';
+                input.style.height = 'auto';
+                db.ref(`rooms/${currentRoom}/typing/${userId}`).remove();
+                isSending = false;
+            }).catch(() => {
+                isSending = false;
+                showNotification('Xəta', 'Mesaj göndərilmədi');
+            });
+        }
+
+        function handleKeyPress(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        }
+
+        function autoResize(el) {
+            el.style.height = 'auto';
+            el.style.height = Math.min(el.scrollHeight, 80) + 'px';
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatTime(timestamp) {
+            if (!timestamp) return '';
+            const date = new Date(timestamp);
+            return date.toLocaleTimeString('az-AZ', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function showNotification(title, text) {
+            const notif = document.getElementById('notificationToast');
+            document.getElementById('notifTitle').textContent = title;
+            document.getElementById('notifText').textContent = text;
+            notif.style.transform = 'translateX(0)';
+            
+            setTimeout(() => {
+                notif.style.transform = 'translateX(150%)';
+            }, 3000);
+        }
+
+        function copyCode() {
+            if (!currentRoom) return;
+            navigator.clipboard.writeText(currentRoom).then(() => {
+                showNotification('Kopyalandı', 'Otaq kodu kopyalandı');
+            });
+        }
+
+        function shareCode() {
+            const shareData = { title: 'KinoZal', text: 'KinoZal otağına qoşul: ' + currentRoom };
+            if (navigator.share) {
+                navigator.share(shareData).catch(() => copyCode());
+            } else {
+                copyCode();
+            }
+        }
+
+        function openUserModal(uid, userData) {
+            if ((!isHost && !isCreator) || uid === userId) return;
+            
+            selectedUserId = uid;
+            document.getElementById('modalUserName').textContent = userData.name || 'Naməlum';
+            document.getElementById('modalUserAvatar').src = userData.avatar || 'https://via.placeholder.com/64';
+            document.getElementById('modalUserStatus').textContent = userData.isHost ? 'Moderator' : 'İzləyici';
+            
+            db.ref(`rooms/${currentRoom}/permissions/${uid}`).once('value').then(snap => {
+                const perms = snap.val() || {};
+                document.getElementById('permChat').classList.toggle('active', perms.chat !== false);
+                document.getElementById('permVideo').classList.toggle('active', perms.video !== false);
+                document.getElementById('permChangeVideo').classList.toggle('active', perms.changeVideo === true);
+            });
+            
+            document.getElementById('userModal').classList.remove('hidden');
+        }
+        
+        function closeUserModal() {
+            document.getElementById('userModal').classList.add('hidden');
+            selectedUserId = null;
+        }
+        
+        function togglePermission(type) {
+            if (!selectedUserId) return;
+            
+            const el = document.getElementById('perm' + type.charAt(0).toUpperCase() + type.slice(1));
+            const newState = !el.classList.contains('active');
+            el.classList.toggle('active');
+            
+            db.ref(`rooms/${currentRoom}/permissions/${selectedUserId}/${type}`).set(newState);
+        }
+        
+        function kickUser() {
+            if (!selectedUserId) return;
+            if (confirm('İstifadəçini otaqdan atmaq istədiyinizə əminsiniz?')) {
+                db.ref(`rooms/${currentRoom}/users/${selectedUserId}`).remove();
+                db.ref(`rooms/${currentRoom}/permissions/${selectedUserId}`).remove();
+                closeUserModal();
+                showNotification('İstifadəçi atıldı', 'İstifadəçi otaqdan çıxarıldı');
+            }
+        }
+
+        function leaveRoom() {
+            if (confirm('Otaqdan çıxmaq istədiyinizə əminsiniz?')) {
+                if (document.fullscreenElement) {
+                    document.exitFullscreen().catch(() => {});
+                }
+                
+                if (currentRoom) {
+                    db.ref(`rooms/${currentRoom}/users/${userId}`).remove();
+                    db.ref(`rooms/${currentRoom}/typing/${userId}`).remove();
+                }
+                
+                location.reload();
+            }
+        }
+        
+        document.addEventListener('dblclick', function(event) {
+            event.preventDefault();
+        }, { passive: false });
+    </script>
+</body>
+</html>
