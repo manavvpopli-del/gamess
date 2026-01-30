@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>KinoZal - Test</title>
+    <title>SyncRoom - Red Edition</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -17,6 +17,233 @@
         * { font-family: 'Inter', sans-serif; }
         
         body { background: #0a0000; color: white; overflow: hidden; touch-action: manipulation; }
+        
+        /* NEON AMBIENT LIGHT EFFECT */
+        .ambient-light {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.4;
+            background: radial-gradient(circle at 50% 50%, rgba(220, 38, 38, 0.3), transparent 70%);
+            transition: all 1s ease;
+            filter: blur(60px);
+        }
+        
+        .ambient-light.active {
+            animation: neonPulse 4s infinite;
+        }
+        
+        @keyframes neonPulse {
+            0%, 100% { background: radial-gradient(circle at 50% 30%, rgba(220, 38, 38, 0.4), transparent 70%); }
+            25% { background: radial-gradient(circle at 50% 30%, rgba(138, 43, 226, 0.4), transparent 70%); }
+            50% { background: radial-gradient(circle at 50% 30%, rgba(255, 0, 128, 0.4), transparent 70%); }
+            75% { background: radial-gradient(circle at 50% 30%, rgba(255, 69, 0, 0.4), transparent 70%); }
+        }
+        
+        /* CINEMA MODE */
+        body.cinema-mode {
+            background: #000;
+        }
+        
+        body.cinema-mode .chat-container,
+        body.cinema-mode header,
+        body.cinema-mode #hostControls,
+        body.cinema-mode #virtualSeats {
+            opacity: 0;
+            pointer-events: none;
+            transform: translateX(100%);
+        }
+        
+        body.cinema-mode #room > div {
+            height: 100vh !important;
+        }
+        
+        body.cinema-mode #videoSection {
+            height: 100vh !important;
+            z-index: 50;
+        }
+        
+        body.cinema-mode .glass-red {
+            background: rgba(0,0,0,0.9);
+            border: none;
+        }
+        
+        .cinema-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            background: rgba(220, 38, 38, 0.9);
+            border: 2px solid rgba(255,255,255,0.2);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 0 20px rgba(220, 38, 38, 0.6);
+        }
+        
+        .cinema-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 30px rgba(220, 38, 38, 0.8);
+        }
+        
+        /* VIRTUAL SEATS */
+        #virtualSeats {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.95), transparent);
+            padding: 40px 20px 20px;
+            z-index: 40;
+            transition: all 0.5s;
+        }
+        
+        .theater-seats {
+            perspective: 1000px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .seat-row {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            transform-style: preserve-3d;
+        }
+        
+        .seat-row.back { transform: scale(0.8) translateZ(-50px); opacity: 0.6; }
+        .seat-row.middle { transform: scale(0.9) translateZ(-25px); opacity: 0.8; }
+        .seat-row.front { transform: scale(1) translateZ(0); }
+        
+        .seat {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px 12px 4px 4px;
+            background: linear-gradient(180deg, #3a1c1c 0%, #1a0505 100%);
+            border: 2px solid rgba(220, 38, 38, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            transition: all 0.3s;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+        
+        .seat.occupied {
+            background: linear-gradient(180deg, #dc2626 0%, #991b1b 100%);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 15px rgba(220, 38, 38, 0.5);
+            animation: seatGlow 2s infinite;
+        }
+        
+        @keyframes seatGlow {
+            0%, 100% { box-shadow: 0 0 15px rgba(220, 38, 38, 0.5); }
+            50% { box-shadow: 0 0 25px rgba(220, 38, 38, 0.8); }
+        }
+        
+        .seat img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(255,255,255,0.5);
+        }
+        
+        .seat-tooltip {
+            position: absolute;
+            bottom: 120%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.9);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.2s;
+            pointer-events: none;
+            border: 1px solid rgba(220, 38, 38, 0.3);
+        }
+        
+        .seat:hover .seat-tooltip {
+            opacity: 1;
+        }
+        
+        /* ROULETTE STYLES */
+        .roulette-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.95);
+            z-index: 200;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+        }
+        
+        .roulette-overlay.active {
+            display: flex;
+        }
+        
+        .roulette-wheel {
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            border: 8px solid #dc2626;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(220, 38, 38, 0.5);
+            animation: none;
+        }
+        
+        .roulette-wheel.spinning {
+            animation: spinWheel 3s cubic-bezier(0.1, 0.7, 0.1, 1);
+        }
+        
+        @keyframes spinWheel {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(1800deg); }
+        }
+        
+        .roulette-item {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .roulette-item.active {
+            opacity: 1;
+        }
+        
+        .roulette-pointer {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 30px solid #dc2626;
+            z-index: 10;
+            filter: drop-shadow(0 0 10px rgba(220, 38, 38, 0.8));
+        }
         
         .glass-red { 
             background: rgba(20, 0, 0, 0.95); 
@@ -48,11 +275,6 @@
             margin-bottom: 4px;
             animation: msgAppear 0.2s ease-out;
             position: relative;
-            group: hover;
-        }
-        
-        .msg-wrapper:hover .reaction-btn {
-            opacity: 1;
         }
         
         @keyframes msgAppear {
@@ -178,6 +400,10 @@
             font-size: 12px;
         }
         
+        .msg-wrapper:hover .reaction-btn {
+            opacity: 1;
+        }
+        
         .msg-own .reaction-btn {
             right: auto;
             left: -30px;
@@ -280,6 +506,27 @@
         .send-btn:hover {
             transform: scale(1.05);
             box-shadow: 0 6px 16px rgba(220, 38, 38, 0.5);
+        }
+        
+        .gif-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: transparent;
+            color: #991b1b;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        
+        .gif-btn:hover {
+            color: #dc2626;
+            background: rgba(220, 38, 38, 0.1);
         }
         
         .reply-bar {
@@ -500,9 +747,53 @@
             background: transparent;
             z-index: 5;
         }
+        
+        /* GIF MODAL */
+        .gif-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.95);
+            z-index: 150;
+            display: none;
+            flex-direction: column;
+            padding: 20px;
+        }
+        
+        .gif-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+            overflow-y: auto;
+            max-height: calc(100vh - 100px);
+            margin-top: 20px;
+        }
+        
+        .gif-item {
+            aspect-ratio: 16/9;
+            background: #1a0505;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        .gif-item:hover {
+            border-color: #dc2626;
+            transform: scale(1.05);
+        }
+        
+        .gif-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
     </style>
 </head>
 <body class="h-screen flex flex-col bg-neutral-950">
+
+    <!-- Ambient Light Background -->
+    <div class="ambient-light" id="ambientLight"></div>
 
     <script>
         const firebaseConfig = {
@@ -518,6 +809,7 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         const YOUTUBE_API_KEY = "AIzaSyBterRsxZoTvVbxlsOzESKWBDAY2B8BWc4";
+        const TENOR_API_KEY = "AIzaSyAyimkuYQYF_FXVALexPuGQCrUtSeRoU8k"; // Demo key, replace with yours
         
         let userId = localStorage.getItem('syncUserId') || 'user_' + Math.random().toString(36).substr(2, 9);
         localStorage.setItem('syncUserId', userId);
@@ -528,7 +820,24 @@
         let selectedUserId = null;
         let userPermissions = { chat: true, video: true, changeVideo: false };
         let typingTimeout = null;
-        let messageListeners = [];
+        let currentReactionMessageId = null;
+        let cinemaMode = false;
+        
+        // Türkçe Dublaj Korku Filmleri (YouTube'da tam film olarak mevcut olanlar - örnek ID'ler)
+        const horrorMovies = [
+            { id: "Zs0qLE1AXZS", title: "Saw (Testere) Türkçe Dublaj" },
+            { id: "dQw4w9WgXcQ", title: "Paranormal Activity (Demo ID)" },
+            { id: "jfKfPfyJRdk", title: "Lofi Girl (Demo)" },
+            { id: "tAGnKpE4NCI", title: "The Ring (Korku Filmi)" },
+            { id: "k10ETZ41q5o", title: "Conjuring (Korku Filmi)" },
+            { id: "z2tMKv7b-zA", title: "Annabelle (Korku Filmi)" },
+            { id: "DzfpyUB60YY", title: "Sinister (Korku Filmi)" },
+            { id: "dpGjnLkJidg", title: "Insidious (Korku Filmi)" },
+            { id: "h6p4z5gXa1k", title: "The Nun (Korku Filmi)" },
+            { id: "b9EkMc79ZzI", title: "Lights Out (Korku Filmi)" },
+            { id: "F7EdK3sJwkM", title: "Don't Breathe (Korku Filmi)" },
+            { id: "R9KuqDg8Pjk", title: "Mama (Korku Filmi)" }
+        ];
         
         db.ref(".info/serverTimeOffset").on("value", (snap) => { serverOffset = snap.val() || 0; });
         const getServerTime = () => Date.now() + serverOffset;
@@ -578,6 +887,44 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- ROULETTE OVERLAY -->
+    <div id="rouletteOverlay" class="roulette-overlay">
+        <div class="text-center mb-8">
+            <h2 class="text-3xl font-bold text-red-500 mb-2">🎰 Film Ruleti</h2>
+            <p class="text-neutral-400">Sənə nə baxmaq lazım olduğunu biz deyirik...</p>
+        </div>
+        
+        <div class="roulette-wheel" id="rouletteWheel">
+            <div class="roulette-pointer"></div>
+            <div id="rouletteContent" class="w-full h-full flex items-center justify-center flex-col">
+                <i class="fas fa-question text-6xl text-red-500/50"></i>
+            </div>
+        </div>
+        
+        <button onclick="spinRoulette()" id="spinBtn" class="mt-8 px-8 py-3 bg-red-600 hover:bg-red-500 rounded-full font-bold text-lg transition shadow-lg shadow-red-500/30">
+            <i class="fas fa-sync-alt mr-2"></i>Çevir
+        </button>
+        
+        <button onclick="closeRoulette()" class="mt-4 text-neutral-500 hover:text-white transition">
+            Bağla
+        </button>
+    </div>
+
+    <!-- GIF MODAL -->
+    <div id="gifModal" class="gif-modal">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-xl font-bold text-white">GIF Axtar</h3>
+            <button onclick="closeGifModal()" class="text-neutral-400 hover:text-white">
+                <i class="fas fa-times text-2xl"></i>
+            </button>
+        </div>
+        <div class="flex gap-2 mb-4">
+            <input type="text" id="gifSearch" placeholder="Axtarış..." class="flex-1 px-4 py-2 rounded-xl bg-neutral-900 border border-red-500/30 text-white focus:outline-none focus:border-red-500" onkeypress="if(event.key==='Enter') searchGif()">
+            <button onclick="searchGif()" class="px-6 py-2 bg-red-600 rounded-xl font-bold">Axtar</button>
+        </div>
+        <div id="gifResults" class="gif-grid"></div>
     </div>
 
     <!-- MODERATOR MODAL -->
@@ -636,7 +983,7 @@
         </div>
     </div>
 
-    <!-- REACTION PICKER TEMPLATE (Hidden) -->
+    <!-- REACTION PICKER TEMPLATE -->
     <div id="emojiPickerTemplate" class="emoji-picker">
         <button class="emoji-btn" onclick="addReaction('👍')">👍</button>
         <button class="emoji-btn" onclick="addReaction('❤️')">❤️</button>
@@ -654,9 +1001,15 @@
 
     <!-- ROOM INTERFACE -->
     <div id="room" class="hidden flex-1 flex flex-col h-screen bg-neutral-950">
+        
+        <!-- Cinema Toggle Button -->
+        <button class="cinema-toggle" onclick="toggleCinemaMode()" title="Sinema Rejimi">
+            <i class="fas fa-film text-xl"></i>
+        </button>
+
         <header class="glass-red border-b border-red-500/10 h-14 flex items-center justify-between px-4 shrink-0 z-20">
             <div class="flex items-center space-x-3">
-                <h1 class="text-lg font-bold text-white">Kino<span class="text-red-600">Zal</span></h1>
+                <h1 class="text-lg font-bold text-white">Sync<span class="text-red-600">Room</span></h1>
                 
                 <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-black/40 border border-red-500/20">
                     <span class="text-[10px] text-red-400 uppercase font-bold">Kod:</span>
@@ -673,10 +1026,21 @@
             </div>
             
             <div class="flex items-center space-x-2">
+                <button onclick="toggleRoulette()" class="hidden md:flex items-center px-3 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/30 text-xs text-purple-300 hover:bg-purple-500/20 transition" title="Film Ruleti">
+                    <i class="fas fa-dice mr-1.5"></i>
+                    <span>Rulet</span>
+                </button>
+                
+                <button onclick="toggleAmbientLight()" class="hidden md:flex items-center px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-xs text-blue-300 hover:bg-blue-500/20 transition" title="Neon Işıqlar">
+                    <i class="fas fa-lightbulb mr-1.5"></i>
+                    <span>Neon</span>
+                </button>
+
                 <span id="activeUsersCount" class="hidden md:flex items-center px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-xs text-red-300">
                     <i class="fas fa-users mr-1.5 text-red-400"></i>
                     <span id="usersCountText">1</span>
                 </span>
+                
                 <span id="userType" class="px-3 py-1 rounded-full text-xs font-bold bg-neutral-900 text-neutral-300 border border-red-500/30">İzləyici</span>
                 <button onclick="leaveRoom()" class="w-8 h-8 flex items-center justify-center bg-red-500/10 text-red-400 border border-red-500/30 rounded-full hover:bg-red-500/20 transition">
                     <i class="fas fa-times text-sm"></i>
@@ -684,10 +1048,23 @@
             </div>
         </header>
 
-        <div class="flex-1 flex flex-col lg:flex-row overflow-hidden">
+        <div class="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
             <!-- Video Section -->
-            <div class="flex-1 relative bg-black flex flex-col min-h-0" style="height: 45vh;">
-                <button id="changeVideoBtn" onclick="toggleSearch()" class="hidden absolute top-4 right-4 z-40 glass-red px-4 py-2 rounded-xl border border-red-500/30 hover:border-red-400 text-sm font-bold text-white shadow-lg shadow-red-500/20">
+            <div id="videoSection" class="flex-1 relative bg-black flex flex-col min-h-0" style="height: 45vh;">
+                
+                <!-- Virtual Seats Overlay -->
+                <div id="virtualSeats" class="hidden lg:block">
+                    <div class="theater-seats" id="theaterSeats">
+                        <!-- Back row -->
+                        <div class="seat-row back" id="backRow"></div>
+                        <!-- Middle row -->
+                        <div class="seat-row middle" id="middleRow"></div>
+                        <!-- Front row -->
+                        <div class="seat-row front" id="frontRow"></div>
+                    </div>
+                </div>
+
+                <button id="changeVideoBtn" onclick="toggleSearch()" class="hidden absolute top-4 right-4 z-40 glass-red px-4 py-2 rounded-xl border border-red-500/30 hover:border-red-400 text-sm font-bold text-white shadow-lg shadow-red-500/20 transition hover:scale-105">
                     <i class="fas fa-film mr-2 text-red-400"></i>Video Dəyiş
                 </button>
 
@@ -715,7 +1092,7 @@
                     </div>
                 </div>
 
-                <div id="hostControls" class="hidden glass-red border-t border-red-500/10 p-3 shrink-0">
+                <div id="hostControls" class="hidden glass-red border-t border-red-500/10 p-3 shrink-0 z-30">
                     <div class="flex items-center justify-center space-x-6">
                         <button onclick="playerControl('seek', -10)" class="p-2 text-neutral-300 hover:text-red-400 transition">
                             <i class="fas fa-backward"></i>
@@ -770,6 +1147,7 @@
                 
                 <div class="chat-input-area shrink-0">
                     <div class="input-container">
+                        <button onclick="openGifModal()" class="gif-btn" title="GIF Göndər">GIF</button>
                         <textarea id="messageInput" placeholder="Mesaj yaz..." rows="1" 
                             class="chat-textarea"
                             oninput="autoResize(this); handleTyping()"
@@ -797,8 +1175,6 @@
     </div>
 
     <script>
-        let currentReactionMessageId = null;
-
         function handleAvatarSelect(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -908,6 +1284,126 @@
             window.addEventListener('focus', () => { if(currentRoom) { db.ref(`rooms/${currentRoom}/users/${userId}/focused`).set(true); db.ref(`rooms/${currentRoom}/users/${userId}/status`).set('active'); }});
         }
 
+        // CINEMA MODE
+        function toggleCinemaMode() {
+            cinemaMode = !cinemaMode;
+            document.body.classList.toggle('cinema-mode');
+            
+            if (cinemaMode) {
+                document.getElementById('virtualSeats').style.opacity = '0';
+                document.getElementById('virtualSeats').style.pointerEvents = 'none';
+                showNotification('Sinema Rejimi', 'Yalnız video izlənilir...');
+            } else {
+                document.getElementById('virtualSeats').style.opacity = '1';
+                document.getElementById('virtualSeats').style.pointerEvents = 'all';
+            }
+        }
+
+        // AMBIENT LIGHT
+        let ambientEnabled = false;
+        function toggleAmbientLight() {
+            ambientEnabled = !ambientEnabled;
+            const light = document.getElementById('ambientLight');
+            if (ambientEnabled) {
+                light.classList.add('active');
+                showNotification('Neon Işıqlar', 'Ambient işıqlandırma aktiv edildi');
+            } else {
+                light.classList.remove('active');
+            }
+        }
+
+        // VIRTUAL SEATS
+        function updateVirtualSeats(users) {
+            const backRow = document.getElementById('backRow');
+            const middleRow = document.getElementById('middleRow');
+            const frontRow = document.getElementById('frontRow');
+            
+            // Clear existing
+            backRow.innerHTML = '';
+            middleRow.innerHTML = '';
+            frontRow.innerHTML = '';
+            
+            const activeUsers = Object.entries(users).filter(([uid, data]) => data.status === 'active');
+            
+            activeUsers.forEach(([uid, data], index) => {
+                const seat = document.createElement('div');
+                seat.className = 'seat occupied';
+                seat.innerHTML = `
+                    <img src="${data.avatar}" alt="${data.name}">
+                    <div class="seat-tooltip">${data.name}</div>
+                `;
+                
+                // Distribute to rows
+                if (index < 4) backRow.appendChild(seat);
+                else if (index < 8) middleRow.appendChild(seat);
+                else frontRow.appendChild(seat);
+            });
+            
+            // Fill empty seats
+            const fillEmpty = (row, count) => {
+                while (row.children.length < count) {
+                    const empty = document.createElement('div');
+                    empty.className = 'seat';
+                    row.appendChild(empty);
+                }
+            };
+            
+            fillEmpty(backRow, 6);
+            fillEmpty(middleRow, 5);
+            fillEmpty(frontRow, 4);
+        }
+
+        // ROULETTE
+        function toggleRoulette() {
+            document.getElementById('rouletteOverlay').classList.toggle('active');
+        }
+        
+        function closeRoulette() {
+            document.getElementById('rouletteOverlay').classList.remove('active');
+        }
+        
+        function spinRoulette() {
+            const wheel = document.getElementById('rouletteWheel');
+            const btn = document.getElementById('spinBtn');
+            const content = document.getElementById('rouletteContent');
+            
+            btn.disabled = true;
+            wheel.classList.add('spinning');
+            
+            // Random selection effect
+            let iterations = 0;
+            const maxIterations = 20;
+            const interval = setInterval(() => {
+                const randomMovie = horrorMovies[Math.floor(Math.random() * horrorMovies.length)];
+                content.innerHTML = `
+                    <div class="text-center p-4">
+                        <div class="text-xs text-red-400 mb-1">QORGU FİLMİ</div>
+                        <div class="font-bold text-white text-lg">${randomMovie.title}</div>
+                    </div>
+                `;
+                iterations++;
+                
+                if (iterations >= maxIterations) {
+                    clearInterval(interval);
+                    finishRoulette(randomMovie);
+                }
+            }, 150);
+        }
+        
+        function finishRoulette(movie) {
+            setTimeout(() => {
+                const wheel = document.getElementById('rouletteWheel');
+                wheel.classList.remove('spinning');
+                
+                if (confirm(`${movie.title} seçildi! İzləmək istəyirsiniz?`)) {
+                    selectVideo(movie.id, movie.title);
+                    closeRoulette();
+                }
+                
+                document.getElementById('spinBtn').disabled = false;
+            }, 500);
+        }
+
         function initPlayer() {
             if (typeof YT === 'undefined' || !YT.Player) { setTimeout(initPlayer, 100); return; }
             player = new YT.Player('player', {
@@ -984,7 +1480,10 @@
             document.getElementById('searchContainer').classList.toggle('hidden'); 
         }
         
-        function closeSearch() { document.getElementById('searchContainer').classList.add('hidden'); document.getElementById('searchResults').classList.add('hidden'); }
+        function closeSearch() { 
+            document.getElementById('searchContainer').classList.add('hidden'); 
+            document.getElementById('searchResults').classList.add('hidden'); 
+        }
 
         async function searchYouTube() {
             const query = document.getElementById('searchQuery').value.trim();
@@ -1094,6 +1593,54 @@
             }
         }
 
+        // GIF FUNCTIONS
+        function openGifModal() {
+            document.getElementById('gifModal').style.display = 'flex';
+            searchGif('reaction'); // Default search
+        }
+        
+        function closeGifModal() {
+            document.getElementById('gifModal').style.display = 'none';
+        }
+        
+        async function searchGif(query) {
+            const searchTerm = query || document.getElementById('gifSearch').value || 'reaction';
+            const resultsDiv = document.getElementById('gifResults');
+            resultsDiv.innerHTML = '<div class="col-span-full flex justify-center p-4"><div class="spinner"></div></div>';
+            
+            try {
+                const res = await fetch(`https://g.tenor.com/v1/search?q=${encodeURIComponent(searchTerm)}&key=${TENOR_API_KEY}&limit=20`);
+                const data = await res.json();
+                
+                resultsDiv.innerHTML = '';
+                data.results.forEach(gif => {
+                    const item = document.createElement('div');
+                    item.className = 'gif-item';
+                    item.onclick = () => sendGif(gif.media[0].gif.url);
+                    item.innerHTML = `<img src="${gif.media[0].gif.preview}" alt="gif">`;
+                    resultsDiv.appendChild(item);
+                });
+            } catch (err) {
+                resultsDiv.innerHTML = '<div class="col-span-full text-center text-red-400">GIF yüklənə bilmədi</div>';
+            }
+        }
+        
+        function sendGif(url) {
+            if (!currentRoom) return;
+            
+            const msg = {
+                type: 'gif',
+                text: url,
+                userId: userId,
+                name: userName,
+                avatar: userAvatar,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            };
+            
+            db.ref(`rooms/${currentRoom}/messages`).push(msg);
+            closeGifModal();
+        }
+
         // CHAT FUNCTIONS
         function setupListeners() {
             // Users listener
@@ -1119,6 +1666,9 @@
                 
                 document.getElementById('onlineCount').textContent = count + ' onlayn';
                 document.getElementById('usersCountText').textContent = count;
+                
+                // Update virtual seats
+                updateVirtualSeats(users);
             });
 
             // Messages listener
@@ -1166,7 +1716,6 @@
                     }
                 });
                 
-                // Check if kicked
                 db.ref(`rooms/${currentRoom}/users/${userId}`).on('value', (snap) => {
                     if (!snap.exists() && currentRoom) {
                         alert('Siz otaqdan atıldınız!');
@@ -1203,6 +1752,13 @@
                 replyHtml = `<div class="msg-reply"><i class="fas fa-reply text-[10px] mr-1"></i>${msg.replyTo.text}</div>`;
             }
             
+            let contentHtml = '';
+            if (msg.type === 'gif') {
+                contentHtml = `<img src="${msg.text}" class="rounded-lg max-w-full max-h-[200px] object-cover" alt="GIF">`;
+            } else {
+                contentHtml = `<div class="break-words">${escapeHtml(msg.text)}</div>`;
+            }
+            
             let reactionsHtml = '<div class="reaction-bar" id="reactions-' + msgId + '"></div>';
             
             const html = `
@@ -1211,7 +1767,7 @@
                     ${!isOwn ? `<div class="msg-sender">${msg.name}</div>` : ''}
                     <div class="msg-bubble ${isOwn ? 'msg-own' : 'msg-other'}" ondblclick="showReactionPicker('${msgId}')">
                         ${replyHtml}
-                        <div class="break-words">${escapeHtml(msg.text)}</div>
+                        ${contentHtml}
                         <div class="msg-meta">
                             <span>${formatTime(msg.timestamp)}</span>
                             ${isOwn ? '<i class="fas fa-check-double text-[10px]"></i>' : ''}
@@ -1229,7 +1785,6 @@
             container.insertBefore(wrapper, document.getElementById('typingIndicator'));
             container.scrollTop = container.scrollHeight;
             
-            // Load reactions
             loadReactions(msgId);
         }
 
@@ -1262,7 +1817,6 @@
             event.stopPropagation();
             currentReactionMessageId = msgId;
             
-            // Remove existing pickers
             document.querySelectorAll('.emoji-picker').forEach(el => el.remove());
             
             const picker = document.getElementById('emojiPickerTemplate').cloneNode(true);
@@ -1273,7 +1827,6 @@
             const bubble = msgEl.querySelector('.msg-bubble');
             bubble.appendChild(picker);
             
-            // Close on outside click
             setTimeout(() => {
                 document.addEventListener('click', function closePicker(e) {
                     if (!e.target.closest('.emoji-picker')) {
@@ -1324,6 +1877,7 @@
             }
             
             const msg = {
+                type: 'text',
                 text: text,
                 userId: userId,
                 name: userName,
@@ -1340,7 +1894,6 @@
             input.value = '';
             input.style.height = 'auto';
             
-            // Stop typing
             db.ref(`rooms/${currentRoom}/typing/${userId}`).remove();
         }
 
