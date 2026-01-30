@@ -19,33 +19,33 @@
         body { background: #0a0a0a; color: white; overflow: hidden; touch-action: manipulation; }
         
         .glass { 
-            background: rgba(20, 20, 25, 0.9); 
+            background: rgba(20, 20, 25, 0.95); 
             backdrop-filter: blur(20px); 
-            border: 1px solid rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.1);
         }
         
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
         
         .gradient-text { background: linear-gradient(135deg, #ff3333 0%, #cc0000 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         
         .message-bubble {
-            position: relative;
             max-width: 85%;
             padding: 10px 14px;
             border-radius: 16px;
-            font-size: 14.5px;
+            font-size: 14px;
             line-height: 1.4;
             animation: messageSlide 0.3s ease;
             word-wrap: break-word;
             overflow-wrap: break-word;
-            word-break: normal; /* Sözləri bükmə! */
-            hyphens: none;
-            white-space: normal;
+            word-break: normal;
+            white-space: pre-wrap;
         }
         
         @keyframes messageSlide {
-            from { opacity: 0; transform: translateY(8px); }
+            from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
         
@@ -103,6 +103,77 @@
             transition: transform 0.3s ease;
         }
         .notification-toast.show { transform: translateX(0); }
+        
+        .user-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+            z-index: 100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .user-modal.show { display: flex; }
+        
+        .modal-content {
+            background: linear-gradient(145deg, #1a1a1f, #0f0f12);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 24px;
+            padding: 24px;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.8);
+        }
+        
+        .permission-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            margin-bottom: 8px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .toggle-switch {
+            width: 50px;
+            height: 26px;
+            background: #374151;
+            border-radius: 13px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .toggle-switch.active { background: #10b981; }
+        
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s;
+        }
+        .toggle-switch.active::after { transform: translateX(24px); }
+        
+        .danger-btn {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+            padding: 12px;
+            border-radius: 12px;
+            width: 100%;
+            font-weight: 600;
+            transition: all 0.2s;
+            margin-top: 8px;
+        }
+        .danger-btn:hover { background: rgba(239, 68, 68, 0.2); }
     </style>
 </head>
 <body class="h-screen flex flex-col">
@@ -128,9 +199,15 @@
         let currentRoom = null, isHost = false, player = null, serverOffset = 0;
         let ignoreUpdates = false, currentVideoId = null;
         let replyingTo = null, userName = '', userAvatar = '';
+        let selectedUserId = null;
+        let blockedUsers = JSON.parse(localStorage.getItem('blockedUsers') || '[]');
+        let userPermissions = {}; // Store permissions locally
         
         db.ref(".info/serverTimeOffset").on("value", (snap) => { serverOffset = snap.val() || 0; });
         const getServerTime = () => Date.now() + serverOffset;
+        
+        // Check if user is blocked
+        function isBlocked(uid) { return blockedUsers.includes(uid); }
     </script>
 
     <!-- LANDING PAGE -->
@@ -179,6 +256,59 @@
         </div>
     </div>
 
+    <!-- USER MANAGEMENT MODAL (Moderator Only) -->
+    <div id="userModal" class="user-modal" onclick="if(event.target === this) closeUserModal()">
+        <div class="modal-content">
+            <div class="flex items-center gap-4 mb-6">
+                <img id="modalUserAvatar" src="" class="w-16 h-16 rounded-full object-cover border-2 border-gray-700">
+                <div>
+                    <h3 id="modalUserName" class="text-lg font-bold text-white"></h3>
+                    <p class="text-xs text-gray-400" id="modalUserStatus">İzləyici</p>
+                </div>
+                <button onclick="closeUserModal()" class="ml-auto p-2 text-gray-400 hover:text-white">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="space-y-4">
+                <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">İcazələr</h4>
+                
+                <div class="permission-toggle">
+                    <div class="flex items-center gap-3">
+                        <i class="fas fa-comment text-blue-400"></i>
+                        <span class="text-sm font-medium">Yazı Yazmaq</span>
+                    </div>
+                    <div class="toggle-switch active" id="permChat" onclick="togglePermission('chat')"></div>
+                </div>
+                
+                <div class="permission-toggle">
+                    <div class="flex items-center gap-3">
+                        <i class="fas fa-microphone text-green-400"></i>
+                        <span class="text-sm font-medium">Səsli Danışıq</span>
+                    </div>
+                    <div class="toggle-switch active" id="permVoice" onclick="togglePermission('voice')"></div>
+                </div>
+                
+                <div class="permission-toggle">
+                    <div class="flex items-center gap-3">
+                        <i class="fas fa-eye text-purple-400"></i>
+                        <span class="text-sm font-medium">Video İzləmə</span>
+                    </div>
+                    <div class="toggle-switch active" id="permVideo" onclick="togglePermission('video')"></div>
+                </div>
+            </div>
+            
+            <div class="mt-6 pt-4 border-t border-gray-800">
+                <button onclick="kickUser()" class="danger-btn mb-2">
+                    <i class="fas fa-sign-out-alt mr-2"></i>Otaqdan At
+                </button>
+                <button onclick="blockUser()" class="danger-btn bg-red-900/20 border-red-800/50 hover:bg-red-900/30">
+                    <i class="fas fa-ban mr-2"></i>Saytdan Blokla
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- ROOM INTERFACE -->
     <div id="room" class="hidden flex-1 flex flex-col h-screen bg-black">
         <!-- Header -->
@@ -212,7 +342,7 @@
             </div>
         </header>
 
-        <div class="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
+        <div class="flex-1 flex flex-col lg:flex-row overflow-hidden">
             <!-- Video Section -->
             <div class="flex-1 relative bg-black flex flex-col min-h-0" style="height: 50vh;">
                 <button id="changeVideoBtn" onclick="toggleSearch()" class="hidden absolute top-4 right-4 z-40 glass px-4 py-2 rounded-xl border border-gray-700 hover:border-red-500 text-sm font-bold text-white shadow-lg">
@@ -259,12 +389,11 @@
                 </div>
             </div>
 
-            <!-- Chat Section - HƏNDÜRLÜYÜ YUXARIDA (h-[40vh] yox h-[50vh] əksinə düzəliş) -->
-            <!-- Yuxarıda video 50vh olduqda chat 50vh qalır, amma içdə düzəlişlər var -->
+            <!-- Chat Section - DÜZƏLİŞ EDİLMİŞ SCROLL -->
             <div class="w-full lg:w-96 glass border-t lg:border-t-0 lg:border-l border-gray-800 flex flex-col shrink-0" style="height: 50vh;">
                 
                 <!-- Users List -->
-                <div class="p-3 border-b border-gray-800 shrink-0 bg-gray-900/20">
+                <div class="p-3 border-b border-gray-800 shrink-0 bg-gray-900/20 cursor-pointer" onclick="if(isHost) showNotification('İpucu', 'İstifadəçi üzərinə vuraraq idarə edə bilərsiniz')">
                     <div class="flex items-center justify-between mb-2">
                         <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Otaqda</h3>
                         <span class="text-[10px] text-gray-500" id="onlineCount">0 onlayn</span>
@@ -272,34 +401,34 @@
                     <div id="usersList" class="flex gap-2 overflow-x-auto pb-1"></div>
                 </div>
 
-                <!-- Chat Messages - flex-1 mesajların yerini tutur -->
-                <div id="chatMessages" class="flex-1 overflow-y-auto p-3 space-y-2 scroll-smooth flex flex-col justify-end min-h-0">
+                <!-- Chat Messages - overflow-y-auto əlavə edildi və flex düzəlişləri -->
+                <div id="chatMessages" class="flex-1 overflow-y-auto p-3 space-y-3 min-h-0 relative" style="overscroll-behavior: contain;">
                     <!-- Mesajlar buraya -->
+                    <div class="text-center text-gray-600 text-xs mt-4 empty-state">Söhbət başladı...</div>
                 </div>
                 
-                <!-- Input Area - YUXARI ÇƏKİLDİ (mb-3 əlavə edildi və padding artırıldı) -->
-                <div class="p-3 border-t border-gray-800 bg-gray-900/40 shrink-0 mb-3">
-                    <!-- Reply Indicator -->
-                    <div id="replyIndicator" class="hidden mb-2 px-3 py-2 bg-gray-800/50 rounded-lg border-l-2 border-gray-500">
-                        <div class="flex items-center justify-between">
-                            <div class="flex-1 min-w-0 mr-2">
-                                <div class="text-[10px] text-gray-400">Cavab:</div>
-                                <div class="text-xs text-gray-300 truncate" id="replyText"></div>
-                            </div>
-                            <button onclick="cancelReply()" class="p-1 text-gray-500 hover:text-white">
-                                <i class="fas fa-times"></i>
-                            </button>
+                <!-- Reply Indicator -->
+                <div id="replyIndicator" class="hidden px-4 py-2 bg-gray-800/50 border-t border-gray-700/50">
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1 min-w-0 mr-2">
+                            <div class="text-[10px] text-gray-400">Cavab:</div>
+                            <div class="text-xs text-gray-300 truncate" id="replyText"></div>
                         </div>
+                        <button onclick="cancelReply()" class="p-1 text-gray-500 hover:text-white">
+                            <i class="fas fa-times"></i>
+                        </button>
                     </div>
-                    
-                    <!-- Input -->
+                </div>
+                
+                <!-- Input Area -->
+                <div id="chatInputArea" class="p-4 border-t border-gray-800 bg-gray-900/40 shrink-0">
                     <div class="flex items-end gap-2">
                         <div class="flex-1 relative">
                             <textarea id="messageInput" placeholder="Mesaj yaz..." rows="1" 
                                 class="w-full px-4 py-3 pr-10 bg-black/40 border border-gray-700 rounded-2xl text-sm focus:outline-none focus:border-red-600 transition text-white resize-none overflow-hidden max-h-20"
                                 oninput="autoResize(this)"
                                 onkeypress="handleKeyPress(event)"></textarea>
-                            <button onclick="sendMessage()" class="absolute right-2 bottom-2.5 p-2 text-red-500 hover:text-red-400 transition">
+                            <button onclick="sendMessage()" class="absolute right-3 bottom-3 p-1.5 text-red-500 hover:text-red-400 transition">
                                 <i class="fas fa-paper-plane"></i>
                             </button>
                         </div>
@@ -377,8 +506,14 @@
             if (!code) return alert('Kodu daxil edin!');
             
             userName = document.getElementById('hostName').value.trim();
-            const snap = await db.ref(`rooms/${code}`).once('value');
-            if (!snap.exists()) return alert('Otaq tapılmadı!');
+            
+            // Check if blocked by host
+            const roomSnap = await db.ref(`rooms/${code}`).once('value');
+            if (!roomSnap.exists()) return alert('Otaq tapılmadı!');
+            
+            if (isBlocked(roomSnap.val().hostId)) {
+                return alert('Bu otağın moderatoru sizi bloklayıb!');
+            }
             
             await db.ref(`rooms/${code}/users/${userId}`).set({
                 name: userName, avatar: userAvatar, isHost: false, 
@@ -411,6 +546,27 @@
             initPlayer();
             setupListeners();
             setupVisibility();
+            
+            // Check permissions for non-host
+            if (!host) {
+                db.ref(`rooms/${currentRoom}/permissions/${userId}`).on('value', (snap) => {
+                    userPermissions = snap.val() || { chat: true, voice: true, video: true };
+                    updatePermissionUI();
+                });
+            }
+        }
+        
+        function updatePermissionUI() {
+            const input = document.getElementById('messageInput');
+            if (userPermissions.chat === false) {
+                input.disabled = true;
+                input.placeholder = 'Yazı yazmağınız qadağandır';
+                input.classList.add('opacity-50');
+            } else {
+                input.disabled = false;
+                input.placeholder = 'Mesaj yaz...';
+                input.classList.remove('opacity-50');
+            }
         }
 
         function setupVisibility() {
@@ -558,6 +714,85 @@
             document.getElementById('pauseIcon').classList.toggle('hidden', !playing);
         }
 
+        // MODERATOR FUNCTIONS
+        function openUserModal(uid, userData) {
+            if (!isHost || uid === userId) return;
+            
+            selectedUserId = uid;
+            document.getElementById('modalUserName').textContent = userData.name;
+            document.getElementById('modalUserAvatar').src = userData.avatar || 'https://via.placeholder.com/64';
+            document.getElementById('modalUserStatus').textContent = userData.isHost ? 'Moderator' : 'İzləyici';
+            
+            // Get current permissions
+            db.ref(`rooms/${currentRoom}/permissions/${uid}`).once('value').then(snap => {
+                const perms = snap.val() || { chat: true, voice: true, video: true };
+                
+                updateToggleUI('permChat', perms.chat !== false);
+                updateToggleUI('permVoice', perms.voice !== false);
+                updateToggleUI('permVideo', perms.video !== false);
+            });
+            
+            document.getElementById('userModal').classList.add('show');
+        }
+        
+        function closeUserModal() {
+            document.getElementById('userModal').classList.remove('show');
+            selectedUserId = null;
+        }
+        
+        function updateToggleUI(id, active) {
+            const el = document.getElementById(id);
+            if (active) {
+                el.classList.add('active');
+            } else {
+                el.classList.remove('active');
+            }
+        }
+        
+        function togglePermission(type) {
+            if (!selectedUserId) return;
+            
+            const el = document.getElementById(type === 'chat' ? 'permChat' : type === 'voice' ? 'permVoice' : 'permVideo');
+            const isActive = el.classList.contains('active');
+            const newValue = !isActive;
+            
+            updateToggleUI(type === 'chat' ? 'permChat' : type === 'voice' ? 'permVoice' : 'permVideo', newValue);
+            
+            // Save to DB
+            const updates = {};
+            updates[`rooms/${currentRoom}/permissions/${selectedUserId}/${type}`] = newValue;
+            db.ref().update(updates);
+            
+            showNotification('İcaza dəyişdirildi', `${type} icazəsi ${newValue ? 'verildi' : 'alindi'}`);
+        }
+        
+        function kickUser() {
+            if (!selectedUserId) return;
+            
+            if (confirm('Bu istifadəçini otaqdan atmaq istədiyinizə əminsiniz?')) {
+                db.ref(`rooms/${currentRoom}/users/${selectedUserId}`).remove();
+                db.ref(`rooms/${currentRoom}/permissions/${selectedUserId}`).remove();
+                closeUserModal();
+                showNotification('İstifadəçi atıldı', 'İstifadəçi otaqdan çıxarıldı');
+            }
+        }
+        
+        function blockUser() {
+            if (!selectedUserId) return;
+            
+            if (confirm('Bu istifadəçini saytdan bloklamaq istədiyinizə əminsiniz? (Local storage-a əlavə olunacaq)')) {
+                if (!blockedUsers.includes(selectedUserId)) {
+                    blockedUsers.push(selectedUserId);
+                    localStorage.setItem('blockedUsers', JSON.stringify(blockedUsers));
+                }
+                
+                // Also kick
+                db.ref(`rooms/${currentRoom}/users/${selectedUserId}`).remove();
+                closeUserModal();
+                showNotification('İstifadəçi bloklandı', 'İstifadəçi blok siyahısına əlavə edildi');
+            }
+        }
+
         function setupListeners() {
             // Users
             db.ref(`rooms/${currentRoom}/users`).on('value', (snap) => {
@@ -567,17 +802,25 @@
                 
                 let count = 0;
                 Object.entries(users).forEach(([uid, u]) => {
+                    if (isBlocked(uid)) return; // Don't show blocked users
                     count++;
+                    
                     const div = document.createElement('div');
-                    div.className = 'flex items-center gap-2 px-2 py-1 rounded-full bg-gray-800/80 border border-gray-700 shrink-0 animate-[fadeIn_0.3s_ease]';
+                    div.className = 'flex items-center gap-2 px-2 py-1.5 rounded-full bg-gray-800 hover:bg-gray-700 transition border border-gray-700 shrink-0 cursor-pointer select-none';
+                    if (isHost && uid !== userId) {
+                        div.onclick = () => openUserModal(uid, u);
+                        div.title = 'Basaraq idarə et';
+                    }
+                    
                     const statusColor = u.status === 'background' ? 'status-background' : 'status-active';
                     
                     div.innerHTML = `
                         <div class="relative">
-                            <img src="${u.avatar || 'https://via.placeholder.com/32'}" class="w-6 h-6 rounded-full object-cover border border-gray-600">
+                            <img src="${u.avatar || 'https://via.placeholder.com/32'}" class="w-7 h-7 rounded-full object-cover border border-gray-600">
                             <div class="status-dot ${statusColor} absolute -bottom-0.5 -right-0.5 border-2 border-gray-800 w-2 h-2"></div>
                         </div>
-                        <span class="text-[11px] font-bold ${u.isHost ? 'text-yellow-400' : 'text-gray-200'} truncate max-w-[60px]">${u.name}</span>
+                        <span class="text-[11px] font-bold ${u.isHost ? 'text-yellow-400' : 'text-gray-200'} truncate max-w-[70px]">${u.name}</span>
+                        ${isHost && uid !== userId ? '<i class="fas fa-cog text-[10px] text-gray-600 ml-1"></i>' : ''}
                     `;
                     list.appendChild(div);
                     
@@ -588,11 +831,21 @@
                 
                 document.getElementById('usersCountText').textContent = count;
                 document.getElementById('onlineCount').textContent = count + ' onlayn';
+                
+                // Remove empty state if users exist
+                if (count > 0) {
+                    const emptyState = document.querySelector('.empty-state');
+                    if (emptyState) emptyState.remove();
+                }
             });
             
             // Chat
             db.ref(`rooms/${currentRoom}/chat`).on('child_added', (snap) => {
                 const msg = snap.val();
+                
+                // Check if sender is blocked
+                if (isBlocked(msg.userId)) return;
+                
                 if (msg.userId !== userId && (document.hidden || !document.hasFocus())) {
                     if ('vibrate' in navigator) navigator.vibrate([100, 50, 100]);
                 }
@@ -604,29 +857,33 @@
             const container = document.getElementById('chatMessages');
             const isSelf = msg.userId === userId;
             
-            const div = document.createElement('div');
-            div.className = `flex ${isSelf ? 'justify-end' : 'justify-start'} mb-2`;
+            // Remove empty state if exists
+            const emptyState = container.querySelector('.empty-state');
+            if (emptyState) emptyState.remove();
             
+            const div = document.createElement('div');
+            div.className = `flex ${isSelf ? 'justify-end' : 'justify-start'} mb-3`;
+            
+            // Reply HTML
             let replyHtml = '';
             if (msg.replyTo) {
                 replyHtml = `
-                    <div class="bg-black/20 rounded px-2 py-1 mb-1 text-xs border-l-2 border-gray-400 opacity-80">
-                        <div class="text-[10px] text-gray-300">${msg.replyTo.name}</div>
-                        <div class="truncate text-gray-200">${escapeHtml(msg.replyTo.text)}</div>
+                    <div class="bg-black/20 rounded-lg px-3 py-1.5 mb-1.5 text-xs border-l-2 border-gray-400">
+                        <div class="text-[10px] text-gray-300 font-bold">${escapeHtml(msg.replyTo.name)}</div>
+                        <div class="text-gray-200 truncate max-w-[200px]">${escapeHtml(msg.replyTo.text)}</div>
                     </div>
                 `;
             }
             
-            // Sözləri bükməmək üçün word-break: normal (CSS-də verilib)
             div.innerHTML = `
                 ${!isSelf ? `<img src="${msg.avatar || 'https://via.placeholder.com/32'}" class="w-8 h-8 rounded-full object-cover mr-2 mt-1 border border-gray-700 shrink-0">` : ''}
                 
                 <div class="flex flex-col ${isSelf ? 'items-end' : 'items-start'} max-w-[80%]">
-                    ${!isSelf ? `<span class="text-[10px] text-gray-500 mb-0.5 ml-1">${msg.name}</span>` : ''}
+                    ${!isSelf ? `<span class="text-[11px] text-gray-500 mb-1 ml-1">${escapeHtml(msg.name)}</span>` : ''}
                     
-                    <div class="message-bubble ${isSelf ? 'message-self' : 'message-other'}">
+                    <div class="message-bubble ${isSelf ? 'bg-red-600 text-white' : 'bg-gray-700 text-gray-100'}">
                         ${replyHtml}
-                        <div class="leading-relaxed">${escapeHtml(msg.text)}</div>
+                        <div class="whitespace-pre-wrap break-words">${escapeHtml(msg.text)}</div>
                         <div class="text-[10px] mt-1 opacity-70 flex items-center gap-1 ${isSelf ? 'justify-end' : ''}">
                             ${new Date(msg.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                             ${isSelf ? '<i class="fas fa-check-double ml-1"></i>' : ''}
@@ -634,21 +891,25 @@
                     </div>
                     
                     ${!isSelf ? `
-                    <button onclick='startReply("${msgId}", "${msg.name}", "${msg.text.replace(/"/g, '&quot;')}")' 
-                        class="opacity-0 hover:opacity-100 transition mt-1 px-2 text-[10px] text-gray-500 hover:text-gray-300">
-                        <i class="fas fa-reply mr-1"></i>Cavab
+                    <button onclick='startReply("${msgId}", "${escapeHtml(msg.name)}", "${escapeHtml(msg.text)}")' 
+                        class="mt-1 text-[11px] text-gray-500 hover:text-gray-300 flex items-center gap-1 px-2 py-1 rounded hover:bg-gray-800 transition">
+                        <i class="fas fa-reply"></i> Cavab
                     </button>` : ''}
                 </div>
             `;
             
             container.appendChild(div);
-            // Scroll to bottom
-            container.scrollTop = container.scrollHeight;
+            
+            // Auto scroll to bottom only if user is near bottom
+            const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
+            if (isNearBottom) {
+                container.scrollTop = container.scrollHeight;
+            }
         }
 
         function startReply(msgId, name, text) {
             replyingTo = { msgId, name, text };
-            document.getElementById('replyText').textContent = text.length > 25 ? text.substring(0, 25) + '...' : text;
+            document.getElementById('replyText').textContent = text.length > 30 ? text.substring(0, 30) + '...' : text;
             document.getElementById('replyIndicator').classList.remove('hidden');
             document.getElementById('messageInput').focus();
         }
@@ -671,6 +932,11 @@
         }
 
         function sendMessage() {
+            if (userPermissions.chat === false && !isHost) {
+                showNotification('Xəta', 'Yazı yazmağınız qadağandır');
+                return;
+            }
+            
             const input = document.getElementById('messageInput');
             const text = input.value.trim();
             if (!text) return;
@@ -698,24 +964,30 @@
         }
 
         function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
+            if (!text) return '';
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
         }
 
         function copyCode() {
             navigator.clipboard.writeText(currentRoom).then(() => {
-                showNotification('Kopyalandı', 'Otaq kodu panoya kopyalandı');
+                showNotification('Kopyalandı', currentRoom);
             });
         }
 
         function shareCode() {
+            const shareData = {
+                title: 'SyncRoom',
+                text: `SyncRoom otaq kodu: ${currentRoom}`,
+                url: window.location.href
+            };
+            
             if (navigator.share) {
-                navigator.share({
-                    title: 'SyncRoom',
-                    text: `Gəl SyncRoom-da birlikdə video izləyək! Otaq kodu: ${currentRoom}`,
-                    url: window.location.href
-                });
+                navigator.share(shareData);
             } else {
                 copyCode();
             }
@@ -724,12 +996,23 @@
         function leaveRoom() {
             if (currentRoom) {
                 db.ref(`rooms/${currentRoom}/users/${userId}`).remove();
-                if (isHost) setTimeout(() => db.ref(`rooms/${currentRoom}`).remove(), 2000);
+                if (isHost) {
+                    // Transfer host or delete after delay
+                    setTimeout(() => {
+                        db.ref(`rooms/${currentRoom}`).once('value').then(snap => {
+                            if (!snap.exists() || !snap.val().users) {
+                                db.ref(`rooms/${currentRoom}`).remove();
+                            }
+                        });
+                    }, 3000);
+                }
             }
             location.reload();
         }
 
-        window.onbeforeunload = leaveRoom;
+        window.onbeforeunload = () => {
+            if (currentRoom) leaveRoom();
+        };
         
         // Preload avatar
         const savedAvatar = localStorage.getItem('userAvatar');
