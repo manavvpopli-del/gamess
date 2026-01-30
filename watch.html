@@ -31,14 +31,12 @@
             border: 1px solid rgba(255,255,255,0.05);
         }
         
-        /* Custom scrollbar */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { 
             background: rgba(255,255,255,0.15); 
             border-radius: 10px; 
         }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
         
         .gradient-text { background: linear-gradient(135deg, #ff3333 0%, #cc0000 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         
@@ -147,19 +145,15 @@
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
         
         .reply-indicator {
-            position: fixed;
-            bottom: 80px;
-            left: 50%;
-            transform: translateX(-50%);
+            position: relative;
             background: rgba(30, 30, 35, 0.95);
             border: 1px solid rgba(255,255,255,0.1);
-            padding: 10px 16px;
+            padding: 8px 12px;
             border-radius: 12px;
-            z-index: 50;
+            margin-bottom: 8px;
             display: none;
             align-items: center;
             gap: 10px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
         
         .notification-toast {
@@ -192,25 +186,10 @@
             background: rgba(0,0,0,0.6);
             backdrop-filter: blur(10px);
         }
-        
-        .typing-indicator {
-            display: flex;
-            gap: 4px;
-            padding: 4px 0;
-        }
-        .typing-dot {
-            width: 6px;
-            height: 6px;
-            background: rgba(255,255,255,0.5);
-            border-radius: 50%;
-            animation: typing 1.4s infinite;
-        }
-        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
-        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
-        
-        @keyframes typing {
-            0%, 60%, 100% { transform: translateY(0); }
-            30% { transform: translateY(-4px); }
+
+        /* Safe area for mobile bottom */
+        .safe-bottom {
+            padding-bottom: max(16px, env(safe-area-inset-bottom));
         }
     </style>
 </head>
@@ -251,7 +230,6 @@
             </div>
 
             <div class="glass rounded-3xl p-8 space-y-6 shadow-2xl">
-                <!-- Avatar Upload -->
                 <div class="flex flex-col items-center space-y-3">
                     <label class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Profil Şəkli</label>
                     <div class="avatar-upload" id="avatarUpload" onclick="document.getElementById('avatarInput').click()">
@@ -265,12 +243,8 @@
                     <p class="text-xs text-red-500 hidden" id="avatarError"><i class="fas fa-exclamation-circle mr-1"></i>Profil şəkli tələb olunur</p>
                 </div>
 
-                <!-- Name Input -->
                 <div class="space-y-3">
-                    <div>
-                        <label class="text-xs font-semibold text-gray-400 uppercase tracking-wider block mb-2">Adınız</label>
-                        <input type="text" id="hostName" placeholder="Adınızı daxil edin" class="w-full px-4 py-3 rounded-xl bg-black/40 border border-gray-700 text-white focus:outline-none focus:border-red-600 transition text-center font-medium">
-                    </div>
+                    <input type="text" id="hostName" placeholder="Adınızı daxil edin" class="w-full px-4 py-3 rounded-xl bg-black/40 border border-gray-700 text-white focus:outline-none focus:border-red-600 transition text-center font-medium">
                     
                     <button onclick="createRoom()" id="createBtn" class="w-full py-3.5 bg-gradient-to-r from-red-700 to-red-900 rounded-xl font-bold hover:opacity-90 transition shadow-lg shadow-red-900/30 disabled:opacity-50 disabled:cursor-not-allowed">
                         <i class="fas fa-plus-circle mr-2"></i>Otaq Yarat
@@ -285,7 +259,6 @@
 
                 <div class="space-y-3">
                     <input type="text" id="joinRoomId" placeholder="Otaq Kodu (ABC123)" class="w-full px-4 py-3 rounded-xl bg-black/40 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:border-red-600 transition uppercase text-center font-bold tracking-widest">
-                    
                     <button onclick="joinRoom()" id="joinBtn" class="w-full py-3.5 bg-gray-800 hover:bg-gray-700 rounded-xl font-bold transition border border-gray-700 disabled:opacity-50 disabled:cursor-not-allowed">
                         <i class="fas fa-sign-in-alt mr-2"></i>Qoşul
                     </button>
@@ -298,34 +271,39 @@
     <div id="room" class="hidden flex-1 flex flex-col h-screen bg-black">
         <!-- Header -->
         <header class="glass border-b border-gray-800 h-16 flex items-center justify-between px-4 shrink-0 z-20">
-            <div class="flex items-center space-x-4">
-                <div class="flex items-center space-x-2">
-                    <h1 class="text-xl font-bold tracking-tight text-white">Sync<span class="text-red-600">Room</span></h1>
-                </div>
-                <div class="hidden md:flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-gray-900/80 border border-gray-700">
-                    <span class="text-xs text-gray-400 uppercase font-bold tracking-wider">Kod:</span>
+            <div class="flex items-center space-x-3">
+                <h1 class="text-lg font-bold tracking-tight text-white">Sync<span class="text-red-600">Room</span></h1>
+                
+                <!-- Room Code with Share -->
+                <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gray-900/80 border border-gray-700">
+                    <span class="text-xs text-gray-400 uppercase font-bold">Kod:</span>
                     <span id="roomCode" class="font-mono text-red-400 font-bold tracking-widest text-sm">---</span>
-                    <button onclick="copyCode()" class="ml-2 text-gray-500 hover:text-white transition text-xs p-1">
-                        <i class="fas fa-copy"></i>
-                    </button>
+                    <div class="flex items-center gap-1 ml-1 border-l border-gray-700 pl-2">
+                        <button onclick="copyCode()" class="p-1.5 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition" title="Kopyala">
+                            <i class="fas fa-copy text-xs"></i>
+                        </button>
+                        <button onclick="shareCode()" class="p-1.5 text-gray-400 hover:text-red-400 hover:bg-gray-800 rounded-lg transition" title="Paylaş">
+                            <i class="fas fa-share-alt text-xs"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
             
-            <div class="flex items-center space-x-3">
+            <div class="flex items-center space-x-2">
                 <div id="activeUsersCount" class="hidden md:flex items-center space-x-2 px-3 py-1.5 rounded-full bg-gray-800/50 border border-gray-700 text-xs">
                     <i class="fas fa-users text-gray-400"></i>
-                    <span class="text-gray-300" id="usersCountText">1 onlayn</span>
+                    <span class="text-gray-300" id="usersCountText">1</span>
                 </div>
                 <span id="userType" class="px-3 py-1.5 rounded-full text-xs font-bold bg-gray-800 text-gray-300 border border-gray-700">İzləyici</span>
                 <button onclick="leaveRoom()" class="w-8 h-8 flex items-center justify-center bg-red-600/10 text-red-500 border border-red-600/30 rounded-full hover:bg-red-600/20 transition">
-                    <i class="fas fa-times"></i>
+                    <i class="fas fa-times text-sm"></i>
                 </button>
             </div>
         </header>
 
         <div class="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
             <!-- Video Section -->
-            <div class="flex-1 relative bg-black flex flex-col min-h-0">
+            <div class="flex-1 relative bg-black flex flex-col min-h-0 lg:h-auto" style="height: 55vh; lg: height: auto;">
                 <button id="changeVideoBtn" onclick="toggleSearch()" class="hidden change-video-btn glass px-4 py-2 rounded-xl border border-gray-700 hover:border-red-500 text-sm font-bold text-white shadow-lg">
                     <i class="fas fa-film mr-2"></i>Video Dəyiş
                 </button>
@@ -340,7 +318,7 @@
                                 <i class="fas fa-times"></i>
                             </button>
                         </div>
-                        <div id="searchResults" class="hidden max-h-[50vh] overflow-y-auto p-3 bg-gray-900/95 space-y-2"></div>
+                        <div id="searchResults" class="hidden max-h-[40vh] overflow-y-auto p-3 bg-gray-900/95 space-y-2"></div>
                     </div>
                 </div>
 
@@ -359,7 +337,7 @@
                         <button onclick="playerControl('seek', -10)" class="p-2 hover:bg-white/10 rounded-xl text-gray-300 transition">
                             <i class="fas fa-backward"></i>
                         </button>
-                        <button id="playPauseBtn" onclick="playerControl('toggle')" class="w-12 h-12 bg-white text-black rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition shadow-lg shadow-white/20">
+                        <button id="playPauseBtn" onclick="playerControl('toggle')" class="w-12 h-12 bg-white text-black rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition shadow-lg">
                             <i class="fas fa-play ml-1" id="playIcon"></i>
                             <i class="fas fa-pause hidden" id="pauseIcon"></i>
                         </button>
@@ -379,56 +357,47 @@
                 </div>
             </div>
 
-            <!-- Sidebar -->
-            <div class="w-full lg:w-96 glass border-l border-gray-800 flex flex-col shrink-0 h-[40vh] lg:h-auto">
+            <!-- Chat Section - YUXARI QALDIRILDI (h-[45vh]) -->
+            <div class="w-full lg:w-96 glass border-t lg:border-t-0 lg:border-l border-gray-800 flex flex-col shrink-0 h-[45vh] lg:h-auto relative z-10">
                 <!-- Active Users -->
-                <div class="p-4 border-b border-gray-800 shrink-0">
-                    <div class="flex items-center justify-between mb-3">
+                <div class="p-3 border-b border-gray-800 shrink-0 bg-gray-900/20">
+                    <div class="flex items-center justify-between mb-2">
                         <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">
-                            <i class="fas fa-users mr-1"></i>İştirakçılar
+                            <i class="fas fa-users mr-1"></i>Otaqda
                         </h3>
                         <span class="text-[10px] text-gray-500" id="onlineCount">0 onlayn</span>
                     </div>
-                    <div id="usersList" class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                        <!-- Users will be inserted here as pills -->
+                    <div id="usersList" class="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                        <!-- Users -->
                     </div>
                 </div>
 
-                <!-- Chat -->
-                <div class="flex-1 flex flex-col min-h-0 bg-gradient-to-b from-transparent to-black/20">
-                    <div class="p-3 border-b border-gray-800/50 bg-gray-900/20 shrink-0 flex items-center justify-between">
-                        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">
-                            <i class="fas fa-comments mr-1"></i>Söhbət
-                        </h3>
-                        <div class="flex items-center space-x-2">
-                            <div class="w-2 h-2 rounded-full bg-green-500 sync-pulse"></div>
-                            <span class="text-[10px] text-gray-500">Canlı</span>
+                <!-- Chat Messages -->
+                <div class="flex-1 flex flex-col min-h-0 bg-gradient-to-b from-transparent to-black/10">
+                    <div id="chatMessages" class="flex-1 overflow-y-auto p-3 space-y-3 scroll-smooth"></div>
+                    
+                    <!-- Input Area - YUXARIDA (pb-6 əlavə edildi) -->
+                    <div class="p-3 border-t border-gray-800 bg-gray-900/40 shrink-0 safe-bottom">
+                        <!-- Reply Indicator -->
+                        <div id="replyIndicator" class="reply-indicator mx-0">
+                            <div class="flex-1 min-w-0">
+                                <div class="text-[10px] text-gray-400 mb-0.5">Cavab:</div>
+                                <div class="text-xs text-white truncate" id="replyText"></div>
+                            </div>
+                            <button onclick="cancelReply()" class="p-1 hover:bg-white/10 rounded text-gray-400">
+                                <i class="fas fa-times"></i>
+                            </button>
                         </div>
-                    </div>
-                    
-                    <div id="chatMessages" class="flex-1 overflow-y-auto p-4 space-y-4 scroll-smooth"></div>
-                    
-                    <!-- Reply Indicator -->
-                    <div id="replyIndicator" class="reply-indicator mx-4 mb-2">
-                        <div class="flex-1">
-                            <div class="text-[10px] text-gray-400 mb-0.5">Cavab:</div>
-                            <div class="text-xs text-white truncate max-w-[200px]" id="replyText"></div>
-                        </div>
-                        <button onclick="cancelReply()" class="p-1 hover:bg-white/10 rounded text-gray-400">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                    
-                    <!-- Input -->
-                    <div class="p-4 border-t border-gray-800 bg-gray-900/40 shrink-0">
-                        <div class="relative flex items-end gap-2">
+                        
+                        <!-- Input -->
+                        <div class="flex items-end gap-2">
                             <div class="flex-1 relative">
                                 <textarea id="messageInput" placeholder="Mesaj yaz..." rows="1" 
-                                    class="w-full px-4 py-3 pr-10 bg-black/40 border border-gray-700 rounded-2xl text-sm focus:outline-none focus:border-red-600 transition text-white resize-none overflow-hidden max-h-24"
+                                    class="w-full px-3 py-2.5 pr-10 bg-black/40 border border-gray-700 rounded-2xl text-sm focus:outline-none focus:border-red-600 transition text-white resize-none overflow-hidden max-h-24"
                                     oninput="autoResize(this)"
                                     onkeypress="handleEnter(event)"></textarea>
-                                <button onclick="sendMessage()" class="absolute right-2 bottom-2 p-2 text-red-500 hover:text-red-400 transition">
-                                    <i class="fas fa-paper-plane"></i>
+                                <button onclick="sendMessage()" class="absolute right-2 bottom-2 p-1.5 text-red-500 hover:text-red-400 transition">
+                                    <i class="fas fa-paper-plane text-sm"></i>
                                 </button>
                             </div>
                         </div>
@@ -441,12 +410,12 @@
     <!-- Notification Toast -->
     <div id="notificationToast" class="notification-toast">
         <div class="flex items-start gap-3">
-            <div class="w-8 h-8 rounded-full bg-yellow-500/20 flex items-center justify-center shrink-0">
-                <i class="fas fa-exclamation text-yellow-500 text-xs"></i>
+            <div class="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center shrink-0">
+                <i class="fas fa-info text-red-500 text-xs"></i>
             </div>
             <div>
                 <div class="text-xs font-bold text-white mb-0.5" id="notifTitle">Bildiriş</div>
-                <div class="text-xs text-gray-400" id="notifText">İstifadəçi saytı arxa plana aldı</div>
+                <div class="text-xs text-gray-400" id="notifText">...</div>
             </div>
         </div>
     </div>
@@ -475,21 +444,19 @@
             reader.readAsDataURL(file);
         }
         
-        // Validation
         function validateInputs() {
             const name = document.getElementById('hostName').value.trim();
-            const avatar = document.getElementById('avatarPreview').src && !document.getElementById('avatarPreview').classList.contains('hidden');
+            const avatarSet = !document.getElementById('avatarPreview').classList.contains('hidden');
             
             if (!name) {
                 alert('Zəhmət olmasa adınızı daxil edin!');
                 return false;
             }
-            if (!avatar || userAvatar === '') {
+            if (!avatarSet) {
                 document.getElementById('avatarError').classList.remove('hidden');
                 document.getElementById('avatarUpload').scrollIntoView({ behavior: 'smooth' });
                 return false;
             }
-            document.getElementById('avatarError').classList.add('hidden');
             return true;
         }
 
@@ -525,10 +492,9 @@
         async function joinRoom() {
             const code = document.getElementById('joinRoomId').value.trim().toUpperCase();
             if (!validateInputs()) return;
-            
-            userName = document.getElementById('hostName').value.trim();
             if (!code) return alert('Otaq kodunu daxil edin!');
             
+            userName = document.getElementById('hostName').value.trim();
             const snap = await db.ref(`rooms/${code}`).once('value');
             if (!snap.exists()) return alert('Otaq tapılmadı!');
             
@@ -569,20 +535,12 @@
             setupVisibilityTracking();
         }
 
-        // Visibility tracking
         function setupVisibilityTracking() {
-            // Tab visibility
             document.addEventListener('visibilitychange', () => {
                 const status = document.hidden ? 'background' : 'active';
                 db.ref(`rooms/${currentRoom}/users/${userId}/status`).set(status);
-                
-                // Notify host if viewer goes background
-                if (!isHost && document.hidden) {
-                    // This client went background, host will be notified via listener
-                }
             });
             
-            // Window focus
             window.addEventListener('blur', () => {
                 db.ref(`rooms/${currentRoom}/users/${userId}/focused`).set(false);
             });
@@ -643,7 +601,6 @@
             });
         }
 
-        // Search functions
         function toggleSearch() {
             document.getElementById('searchContainer').classList.toggle('hidden');
         }
@@ -673,15 +630,15 @@
                     card.className = 'video-card flex space-x-3 p-3 rounded-xl bg-gray-800/40 hover:bg-gray-800 border border-transparent hover:border-gray-600 transition group';
                     card.onclick = () => selectVideo(item.id.videoId, item.snippet.title);
                     card.innerHTML = `
-                        <div class="relative w-32 h-20 shrink-0">
+                        <div class="relative w-28 h-16 shrink-0">
                             <img src="${item.snippet.thumbnails.medium.url}" class="w-full h-full object-cover rounded-lg bg-gray-900">
                             <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition rounded-lg">
-                                <i class="fas fa-play text-white text-xl"></i>
+                                <i class="fas fa-play text-white"></i>
                             </div>
                         </div>
                         <div class="flex-1 min-w-0 py-0.5">
-                            <h4 class="text-sm font-bold text-white line-clamp-2 leading-snug mb-1">${item.snippet.title}</h4>
-                            <p class="text-xs text-gray-500">${item.snippet.channelTitle}</p>
+                            <h4 class="text-xs font-bold text-white line-clamp-2 leading-snug mb-1">${item.snippet.title}</h4>
+                            <p class="text-[10px] text-gray-500">${item.snippet.channelTitle}</p>
                         </div>
                     `;
                     resultsDiv.appendChild(card);
@@ -735,11 +692,7 @@
             });
         }
 
-        // Chat functions
-        let lastMessageTime = 0;
-        
         function setupListeners() {
-            // Video sync for viewers
             if (!isHost) {
                 db.ref(`rooms/${currentRoom}/currentVideo`).on('value', (snap) => {
                     const data = snap.val();
@@ -764,103 +717,85 @@
                 });
             }
             
-            // Users with status
             db.ref(`rooms/${currentRoom}/users`).on('value', (snap) => {
                 const users = snap.val() || {};
                 const list = document.getElementById('usersList');
                 list.innerHTML = '';
                 
                 let activeCount = 0;
-                let backgroundCount = 0;
-                
                 Object.entries(users).forEach(([uid, u]) => {
-                    if (u.status === 'active') activeCount++;
-                    if (u.status === 'background') backgroundCount++;
+                    if (u.status !== 'background') activeCount++;
                     
                     const div = document.createElement('div');
-                    div.className = 'user-pill flex items-center gap-2 px-3 py-2 rounded-full bg-gray-800/80 border border-gray-700 shrink-0';
+                    div.className = 'user-pill flex items-center gap-2 px-2.5 py-1.5 rounded-full bg-gray-800/80 border border-gray-700 shrink-0';
                     
                     const statusClass = u.status === 'background' ? 'status-background' : u.focused === false ? 'status-inactive' : 'status-active';
-                    const statusTitle = u.status === 'background' ? 'Arxa planda' : u.focused === false ? 'Başqa pəncərədə' : 'Onlayn';
                     
                     div.innerHTML = `
                         <div class="relative">
-                            <img src="${u.avatar || 'https://via.placeholder.com/32'}" class="w-8 h-8 rounded-full object-cover border border-gray-600">
-                            <div class="status-dot ${statusClass} absolute -bottom-0.5 -right-0.5 border-2 border-gray-800" title="${statusTitle}"></div>
+                            <img src="${u.avatar || 'https://via.placeholder.com/32'}" class="w-6 h-6 rounded-full object-cover border border-gray-600">
+                            <div class="status-dot ${statusClass} absolute -bottom-0.5 -right-0.5 border-2 border-gray-800 w-2 h-2"></div>
                         </div>
-                        <div class="flex flex-col min-w-0">
-                            <span class="text-xs font-bold ${u.isHost ? 'text-yellow-400' : 'text-gray-200'} truncate max-w-[80px]">${u.name}</span>
-                            ${uid === userId ? '<span class="text-[9px] text-gray-500">Siz</span>' : ''}
-                        </div>
+                        <span class="text-[11px] font-bold ${u.isHost ? 'text-yellow-400' : 'text-gray-200'} truncate max-w-[60px]">${u.name}</span>
                     `;
                     list.appendChild(div);
                     
-                    // Notify host if user goes background
                     if (isHost && u.status === 'background' && uid !== userId) {
                         showNotification('İstifadəçi arxa planda', `${u.name} saytı arxa plana aldı`);
                     }
                 });
                 
-                document.getElementById('usersCountText').textContent = `${activeCount + backgroundCount} onlayn`;
-                document.getElementById('onlineCount').textContent = `${activeCount} aktiv • ${backgroundCount} arxa planda`;
+                document.getElementById('usersCountText').textContent = Object.keys(users).length;
+                document.getElementById('onlineCount').textContent = `${activeCount} aktiv`;
             });
             
-            // Chat with vibration
             db.ref(`rooms/${currentRoom}/chat`).on('child_added', (snap) => {
                 const msg = snap.val();
-                const isMe = msg.userId === userId;
-                
-                // Vibrate if message from other and tab hidden or not focused
-                if (!isMe && (document.hidden || document.hasFocus() === false)) {
-                    if ('vibrate' in navigator) {
-                        navigator.vibrate([100, 50, 100]);
-                    }
+                if (!isMe(msg.userId) && (document.hidden || !document.hasFocus())) {
+                    if ('vibrate' in navigator) navigator.vibrate([100, 50, 100]);
                 }
-                
                 appendMessage(msg, snap.key);
-                lastMessageTime = Date.now();
             });
         }
 
+        function isMe(uid) { return uid === userId; }
+
         function appendMessage(msg, msgId) {
             const container = document.getElementById('chatMessages');
-            const isMe = msg.userId === userId;
+            const isSelf = isMe(msg.userId);
             
             const div = document.createElement('div');
-            div.className = `flex ${isMe ? 'justify-end' : 'justify-start'} group`;
+            div.className = `flex ${isSelf ? 'justify-end' : 'justify-start'} group mb-2`;
             div.id = `msg-${msgId}`;
             
             let replyHtml = '';
             if (msg.replyTo) {
                 replyHtml = `
-                    <div class="message-reply mb-1 ${isMe ? 'border-white/30' : 'border-gray-500'}">
+                    <div class="message-reply mb-1 ${isSelf ? 'border-white/30' : 'border-gray-500'}">
                         <div class="text-[10px] opacity-70 mb-0.5">${msg.replyTo.name}</div>
-                        <div class="truncate">${msg.replyTo.text}</div>
+                        <div class="truncate">${escapeHtml(msg.replyTo.text)}</div>
                     </div>
                 `;
             }
             
             div.innerHTML = `
-                ${!isMe ? `
-                <img src="${msg.avatar || 'https://via.placeholder.com/32'}" class="w-8 h-8 rounded-full object-cover mr-2 mt-1 border border-gray-700 shrink-0">
-                ` : ''}
+                ${!isSelf ? `<img src="${msg.avatar || 'https://via.placeholder.com/32'}" class="w-8 h-8 rounded-full object-cover mr-2 mt-1 border border-gray-700 shrink-0">` : ''}
                 
-                <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'} max-w-[85%]">
-                    ${!isMe ? `<span class="text-[10px] text-gray-400 mb-0.5 ml-1">${msg.name}</span>` : ''}
-                    <div class="message-bubble ${isMe ? 'message-self' : 'message-other'}">
+                <div class="flex flex-col ${isSelf ? 'items-end' : 'items-start'} max-w-[85%]">
+                    ${!isSelf ? `<span class="text-[10px] text-gray-400 mb-0.5 ml-1">${msg.name}</span>` : ''}
+                    <div class="message-bubble ${isSelf ? 'message-self' : 'message-other'}">
                         ${replyHtml}
                         <div>${escapeHtml(msg.text)}</div>
                         <div class="text-[10px] mt-1 opacity-70 flex items-center justify-between gap-2">
                             <span>${new Date(msg.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                            ${isMe ? '<i class="fas fa-check-double text-[10px]"></i>' : ''}
+                            ${isSelf ? '<i class="fas fa-check-double text-[10px]"></i>' : ''}
                         </div>
                     </div>
-                    ${!isMe ? `
+                    ${!isSelf ? `
                     <button onclick="startReply('${msgId}', '${msg.name}', '${msg.text.replace(/'/g, "\\'")}')" 
                         class="opacity-0 group-hover:opacity-100 transition mt-0.5 px-2 py-0.5 text-[10px] text-gray-500 hover:text-white flex items-center gap-1">
                         <i class="fas fa-reply"></i> Cavab
-                    </button>
-                    ` : ''}
+                    </button>` : ''}
                 </div>
             `;
             
@@ -924,15 +859,30 @@
             setTimeout(() => toast.classList.remove('show'), 4000);
         }
 
+        function copyCode() {
+            navigator.clipboard.writeText(currentRoom).then(() => {
+                showNotification('Kod kopyalandı', `${currentRoom} panoya kopyalandı`);
+            });
+        }
+
+        function shareCode() {
+            const shareData = {
+                title: 'SyncRoom Otağı',
+                text: `SyncRoom-da birlikdə video izləyək! Otaq kodu: ${currentRoom}`,
+                url: window.location.href.split('?')[0] + '?room=' + currentRoom
+            };
+            
+            if (navigator.share) {
+                navigator.share(shareData);
+            } else {
+                copyCode();
+            }
+        }
+
         function escapeHtml(text) {
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
-        }
-
-        function copyCode() {
-            navigator.clipboard.writeText(currentRoom);
-            showNotification('Kopyalandı', 'Otaq kodu kopyalandı');
         }
 
         function leaveRoom() {
@@ -945,7 +895,7 @@
 
         window.onbeforeunload = leaveRoom;
         
-        // Preload avatar if exists
+        // Preload avatar
         const savedAvatar = localStorage.getItem('userAvatar');
         if (savedAvatar) {
             userAvatar = savedAvatar;
@@ -953,6 +903,13 @@
             document.getElementById('avatarPreview').classList.remove('hidden');
             document.querySelector('.avatar-placeholder').classList.add('hidden');
             document.getElementById('avatarUpload').classList.add('has-image');
+        }
+        
+        // Check URL for room param
+        const urlParams = new URLSearchParams(window.location.search);
+        const roomParam = urlParams.get('room');
+        if (roomParam) {
+            document.getElementById('joinRoomId').value = roomParam;
         }
     </script>
 </body>
