@@ -244,8 +244,11 @@
         .user-chip:hover { background: rgba(255,255,255,0.1); transform: translateY(-1px); box-shadow: 0 4px 12px var(--shadow-color); border-color: var(--primary-color); }
         .user-chip.host { background: rgba(234, 179, 8, 0.1); border-color: rgba(234, 179, 8, 0.3); }
         .user-chip.host:hover { background: rgba(234, 179, 8, 0.2); box-shadow: 0 4px 12px rgba(234, 179, 8, 0.2); }
+        .user-chip.creator { background: rgba(139, 92, 246, 0.15); border-color: rgba(139, 92, 246, 0.4); }
+        .user-chip.creator:hover { background: rgba(139, 92, 246, 0.25); box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3); }
         
         .user-chip img { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; pointer-events: none; }
+        .user-chip .boss-icon { width: 16px; height: 16px; object-fit: contain; pointer-events: none; }
         
         .avatar-upload { width: 100px; height: 100px; border-radius: 50%; border: 3px dashed var(--primary-color); cursor: pointer; position: relative; overflow: hidden; background: rgba(255,255,255,0.02); transition: all 0.3s; box-shadow: 0 4px 20px var(--shadow-color); }
         .avatar-upload:hover { border-color: var(--primary-light); background: rgba(255,255,255,0.05); transform: scale(1.05); }
@@ -280,7 +283,6 @@
         
         .hidden { display: none !important; }
         
-        /* iOS specific fixes */
         @supports (-webkit-touch-callout: none) {
             .chat-container { height: calc(60vh - 56px); }
             #videoSection { height: 40vh; }
@@ -357,7 +359,6 @@
                     </button>
                 </div>
 
-                <!-- QURUCU GİRİŞİ -->
                 <div class="relative flex items-center py-2">
                     <div class="flex-grow border-t" style="border-color: var(--border-color)"></div>
                     <span class="px-3 text-xs" style="color: #8b5cf6">QURUCU</span>
@@ -381,7 +382,6 @@
         </div>
     </div>
 
-    <!-- THEME PICKER MODAL -->
     <div id="themePicker" class="theme-picker">
         <div class="flex justify-between items-center mb-4">
             <h3 class="text-lg font-bold">🎨 Tema Seç</h3>
@@ -393,7 +393,6 @@
         <p class="text-xs text-center mt-4 opacity-60">Yalnız moderator dəyişə bilər</p>
     </div>
 
-    <!-- MODERATOR MODAL -->
     <div id="userModal" class="fixed inset-0 modal-overlay hidden z-50 flex items-center justify-center p-4" onclick="if(event.target === this) closeUserModal()">
         <div class="modal-content-red rounded-3xl p-6 w-full max-w-sm">
             <div class="flex items-center gap-4 mb-6">
@@ -449,7 +448,6 @@
         </div>
     </div>
 
-    <!-- REACTION PICKER TEMPLATE -->
     <div id="emojiPickerTemplate" class="emoji-picker">
         <button class="emoji-btn" onclick="addReaction('👍')">👍</button>
         <button class="emoji-btn" onclick="addReaction('❤️')">❤️</button>
@@ -465,7 +463,6 @@
         <button class="emoji-btn" onclick="addReaction('👎')">👎</button>
     </div>
 
-    <!-- ROOM INTERFACE -->
     <div id="room" class="hidden flex-1 flex flex-col relative">
         <button class="cinema-toggle" onclick="toggleCinemaMode()" title="Sinema Rejimi">
             <i class="fas fa-film text-xl"></i>
@@ -650,7 +647,7 @@
         
         let currentRoom = null;
         let isHost = false;
-        let isCreator = false; // Qurucu flag
+        let isCreator = false;
         let player = null;
         let serverOffset = 0;
         let currentVideoId = null;
@@ -773,7 +770,7 @@
         }
         
         function openThemePicker() {
-            if (!isHost && !userPermissions.changeVideo && !isCreator) {
+            if (!isHost && !isCreator && !userPermissions.changeVideo) {
                 showNotification('İcazə yoxdur', 'Temanı yalnız moderator dəyişə bilər');
                 return;
             }
@@ -786,7 +783,7 @@
         
         function changeTheme(themeId) {
             if (!currentRoom) return;
-            if (!isHost && !userPermissions.changeVideo && !isCreator) {
+            if (!isHost && !isCreator && !userPermissions.changeVideo) {
                 showNotification('İcazə yoxdur', 'Temanı yalnız moderator dəyişə bilər');
                 return;
             }
@@ -892,7 +889,6 @@
             }
         }
 
-        // YENİ: Qurucu giriş funksiyası
         async function creatorJoin() {
             const roomCode = document.getElementById('creatorRoomId')?.value.trim().toUpperCase();
             const creatorCode = document.getElementById('creatorCode')?.value.trim();
@@ -924,18 +920,17 @@
                     applyTheme(roomData.theme.color);
                 }
                 
-                // Qurucu kimi əlavə et - isHost:true olaraq (bütün hüquqlar üçün)
                 await db.ref(`rooms/${roomCode}/users/${userId}`).set({
-                    name: userName + ' (Qurucu)', 
+                    name: userName, 
                     avatar: userAvatar, 
-                    isHost: true, // Host hüquqları ver
-                    isCreator: true, // Qurucu flag
+                    isHost: true,
+                    isCreator: true,
                     joinedAt: firebase.database.ServerValue.TIMESTAMP, 
                     status: 'active'
                 });
                 
-                isCreator = true; // Global flag set
-                enterRoom(roomCode, true); // Host kimi daxil ol
+                isCreator = true;
+                enterRoom(roomCode, true);
                 
             } catch (error) {
                 console.error("Creator join error:", error);
@@ -954,15 +949,14 @@
             const userType = document.getElementById('userType');
             
             if (isHost || isCreator) {
-                userType.textContent = isCreator ? '👑 Qurucu' : '👑 Moderator';
-                userType.style.background = 'rgba(234, 179, 8, 0.1)';
-                userType.style.color = '#fbbf24';
-                userType.style.borderColor = 'rgba(234, 179, 8, 0.3)';
+                userType.textContent = isCreator ? 'Boss' : '👑 Moderator';
+                userType.style.background = isCreator ? 'rgba(139, 92, 246, 0.15)' : 'rgba(234, 179, 8, 0.1)';
+                userType.style.color = isCreator ? '#a78bfa' : '#fbbf24';
+                userType.style.borderColor = isCreator ? 'rgba(139, 92, 246, 0.4)' : 'rgba(234, 179, 8, 0.3)';
                 
                 document.getElementById('hostControls')?.classList.remove('hidden');
                 document.getElementById('changeVideoBtn')?.classList.remove('hidden');
                 
-                // Qurucu üçün bütün icazələri aç
                 userPermissions = { chat: true, video: true, changeVideo: true };
             } else {
                 userType.textContent = '👁️ İzləyici';
@@ -1053,33 +1047,52 @@
             playerReady = true;
             document.getElementById('playerLoader').style.display = 'none';
             
+            // Load current video from Firebase immediately
+            db.ref(`rooms/${currentRoom}/currentVideo`).once('value').then(snap => {
+                const video = snap.val();
+                if (video && video.id) {
+                    currentVideoId = video.id;
+                    player.loadVideoById(video.id);
+                    if (!video.isPlaying) {
+                        setTimeout(() => player.pauseVideo(), 500);
+                    } else {
+                        setTimeout(() => player.playVideo(), 500);
+                    }
+                    if (video.time > 0) {
+                        setTimeout(() => player.seekTo(video.time, true), 1000);
+                    }
+                }
+            });
+            
+            // Setup real-time sync
             if (isHost || isCreator) {
+                // Host/Creator: Send state every 2 seconds
                 setInterval(() => {
                     if (!player || !currentRoom) return;
-                    const state = player.getPlayerState();
-                    const time = player.getCurrentTime();
-                    
-                    db.ref(`rooms/${currentRoom}/currentVideo`).update({
-                        time: time,
-                        isPlaying: state === YT.PlayerState.PLAYING,
-                        updatedAt: firebase.database.ServerValue.TIMESTAMP
-                    });
+                    try {
+                        const state = player.getPlayerState();
+                        const time = player.getCurrentTime();
+                        
+                        db.ref(`rooms/${currentRoom}/currentVideo`).update({
+                            time: time,
+                            isPlaying: state === YT.PlayerState.PLAYING,
+                            updatedAt: firebase.database.ServerValue.TIMESTAMP
+                        });
+                    } catch(e) {}
                 }, 2000);
             } else {
-                setInterval(() => {
-                    if (!player || !currentRoom) return;
-                    syncViewer();
-                }, 1000);
+                // Viewer: Sync continuously
+                setupViewerSync();
             }
         }
 
-        function syncViewer() {
-            if ((isHost || isCreator) || !playerReady) return;
-            
-            db.ref(`rooms/${currentRoom}/currentVideo`).once('value').then(snap => {
+        function setupViewerSync() {
+            // Listen for video changes
+            db.ref(`rooms/${currentRoom}/currentVideo`).on('value', (snap) => {
                 const video = snap.val();
-                if (!video) return;
+                if (!video || !player) return;
                 
+                // Handle video ID change
                 if (video.id && video.id !== currentVideoId) {
                     currentVideoId = video.id;
                     player.loadVideoById(video.id);
@@ -1087,22 +1100,26 @@
                     return;
                 }
                 
+                // Sync time and play state
                 if (video.time !== undefined && video.isPlaying !== undefined) {
-                    const currentTime = player.getCurrentTime() || 0;
-                    const timeDiff = Math.abs(currentTime - video.time);
-                    
-                    if (timeDiff > 3) {
-                        player.seekTo(video.time, true);
-                    }
-                    
-                    const state = player.getPlayerState();
-                    const isPlaying = state === YT.PlayerState.PLAYING;
-                    
-                    if (video.isPlaying && !isPlaying && state !== YT.PlayerState.BUFFERING) {
-                        player.playVideo();
-                    } else if (!video.isPlaying && isPlaying) {
-                        player.pauseVideo();
-                    }
+                    try {
+                        const currentTime = player.getCurrentTime() || 0;
+                        const timeDiff = Math.abs(currentTime - video.time);
+                        const state = player.getPlayerState();
+                        const isPlaying = state === YT.PlayerState.PLAYING;
+                        
+                        // Seek if difference is more than 2 seconds
+                        if (timeDiff > 2) {
+                            player.seekTo(video.time, true);
+                        }
+                        
+                        // Sync play/pause (but not during buffering)
+                        if (video.isPlaying && !isPlaying && state !== YT.PlayerState.BUFFERING) {
+                            player.playVideo();
+                        } else if (!video.isPlaying && isPlaying) {
+                            player.pauseVideo();
+                        }
+                    } catch(e) {}
                 }
             });
         }
@@ -1114,12 +1131,14 @@
             
             clearTimeout(window.stateChangeTimeout);
             window.stateChangeTimeout = setTimeout(() => {
-                db.ref(`rooms/${currentRoom}/currentVideo`).update({
-                    isPlaying: e.data === YT.PlayerState.PLAYING,
-                    time: player.getCurrentTime(),
-                    updatedAt: firebase.database.ServerValue.TIMESTAMP
-                });
-            }, 500);
+                try {
+                    db.ref(`rooms/${currentRoom}/currentVideo`).update({
+                        isPlaying: e.data === YT.PlayerState.PLAYING,
+                        time: player.getCurrentTime(),
+                        updatedAt: firebase.database.ServerValue.TIMESTAMP
+                    });
+                } catch(e) {}
+            }, 300);
         }
 
         function onPlayerError(event) {
@@ -1158,7 +1177,7 @@
                 
                 resultsDiv.innerHTML = '';
                 if (!data.items?.length) {
-                    resultsDiv.innerHTML = '<div class="text-xs text-center p-2 text-neutral-400">Nəticə tapılmadı</div>';
+                    resultsDiv.innerHTML = 'div class="text-xs text-center p-2 text-neutral-400">Nəticə tapılmadı</div>';
                     return;
                 }
                 
@@ -1187,12 +1206,8 @@
             if (!isHost && !isCreator && !userPermissions.changeVideo) return;
             
             currentVideoId = id;
-            if (player?.loadVideoById) {
-                player.loadVideoById(id);
-            }
             
-            closeSearch();
-            
+            // Update Firebase first
             db.ref(`rooms/${currentRoom}/currentVideo`).set({
                 id: id, 
                 title: title, 
@@ -1202,27 +1217,36 @@
                 updatedAt: firebase.database.ServerValue.TIMESTAMP
             });
             
+            // Then load in player
+            if (player?.loadVideoById) {
+                player.loadVideoById(id);
+            }
+            
+            closeSearch();
             showNotification('Video dəyişdirildi', title.substring(0, 30) + (title.length > 30 ? '...' : ''));
         }
 
         function playerControl(action, val) {
             if ((!isHost && !isCreator) || !player) return;
             
-            if (action === 'toggle') {
-                const state = player.getPlayerState();
-                if (state === YT.PlayerState.PLAYING) {
-                    player.pauseVideo();
-                } else {
-                    player.playVideo();
+            try {
+                if (action === 'toggle') {
+                    const state = player.getPlayerState();
+                    if (state === YT.PlayerState.PLAYING) {
+                        player.pauseVideo();
+                    } else {
+                        player.playVideo();
+                    }
+                } else if (action === 'seek') {
+                    player.seekTo(player.getCurrentTime() + val, true);
                 }
-            } else if (action === 'seek') {
-                player.seekTo(player.getCurrentTime() + val, true);
-            }
+            } catch(e) {}
         }
 
         function setupRealTimeListeners() {
             if (!currentRoom) return;
             
+            // Theme listener
             db.ref(`rooms/${currentRoom}/theme`).on('value', (snap) => {
                 const themeData = snap.val();
                 if (themeData?.color) {
@@ -1230,6 +1254,7 @@
                 }
             });
             
+            // Users listener with boss.png for creator
             db.ref(`rooms/${currentRoom}/users`).on('value', (snap) => {
                 const users = snap.val() || {};
                 const list = document.getElementById('usersList');
@@ -1240,12 +1265,30 @@
                     if (data.status === 'active') {
                         count++;
                         const chip = document.createElement('div');
-                        chip.className = `user-chip ${data.isHost ? 'host' : ''}`;
+                        
+                        // Creator gets special styling, others get host or normal
+                        if (data.isCreator) {
+                            chip.className = 'user-chip creator';
+                        } else if (data.isHost) {
+                            chip.className = 'user-chip host';
+                        } else {
+                            chip.className = 'user-chip';
+                        }
+                        
                         chip.onclick = () => openUserModal(uid, data);
+                        
+                        // Use boss.png for creator, crown for host
+                        let iconHtml = '';
+                        if (data.isCreator) {
+                            iconHtml = '<img src="boss.png" class="boss-icon" alt="Boss" onerror="this.style.display=\'none\'">';
+                        } else if (data.isHost) {
+                            iconHtml = '<i class="fas fa-crown text-amber-400 text-[10px]"></i>';
+                        }
+                        
                         chip.innerHTML = `
                             <img src="${data.avatar || 'https://via.placeholder.com/24'}" class="w-6 h-6 rounded-full object-cover" alt="">
                             <span class="text-xs font-medium">${escapeHtml(data.name)}</span>
-                            ${data.isHost ? '<i class="fas fa-crown text-amber-400 text-[10px]"></i>' : ''}
+                            ${iconHtml}
                         `;
                         list.appendChild(chip);
                     }
@@ -1255,6 +1298,7 @@
                 document.getElementById('usersCountText').textContent = count;
             });
             
+            // Messages listener
             db.ref(`rooms/${currentRoom}/messages`).limitToLast(50).on('child_added', (snap) => {
                 const msg = snap.val();
                 const msgId = snap.key;
@@ -1264,6 +1308,7 @@
                 }
             });
             
+            // Typing listener
             db.ref(`rooms/${currentRoom}/typing`).on('value', (snap) => {
                 const typing = snap.val() || {};
                 const now = Date.now();
@@ -1339,7 +1384,7 @@
                     ${!isOwn ? `<div class="msg-sender">${escapeHtml(msg.name)}</div>` : ''}
                     <div class="msg-bubble ${isOwn ? 'msg-own' : 'msg-other'}" onclick="showReactionPicker('${msgId}')">
                         ${replyHtml}
-                        <div class="break-words">${escapeHtml(msg.text)}</div>
+                        <div class="break-words>${escapeHtml(msg.text)}</div>
                         <div class="msg-meta">
                             <span>${formatTime(msg.timestamp)}</span>
                         </div>
