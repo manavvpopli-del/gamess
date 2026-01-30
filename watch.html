@@ -385,6 +385,7 @@
         let ignoreUpdates = false, currentVideoId = null;
         let replyingTo = null, userName = '', userAvatar = '';
         let selectedUserId = null;
+        let userPermissions = { chat: true, video: true }; // Default permissions
         
         db.ref(".info/serverTimeOffset").on("value", (snap) => { serverOffset = snap.val() || 0; });
         const getServerTime = () => Date.now() + serverOffset;
@@ -436,7 +437,7 @@
         </div>
     </div>
 
-    <!-- MODERATOR MODAL - BLOKLAMA DÜYMƏSİZ -->
+    <!-- MODERATOR MODAL -->
     <div id="userModal" class="fixed inset-0 modal-overlay hidden z-50 flex items-center justify-center p-4" onclick="if(event.target === this) closeUserModal()">
         <div class="modal-content-red rounded-3xl p-6 w-full max-w-sm transform transition-all scale-100">
             <div class="flex items-center gap-4 mb-6">
@@ -478,7 +479,6 @@
                 <button onclick="kickUser()" class="danger-btn w-full">
                     <i class="fas fa-sign-out-alt mr-2"></i>Otaqdan At
                 </button>
-                <!-- BLOKLAMA DÜYMƏSİ SİLİNDİ -->
             </div>
         </div>
     </div>
@@ -579,7 +579,7 @@
                 <div id="replyIndicator" class="hidden reply-bar shrink-0">
                     <div class="flex-1 min-w-0">
                         <div class="text-[10px] text-red-400 font-semibold mb-0.5 flex items-center gap-1">
-                            <i class="fas fa-reply text-[8px]"></i> Cavاب
+                            <i class="fas fa-reply text-[8px]"></i> Cavab
                         </div>
                         <div class="text-xs text-neutral-300 truncate" id="replyText"></div>
                     </div>
@@ -673,8 +673,6 @@
             const roomSnap = await db.ref(`rooms/${code}`).once('value');
             if (!roomSnap.exists()) return alert('Otaq tapılmadı!');
             
-            // BLOKLAMA YOXLAMASI SİLİNDİ
-            
             await db.ref(`rooms/${code}/users/${userId}`).set({
                 name: userName, avatar: userAvatar, isHost: false, 
                 joinedAt: firebase.database.ServerValue.TIMESTAMP, status: 'active'
@@ -697,6 +695,8 @@
                 document.getElementById('hostControls').classList.remove('hidden');
                 document.getElementById('changeVideoBtn').classList.remove('hidden');
                 document.getElementById('searchContainer').classList.remove('hidden');
+                // MODERATOR üçün icazələri təyin et
+                userPermissions = { chat: true, video: true };
             } else {
                 userType.textContent = '👁️ İzləyici';
                 userType.className = 'px-3 py-1 rounded-full text-xs font-bold bg-red-500/10 text-red-400 border border-red-500/30';
@@ -817,7 +817,7 @@
             }
         }
 
-        // MODERATOR - BLOKLAMA FUNKSİYASI SİLİNDİ
+        // MODERATOR FUNKSİYALARI
         function openUserModal(uid, userData) {
             if (!isHost || uid === userId) return;
             selectedUserId = uid;
@@ -858,8 +858,6 @@
             closeUserModal();
             showNotification('Tamamlandı', 'İstifadəçi otaqdan atıldı');
         }
-        
-        // BLOKLA FUNKSİYASI SİLİNDİ
 
         function setupListeners() {
             if (!isHost) {
@@ -894,7 +892,6 @@
                 });
             }
             
-            // İSTİFADƏÇİLƏR - BLOKLAMA FILTERI SİLİNDİ
             db.ref(`rooms/${currentRoom}/users`).on('value', (snap) => {
                 const users = snap.val() || {};
                 const list = document.getElementById('usersList');
@@ -902,7 +899,6 @@
                 let count = 0;
                 
                 Object.entries(users).forEach(([uid, u]) => {
-                    // BLOKLAMA YOXLAMASI SİLİNDİ - HƏR KƏS GÖRÜNÜR
                     count++;
                     const div = document.createElement('div');
                     div.className = `user-chip ${u.isHost ? 'host' : ''}`;
@@ -924,10 +920,8 @@
                 document.getElementById('onlineCount').textContent = count + ' onlayn';
             });
             
-            // CHAT - BLOKLAMA FILTERI SİLİNDİ
             db.ref(`rooms/${currentRoom}/chat`).on('child_added', (snap) => {
                 const msg = snap.val();
-                // BLOKLAMA YOXLAMASI SİLİNDİ
                 if (msg.userId !== userId && (document.hidden || !document.hasFocus())) {
                     if ('vibrate' in navigator) navigator.vibrate([80, 40, 80]);
                 }
@@ -1010,15 +1004,29 @@
             textarea.style.height = Math.min(textarea.scrollHeight, 100) + 'px';
         }
 
+        // DÜZƏLİŞ: Moderator üçün mesaj göndərmə funksiyası
         function sendMessage() {
             const input = document.getElementById('messageInput');
             const text = input.value.trim();
-            if (!text || (userPermissions.chat === false && !isHost)) return;
+            
+            // Əvvəlcə text yoxlaması
+            if (!text) return;
+            
+            // Sonra icaza yoxlaması (yalnız izləyicilər üçün)
+            if (!isHost && userPermissions.chat === false) {
+                showNotification('Xəta', 'Yazı yazmağınız qadağandır');
+                return;
+            }
             
             const msgData = {
-                userId, name: userName, avatar: userAvatar, text, isHost,
+                userId: userId, 
+                name: userName, 
+                avatar: userAvatar, 
+                text: text, 
+                isHost: isHost,
                 time: firebase.database.ServerValue.TIMESTAMP
             };
+            
             if (replyingTo) {
                 msgData.replyTo = replyingTo;
                 cancelReply();
