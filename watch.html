@@ -14,55 +14,58 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; background: #0a0a0a; color: white; overflow: hidden; }
         
-        .glass { background: rgba(20, 20, 30, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
+        .glass { background: rgba(20, 20, 30, 0.9); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
+        .glass-light { background: rgba(30, 30, 40, 0.7); backdrop-filter: blur(8px); }
         
-        /* Custom scrollbar */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: rgba(255,255,255,0.1); }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
         
         .gradient-text { background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         
-        .video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; max-height: 60vh; overflow-y: auto; }
-        .video-thumb { transition: all 0.2s; cursor: pointer; }
-        .video-thumb:hover { transform: scale(1.02); box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+        .video-card { transition: all 0.2s; }
+        .video-card:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         
-        /* Viewer overlay - blocks all interactions */
-        .viewer-overlay { 
-            position: absolute; top: 0; left: 0; right: 0; bottom: 0; 
-            z-index: 50; cursor: default; 
-        }
+        .viewer-overlay { position: absolute; inset: 0; z-index: 50; cursor: default; }
         
-        .sync-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        .sync-pulse { animation: pulse 2s infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
         
-        .latency-indicator { font-variant-numeric: tabular-nums; }
-        
-        /* Loading spinner */
         .spinner { border: 3px solid rgba(255,255,255,0.1); border-left-color: #ef4444; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
+        
+        .search-panel { transition: all 0.3s ease; }
+        .search-hidden { opacity: 0; pointer-events: none; transform: translateY(-10px); }
+        
+        .change-video-btn { 
+            position: absolute; 
+            top: 1rem; 
+            right: 1rem; 
+            z-index: 40;
+            transition: all 0.2s;
+        }
+        .change-video-btn:hover { transform: scale(1.05); }
     </style>
 </head>
 <body class="h-screen flex flex-col">
 
-    <!-- Firebase Config - DOLDUR -->
     <script>
+        // FIREBASE CONFIG - Əlavə edildi
         const firebaseConfig = {
-  apiKey: "AIzaSyCM5WdZNSj9oFipNI-J3csHpOIvK8PjoLU",
-  authDomain: "sevgili-testi.firebaseapp.com",
-  databaseURL: "https://sevgili-testi-default-rtdb.firebaseio.com",
-  projectId: "sevgili-testi",
-  storageBucket: "sevgili-testi.firebasestorage.app",
-  messagingSenderId: "399260477557",
-  appId: "1:399260477557:web:584204a698d7bf145bb03c",
-  measurementId: "G-44P21XCZ7G"
-};
+            apiKey: "AIzaSyCM5WdZNSj9oFipNI-J3csHpOIvK8PjoLU",
+            authDomain: "sevgili-testi.firebaseapp.com",
+            databaseURL: "https://sevgili-testi-default-rtdb.firebaseio.com",
+            projectId: "sevgili-testi",
+            storageBucket: "sevgili-testi.firebasestorage.app",
+            messagingSenderId: "399260477557",
+            appId: "1:399260477557:web:584204a698d7bf145bb03c",
+            measurementId: "G-44P21XCZ7G"
+        };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         
-        // YouTube API Key (Restricted to your domain!)
-        const YOUTUBE_API_KEY = "AIzaSyBterRsxZoTvVbxlsOzESKWBDAY2B8BWc4"; // AIzaSy... formatında
+        // YOUTUBE API KEY - Əlavə edildi
+        const YOUTUBE_API_KEY = "AIzaSyBterRsxZoTvVbxlsOzESKWBDAY2B8BWc4";
         
         let userId = localStorage.getItem('syncUserId') || 'user_' + Math.random().toString(36).substr(2, 9);
         localStorage.setItem('syncUserId', userId);
@@ -70,11 +73,20 @@
         let currentRoom = null;
         let isHost = false;
         let player = null;
-        let serverOffset = 0; // Time difference between client and server
-        let lastSyncTime = 0;
-        let syncInterval = null;
+        let serverOffset = 0;
         let ignoreUpdates = false;
         let currentVideoId = null;
+        let syncInterval = null;
+        let isSearchOpen = false;
+        
+        // Time Sync
+        db.ref(".info/serverTimeOffset").on("value", (snap) => {
+            serverOffset = snap.val() || 0;
+        });
+        
+        function getServerTime() {
+            return Date.now() + serverOffset;
+        }
     </script>
 
     <!-- LANDING PAGE -->
@@ -82,38 +94,32 @@
         <div class="max-w-md w-full space-y-6">
             <div class="text-center space-y-2">
                 <h1 class="text-5xl font-bold gradient-text">SyncRoom</h1>
-                <p class="text-gray-400">Gecikməsiz sinxron izləmə təcrübəsi</p>
+                <p class="text-gray-400">Gecikməsiz sinxron izləmə</p>
             </div>
 
             <div class="glass rounded-2xl p-6 space-y-6 shadow-2xl">
-                <!-- Create Room -->
                 <div class="space-y-3">
                     <label class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Yeni Otaq Yarat</label>
-                    <input type="text" id="hostName" placeholder="Adınız" class="w-full px-4 py-3 rounded-lg bg-black/50 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:border-red-600 transition">
-                    <button onclick="createRoom()" class="w-full py-3 bg-gradient-to-r from-red-700 to-red-900 rounded-lg font-bold hover:scale-[1.02] active:scale-[0.98] transition shadow-lg shadow-red-900/30">
+                    <input type="text" id="hostName" placeholder="Adınız" class="w-full px-4 py-3 rounded-lg bg-black/50 border border-gray-700 text-white focus:outline-none focus:border-red-600 transition">
+                    <button onclick="createRoom()" class="w-full py-3 bg-gradient-to-r from-red-700 to-red-900 rounded-lg font-bold hover:opacity-90 transition">
                         Otaq Yarat
                     </button>
                 </div>
 
                 <div class="relative flex py-2 items-center">
                     <div class="flex-grow border-t border-gray-700"></div>
-                    <span class="flex-shrink-0 mx-4 text-gray-500 text-sm">və ya</span>
+                    <span class="px-2 text-gray-500 text-xs">VE YA</span>
                     <div class="flex-grow border-t border-gray-700"></div>
                 </div>
 
-                <!-- Join Room -->
                 <div class="space-y-3">
                     <label class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Otağa Qoşul</label>
-                    <input type="text" id="joinRoomId" placeholder="Otaq Kodu (məs: ABC123)" class="w-full px-4 py-3 rounded-lg bg-black/50 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:border-red-600 transition uppercase">
-                    <input type="text" id="guestName" placeholder="Adınız" class="w-full px-4 py-3 rounded-lg bg-black/50 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:border-red-600 transition">
+                    <input type="text" id="joinRoomId" placeholder="Otaq Kodu" class="w-full px-4 py-3 rounded-lg bg-black/50 border border-gray-700 text-white uppercase focus:outline-none focus:border-red-600 transition">
+                    <input type="text" id="guestName" placeholder="Adınız" class="w-full px-4 py-3 rounded-lg bg-black/50 border border-gray-700 text-white focus:outline-none focus:border-red-600 transition">
                     <button onclick="joinRoom()" class="w-full py-3 bg-gray-800 hover:bg-gray-700 rounded-lg font-bold transition border border-gray-700">
                         Qoşul
                     </button>
                 </div>
-            </div>
-            
-            <div class="text-center text-xs text-gray-600">
-                YouTube sinxronizasiyası • Real-time chat • Gecikmə kompensasiyası
             </div>
         </div>
     </div>
@@ -123,16 +129,14 @@
         <!-- Header -->
         <header class="glass border-b border-gray-800 h-14 flex items-center justify-between px-4 shrink-0 z-20">
             <div class="flex items-center space-x-4">
-                <h1 class="text-xl font-bold text-white tracking-tight">Sync<span class="text-red-600">Room</span></h1>
+                <h1 class="text-xl font-bold tracking-tight text-white">Sync<span class="text-red-600">Room</span></h1>
                 <div class="flex items-center space-x-2 px-3 py-1 rounded-lg bg-gray-900 border border-gray-800">
                     <span class="text-xs text-gray-400 uppercase font-bold">Kod:</span>
                     <span id="roomCode" class="font-mono text-red-400 font-bold tracking-widest">---</span>
-                    <button onclick="copyCode()" class="ml-2 text-gray-500 hover:text-white transition text-xs">Kopyala</button>
                 </div>
                 <div class="hidden md:flex items-center space-x-2 text-xs">
                     <div class="w-2 h-2 rounded-full bg-green-500 sync-pulse"></div>
-                    <span class="text-gray-400">Sinxron</span>
-                    <span id="latencyDisplay" class="latency-indicator text-gray-500 ml-2">0ms</span>
+                    <span class="text-gray-400" id="latencyDisplay">Sync</span>
                 </div>
             </div>
             
@@ -144,69 +148,70 @@
             </div>
         </header>
 
-        <!-- Main Area -->
-        <div class="flex-1 flex flex-col lg:flex-row overflow-hidden">
+        <div class="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
             <!-- Video Section -->
             <div class="flex-1 relative bg-black flex flex-col">
-                <!-- Search Bar (Host Only) -->
-                <div id="searchContainer" class="hidden absolute top-4 left-1/2 transform -translate-x-1/2 z-30 w-full max-w-2xl px-4">
+                
+                <!-- CHANGE VIDEO BUTTON (Host Only - Yukarı sağda) -->
+                <button id="changeVideoBtn" onclick="toggleSearch()" class="hidden change-video-btn glass-light px-4 py-2 rounded-lg border border-gray-700 hover:border-red-500 text-sm font-bold text-white shadow-lg z-40" title="Video Dəyiş">
+                    <span class="flex items-center space-x-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                        <span>Video Dəyiş</span>
+                    </span>
+                </button>
+
+                <!-- SEARCH PANEL (Video seçildikdə gizlənəcək) -->
+                <div id="searchContainer" class="hidden search-panel absolute top-16 left-1/2 transform -translate-x-1/2 z-30 w-full max-w-2xl px-4">
                     <div class="glass rounded-xl overflow-hidden shadow-2xl border border-gray-700">
-                        <div class="flex items-center px-4 py-3 border-b border-gray-700 bg-gray-900/50">
+                        <div class="flex items-center px-4 py-3 border-b border-gray-700 bg-gray-900/80">
                             <svg class="w-5 h-5 text-gray-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                            <input type="text" id="searchQuery" placeholder="YouTube-da axtar..." class="flex-1 bg-transparent border-none outline-none text-white placeholder-gray-500" onkeypress="if(event.key==='Enter') searchYouTube()">
+                            <input type="text" id="searchQuery" placeholder="YouTube-da axtar..." class="flex-1 bg-transparent border-none outline-none text-white placeholder-gray-500 text-sm" onkeypress="if(event.key==='Enter') searchYouTube()">
                             <button onclick="searchYouTube()" class="px-4 py-1.5 bg-red-600 rounded-lg text-sm font-bold hover:bg-red-700 transition">Axtar</button>
+                            <button onclick="closeSearch()" class="ml-2 p-1 text-gray-400 hover:text-white">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            </button>
                         </div>
-                        <div id="searchResults" class="hidden max-h-[60vh] overflow-y-auto p-4 bg-gray-900/95 space-y-3"></div>
+                        <div id="searchResults" class="hidden max-h-[50vh] overflow-y-auto p-3 bg-gray-900/95 space-y-2"></div>
                     </div>
                 </div>
 
-                <!-- Player Container -->
+                <!-- Player -->
                 <div class="flex-1 relative flex items-center justify-center bg-black">
                     <div id="playerWrapper" class="w-full h-full relative">
                         <div id="player"></div>
-                        <!-- Viewer Overlay - Blocks all interactions -->
                         <div id="viewerOverlay" class="hidden viewer-overlay"></div>
                     </div>
-                    
-                    <!-- Loading State -->
                     <div id="playerLoader" class="absolute inset-0 flex items-center justify-center bg-black z-10">
                         <div class="spinner"></div>
                     </div>
                 </div>
 
                 <!-- Host Controls -->
-                <div id="hostControls" class="hidden glass border-t border-gray-800 p-4 space-y-3">
-                    <div class="max-w-3xl mx-auto flex items-center space-x-4">
-                        <button onclick="toggleSearch()" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-sm font-medium border border-gray-700 transition flex items-center space-x-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                            <span>Video Axtar</span>
-                        </button>
-                        
-                        <div class="h-6 w-px bg-gray-700"></div>
-                        
+                <div id="hostControls" class="hidden glass border-t border-gray-800 p-3">
+                    <div class="max-w-3xl mx-auto flex items-center justify-center space-x-4">
                         <div class="flex items-center space-x-2">
-                            <button onclick="playerControl('seek', -10)" class="p-2 hover:bg-gray-800 rounded-lg text-gray-300 hover:text-white transition">
+                            <button onclick="playerControl('seek', -10)" class="p-2 hover:bg-gray-800 rounded-lg text-gray-300 transition" title="-10 saniye">
                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M11 18V6l-8.5 6 8.5 6zm.5-6l8.5 6V6l-8.5 6z"/></svg>
                             </button>
                             
-                            <button id="playPauseBtn" onclick="playerControl('toggle')" class="w-12 h-12 bg-white text-black rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition shadow-lg">
+                            <button id="playPauseBtn" onclick="playerControl('toggle')" class="w-10 h-10 bg-white text-black rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition shadow-lg">
                                 <svg id="playIcon" class="w-5 h-5 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                                 <svg id="pauseIcon" class="w-5 h-5 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
                             </button>
                             
-                            <button onclick="playerControl('seek', 10)" class="p-2 hover:bg-gray-800 rounded-lg text-gray-300 hover:text-white transition">
+                            <button onclick="playerControl('seek', 10)" class="p-2 hover:bg-gray-800 rounded-lg text-gray-300 transition" title="+10 saniye">
                                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z"/></svg>
                             </button>
                         </div>
 
-                        <div class="flex-1 px-4">
-                            <div class="text-xs text-gray-500 mb-1" id="currentVideoTitle">Video yüklənməyib</div>
-                            <div class="w-full bg-gray-800 rounded-full h-1.5 overflow-hidden">
+                        <div class="flex-1 max-w-md px-4">
+                            <div class="text-xs text-gray-500 mb-1 truncate" id="currentVideoTitle">Video seçilməyib</div>
+                            <div class="w-full bg-gray-800 rounded-full h-1 overflow-hidden">
                                 <div id="progressBar" class="bg-red-600 h-full w-0 transition-all duration-1000"></div>
                             </div>
                         </div>
 
-                        <button onclick="syncToAll()" class="px-3 py-1.5 bg-green-600/20 text-green-400 border border-green-600/30 rounded-lg text-xs font-bold hover:bg-green-600/30 transition">
+                        <button onclick="forceSync()" class="px-3 py-1.5 bg-green-600/20 text-green-400 border border-green-600/30 rounded-lg text-xs font-bold hover:bg-green-600/30 transition" title="Hər kəslə sinxronlaşdır">
                             Sinxronlaşdır
                         </button>
                     </div>
@@ -215,28 +220,22 @@
 
             <!-- Sidebar -->
             <div class="w-full lg:w-80 glass border-l border-gray-800 flex flex-col shrink-0">
-                <!-- Users -->
                 <div class="p-4 border-b border-gray-800">
                     <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">İştirakçılar</h3>
                     <div id="usersList" class="space-y-2 max-h-32 overflow-y-auto"></div>
                 </div>
 
-                <!-- Chat -->
                 <div class="flex-1 flex flex-col min-h-0">
                     <div class="p-3 border-b border-gray-800 bg-gray-900/30">
                         <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider">Söhbət</h3>
                     </div>
                     
-                    <div id="chatMessages" class="flex-1 overflow-y-auto p-4 space-y-3 text-sm">
-                        <div class="text-center text-gray-600 text-xs italic mt-4">Söhbət başladı...</div>
-                    </div>
+                    <div id="chatMessages" class="flex-1 overflow-y-auto p-4 space-y-3 text-sm"></div>
                     
                     <div class="p-3 border-t border-gray-800 bg-gray-900/30">
                         <div class="flex space-x-2">
                             <input type="text" id="messageInput" placeholder="Mesaj yaz..." class="flex-1 px-3 py-2 bg-black/50 border border-gray-700 rounded-lg text-sm focus:outline-none focus:border-red-600 transition text-white" onkeypress="if(event.key==='Enter') sendMessage()">
-                            <button onclick="sendMessage()" class="px-4 py-2 bg-red-700 hover:bg-red-600 rounded-lg text-white font-bold transition">
-                                →
-                            </button>
+                            <button onclick="sendMessage()" class="px-4 py-2 bg-red-700 hover:bg-red-600 rounded-lg text-white font-bold transition">→</button>
                         </div>
                     </div>
                 </div>
@@ -245,20 +244,6 @@
     </div>
 
     <script>
-        // Time Synchronization with Server
-        function calculateServerTime() {
-            const offsetRef = db.ref(".info/serverTimeOffset");
-            offsetRef.on("value", (snap) => {
-                serverOffset = snap.val() || 0;
-            });
-        }
-        calculateServerTime();
-
-        function getServerTime() {
-            return Date.now() + serverOffset;
-        }
-
-        // Room Management
         function generateRoomCode() {
             return Math.random().toString(36).substring(2, 8).toUpperCase();
         }
@@ -268,38 +253,28 @@
             if (!name) return alert('Adınızı daxil edin!');
 
             const code = generateRoomCode();
-            const roomData = {
+            await db.ref(`rooms/${code}`).set({
                 createdAt: firebase.database.ServerValue.TIMESTAMP,
                 hostId: userId,
-                currentVideo: {
-                    id: 'jfKfPfyJRdk', // Default: Lofi Girl
-                    title: 'lofi hip hop radio - beats to relax/study to',
-                    time: 0,
-                    isPlaying: false,
-                    lastUpdate: firebase.database.ServerValue.TIMESTAMP
-                },
-                users: {
-                    [userId]: { name, isHost: true, joinedAt: firebase.database.ServerValue.TIMESTAMP }
-                }
-            };
-
-            await db.ref(`rooms/${code}`).set(roomData);
+                currentVideo: null,
+                users: { [userId]: { name, isHost: true, joinedAt: firebase.database.ServerValue.TIMESTAMP } }
+            });
+            
             enterRoom(code, true);
         }
 
         async function joinRoom() {
             const code = document.getElementById('joinRoomId').value.trim().toUpperCase();
             const name = document.getElementById('guestName').value.trim();
-            
-            if (!code || !name) return alert('Bütün sahələri doldurun!');
+            if (!code || !name) return alert('Bütün xanaları doldurun!');
 
-            const snapshot = await db.ref(`rooms/${code}`).once('value');
-            if (!snapshot.exists()) return alert('Otaq tapılmadı!');
+            const snap = await db.ref(`rooms/${code}`).once('value');
+            if (!snap.exists()) return alert('Otaq tapılmadı!');
 
             await db.ref(`rooms/${code}/users/${userId}`).set({
                 name, isHost: false, joinedAt: firebase.database.ServerValue.TIMESTAMP
             });
-
+            
             enterRoom(code, false);
         }
 
@@ -311,287 +286,126 @@
             document.getElementById('room').classList.remove('hidden');
             document.getElementById('roomCode').textContent = code;
             document.getElementById('userType').textContent = host ? '👑 Moderator' : '👁️ İzləyici';
-            document.getElementById('userType').className = host ? 
-                'px-3 py-1 rounded-full text-xs font-bold bg-red-600/20 text-red-400 border border-red-600/30' : 
-                'px-3 py-1 rounded-full text-xs font-bold bg-blue-600/20 text-blue-400 border border-blue-600/30';
-
+            
             if (host) {
-                document.getElementById('searchContainer').classList.remove('hidden');
+                document.getElementById('userType').className = 'px-3 py-1 rounded-full text-xs font-bold bg-red-600/20 text-red-400 border border-red-600/30';
                 document.getElementById('hostControls').classList.remove('hidden');
+                document.getElementById('changeVideoBtn').classList.remove('hidden');
+                // Moderator üçün başlanğıcda axtarış açıq
+                document.getElementById('searchContainer').classList.remove('hidden');
+                isSearchOpen = true;
             } else {
+                document.getElementById('userType').className = 'px-3 py-1 rounded-full text-xs font-bold bg-blue-600/20 text-blue-400 border border-blue-600/30';
                 document.getElementById('viewerOverlay').classList.remove('hidden');
             }
 
             initPlayer();
-            startSyncListener();
-            startPeriodicSync();
-            listenUsers();
-            listenChat();
+            setupListeners();
         }
 
-        function leaveRoom() {
-            if (currentRoom) {
-                db.ref(`rooms/${currentRoom}/users/${userId}`).remove();
-                if (isHost) {
-                    // Transfer host or delete room after delay
-                    setTimeout(() => {
-                        db.ref(`rooms/${currentRoom}`).once('value').then(snap => {
-                            if (!snap.exists() || !snap.val().users) {
-                                db.ref(`rooms/${currentRoom}`).remove();
-                            }
-                        });
-                    }, 5000);
-                }
-            }
-            clearInterval(syncInterval);
-            location.reload();
-        }
-
-        // YouTube Player Initialization
         function initPlayer() {
-            if (typeof YT === 'undefined' || !YT.Player) {
+            if (typeof YT === 'undefined') {
                 setTimeout(initPlayer, 100);
                 return;
             }
 
-            db.ref(`rooms/${currentRoom}/currentVideo`).once('value').then(snapshot => {
-                const video = snapshot.val();
-                const startTime = video?.time || 0;
-                
-                player = new YT.Player('player', {
-                    height: '100%',
-                    width: '100%',
-                    videoId: video?.id || 'jfKfPfyJRdk',
-                    playerVars: {
-                        'autoplay': 0,
-                        'controls': isHost ? 1 : 0,
-                        'disablekb': isHost ? 0 : 1,
-                        'fs': 0,
-                        'rel': 0,
-                        'start': Math.floor(startTime)
-                    },
-                    events: {
-                        'onReady': onPlayerReady,
-                        'onStateChange': onPlayerStateChange
-                    }
-                });
-                
-                if (video?.title) updateTitle(video.title);
-                document.getElementById('playerLoader').classList.add('hidden');
+            player = new YT.Player('player', {
+                height: '100%',
+                width: '100%',
+                videoId: 'jfKfPfyJRdk',
+                playerVars: { 
+                    'autoplay': 0, 
+                    'controls': isHost ? 1 : 0,
+                    'disablekb': isHost ? 0 : 1,
+                    'rel': 0,
+                    'playsinline': 1
+                },
+                events: {
+                    'onReady': onPlayerReady,
+                    'onStateChange': onPlayerStateChange
+                }
             });
+            
+            document.getElementById('playerLoader').classList.add('hidden');
         }
 
-        function onPlayerReady(event) {
-            updatePlayPauseIcon(player.getPlayerState() === YT.PlayerState.PLAYING);
-            
+        function onPlayerReady() {
             if (isHost) {
-                // Host: sync local changes to server
                 setInterval(() => {
-                    if (ignoreUpdates) return;
+                    if (ignoreUpdates || !player || !player.getCurrentTime) return;
                     const state = player.getPlayerState();
-                    if (state === YT.PlayerState.PLAYING || state === YT.PlayerState.PAUSED) {
-                        db.ref(`rooms/${currentRoom}/currentVideo`).update({
-                            time: player.getCurrentTime(),
-                            isPlaying: state === YT.PlayerState.PLAYING,
-                            lastUpdate: firebase.database.ServerValue.TIMESTAMP
-                        });
-                    }
-                }, 2000); // Update every 2 seconds
+                    db.ref(`rooms/${currentRoom}/currentVideo`).update({
+                        time: player.getCurrentTime(),
+                        isPlaying: state === YT.PlayerState.PLAYING,
+                        timestamp: firebase.database.ServerValue.TIMESTAMP
+                    });
+                }, 2000);
             } else {
-                // Viewer: sync from server
                 syncFromServer();
             }
         }
 
-        function onPlayerStateChange(event) {
-            updatePlayPauseIcon(event.data === YT.PlayerState.PLAYING);
-            
+        function onPlayerStateChange(e) {
+            updatePlayBtn(e.data === YT.PlayerState.PLAYING);
             if (!isHost || ignoreUpdates) return;
             
-            // Immediate sync for play/pause
             db.ref(`rooms/${currentRoom}/currentVideo`).update({
-                isPlaying: event.data === YT.PlayerState.PLAYING,
+                isPlaying: e.data === YT.PlayerState.PLAYING,
                 time: player.getCurrentTime(),
-                lastUpdate: firebase.database.ServerValue.TIMESTAMP
+                timestamp: firebase.database.ServerValue.TIMESTAMP
             });
         }
 
-        // Sync Logic - CRITICAL FOR LOW LATENCY
-        function startSyncListener() {
-            if (isHost) return; // Only viewers need to listen for external changes
-            
-            db.ref(`rooms/${currentRoom}/currentVideo`).on('value', (snapshot) => {
-                if (ignoreUpdates) return;
-                
-                const data = snapshot.val();
-                if (!data || !player || !player.getPlayerState) return;
-                
-                const serverTime = getServerTime();
-                const updateTime = data.lastUpdate;
-                const latency = (serverTime - updateTime) / 1000; // seconds
-                
-                // Calculate target time with latency compensation
-                let targetTime = data.time + (data.isPlaying ? latency : 0);
-                
-                // Apply boundaries
-                const duration = player.getDuration() || 0;
-                if (targetTime > duration) targetTime = duration;
-                
-                const currentTime = player.getCurrentTime();
-                const timeDiff = Math.abs(currentTime - targetTime);
-                const currentState = player.getPlayerState();
-                const isPlaying = currentState === YT.PlayerState.PLAYING;
-                
-                // Update latency display
-                document.getElementById('latencyDisplay').textContent = Math.round(latency * 1000) + 'ms';
-                
-                // Sync if drift > 0.5 seconds
-                if (timeDiff > 0.5) {
-                    ignoreUpdates = true;
-                    player.seekTo(targetTime, true);
-                    setTimeout(() => { ignoreUpdates = false; }, 500);
-                }
-                
-                // Sync play state
-                if (data.isPlaying && !isPlaying && currentState !== YT.PlayerState.BUFFERING) {
-                    ignoreUpdates = true;
-                    player.playVideo();
-                    setTimeout(() => { ignoreUpdates = false; }, 300);
-                } else if (!data.isPlaying && isPlaying) {
-                    ignoreUpdates = true;
-                    player.pauseVideo();
-                    setTimeout(() => { ignoreUpdates = false; }, 300);
-                }
-                
-                // Update video if changed
-                if (data.id !== currentVideoId) {
-                    currentVideoId = data.id;
-                    player.loadVideoById(data.id, targetTime);
-                    updateTitle(data.title);
-                }
-            });
-        }
-
-        function startPeriodicSync() {
-            // Extra safety: sync every 5 seconds to correct any drift
-            syncInterval = setInterval(() => {
-                if (!isHost && player && player.getCurrentTime) {
-                    syncFromServer();
-                }
-                
-                // Update progress bar for host
-                if (isHost && player && player.getCurrentTime) {
-                    const pct = (player.getCurrentTime() / player.getDuration()) * 100;
-                    document.getElementById('progressBar').style.width = pct + '%';
-                }
-            }, 5000);
-        }
-
-        function syncFromServer() {
-            db.ref(`rooms/${currentRoom}/currentVideo`).once('value').then(snapshot => {
-                const data = snapshot.val();
-                if (!data || !player) return;
-                
-                const serverTime = getServerTime();
-                const elapsed = (serverTime - data.lastUpdate) / 1000;
-                const expectedTime = data.time + (data.isPlaying ? elapsed : 0);
-                
-                const current = player.getCurrentTime();
-                if (Math.abs(current - expectedTime) > 1) {
-                    player.seekTo(expectedTime, true);
-                }
-            });
-        }
-
-        function syncToAll() {
-            // Manual sync button for host
-            if (!isHost || !player) return;
-            db.ref(`rooms/${currentRoom}/currentVideo`).update({
-                time: player.getCurrentTime(),
-                isPlaying: player.getPlayerState() === YT.PlayerState.PLAYING,
-                lastUpdate: firebase.database.ServerValue.TIMESTAMP
-            });
-        }
-
-        // Host Controls
-        function playerControl(action, value) {
-            if (!isHost || !player) return;
-            
-            ignoreUpdates = true;
-            setTimeout(() => { ignoreUpdates = false; }, 500);
-            
-            switch(action) {
-                case 'toggle':
-                    const state = player.getPlayerState();
-                    if (state === YT.PlayerState.PLAYING) player.pauseVideo();
-                    else player.playVideo();
-                    break;
-                case 'seek':
-                    player.seekTo(player.getCurrentTime() + value, true);
-                    // Immediate sync
-                    db.ref(`rooms/${currentRoom}/currentVideo`).update({
-                        time: player.getCurrentTime(),
-                        lastUpdate: firebase.database.ServerValue.TIMESTAMP
-                    });
-                    break;
-            }
-        }
-
-        function updatePlayPauseIcon(isPlaying) {
-            if (isPlaying) {
-                document.getElementById('playIcon').classList.add('hidden');
-                document.getElementById('pauseIcon').classList.remove('hidden');
-            } else {
-                document.getElementById('playIcon').classList.remove('hidden');
-                document.getElementById('pauseIcon').classList.add('hidden');
-            }
-        }
-
-        // YouTube Search Integration
+        // Axtarış funksiyaları
         function toggleSearch() {
-            const results = document.getElementById('searchResults');
-            results.classList.toggle('hidden');
-            if (!results.classList.contains('hidden')) {
-                document.getElementById('searchQuery').focus();
+            const container = document.getElementById('searchContainer');
+            isSearchOpen = !isSearchOpen;
+            
+            if (isSearchOpen) {
+                container.classList.remove('hidden');
+                setTimeout(() => document.getElementById('searchQuery').focus(), 100);
+            } else {
+                container.classList.add('hidden');
+                document.getElementById('searchResults').classList.add('hidden');
             }
+        }
+
+        function closeSearch() {
+            isSearchOpen = false;
+            document.getElementById('searchContainer').classList.add('hidden');
+            document.getElementById('searchResults').classList.add('hidden');
         }
 
         async function searchYouTube() {
             const query = document.getElementById('searchQuery').value.trim();
             if (!query) return;
-            
-            if (YOUTUBE_API_KEY === 'YOUR_YOUTUBE_API_KEY') {
-                alert('YouTube API Key təyin edilməyib! Kodda YOUTUBE_API_KEY dəyişənini doldurun.');
-                return;
-            }
 
-            const container = document.getElementById('searchResults');
-            container.innerHTML = '<div class="flex justify-center p-4"><div class="spinner"></div></div>';
-            container.classList.remove('hidden');
+            const resultsDiv = document.getElementById('searchResults');
+            resultsDiv.innerHTML = '<div class="flex justify-center p-4"><div class="spinner"></div></div>';
+            resultsDiv.classList.remove('hidden');
 
             try {
-                const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(query)}&type=video&key=${YOUTUBE_API_KEY}`);
-                const data = await response.json();
+                const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=10&q=${encodeURIComponent(query)}&type=video&key=${YOUTUBE_API_KEY}`);
+                const data = await res.json();
                 
                 if (data.error) throw new Error(data.error.message);
                 
-                container.innerHTML = '';
+                resultsDiv.innerHTML = '';
                 data.items.forEach(item => {
-                    const div = document.createElement('div');
-                    div.className = 'video-thumb flex space-x-3 p-2 rounded-lg hover:bg-gray-800 transition';
-                    div.onclick = () => selectVideo(item.id.videoId, item.snippet.title);
-                    div.innerHTML = `
-                        <img src="${item.snippet.thumbnails.medium.url}" class="w-32 h-20 object-cover rounded-lg bg-gray-800">
+                    const card = document.createElement('div');
+                    card.className = 'video-card flex space-x-3 p-2 rounded-lg bg-gray-800/50 hover:bg-gray-800 cursor-pointer border border-transparent hover:border-gray-700';
+                    card.onclick = () => selectVideo(item.id.videoId, item.snippet.title);
+                    card.innerHTML = `
+                        <img src="${item.snippet.thumbnails.medium.url}" class="w-24 h-16 object-cover rounded bg-gray-900">
                         <div class="flex-1 min-w-0">
-                            <h4 class="text-sm font-bold text-white truncate">${item.snippet.title}</h4>
-                            <p class="text-xs text-gray-400 mt-1 truncate">${item.snippet.channelTitle}</p>
-                            <p class="text-xs text-gray-600 mt-1">${new Date(item.snippet.publishedAt).toLocaleDateString()}</p>
+                            <h4 class="text-xs font-bold text-white line-clamp-2 leading-tight">${item.snippet.title}</h4>
+                            <p class="text-[10px] text-gray-500 mt-1 truncate">${item.snippet.channelTitle}</p>
                         </div>
                     `;
-                    container.appendChild(div);
+                    resultsDiv.appendChild(card);
                 });
             } catch (err) {
-                container.innerHTML = `<div class="text-red-500 text-center p-4 text-sm">Xəta: ${err.message}</div>`;
+                resultsDiv.innerHTML = `<div class="text-red-500 text-xs text-center p-2">${err.message}</div>`;
             }
         }
 
@@ -600,68 +414,124 @@
             
             currentVideoId = id;
             player.loadVideoById(id);
-            updateTitle(title);
+            document.getElementById('currentVideoTitle').textContent = title;
+            document.getElementById('progressBar').style.width = '0%';
+            
+            // YENI: Video seçəndən sonra axtarışı bağla və kiçik düymə göstər
+            closeSearch();
             
             db.ref(`rooms/${currentRoom}/currentVideo`).set({
                 id: id,
                 title: title,
                 time: 0,
                 isPlaying: true,
-                lastUpdate: firebase.database.ServerValue.TIMESTAMP
+                timestamp: firebase.database.ServerValue.TIMESTAMP
             });
-            
-            document.getElementById('searchResults').classList.add('hidden');
-            document.getElementById('searchQuery').value = '';
         }
 
-        function updateTitle(title) {
-            document.getElementById('currentVideoTitle').textContent = title;
+        function playerControl(action, val) {
+            if (!isHost || !player) return;
+            ignoreUpdates = true;
+            setTimeout(() => ignoreUpdates = false, 500);
+
+            switch(action) {
+                case 'toggle':
+                    const state = player.getPlayerState();
+                    if (state === YT.PlayerState.PLAYING) player.pauseVideo();
+                    else player.playVideo();
+                    break;
+                case 'seek':
+                    player.seekTo(player.getCurrentTime() + val, true);
+                    break;
+            }
         }
 
-        // Chat & Users
-        function listenUsers() {
-            db.ref(`rooms/${currentRoom}/users`).on('value', snapshot => {
-                const users = snapshot.val() || {};
-                const container = document.getElementById('usersList');
-                container.innerHTML = '';
-                
-                Object.entries(users).forEach(([uid, user]) => {
+        function updatePlayBtn(playing) {
+            document.getElementById('playIcon').classList.toggle('hidden', playing);
+            document.getElementById('pauseIcon').classList.toggle('hidden', !playing);
+        }
+
+        function forceSync() {
+            if (!isHost || !player) return;
+            db.ref(`rooms/${currentRoom}/currentVideo`).update({
+                time: player.getCurrentTime(),
+                isPlaying: player.getPlayerState() === YT.PlayerState.PLAYING,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            });
+        }
+
+        // Sync mənticiyi
+        function setupListeners() {
+            if (!isHost) {
+                db.ref(`rooms/${currentRoom}/currentVideo`).on('value', (snap) => {
+                    const data = snap.val();
+                    if (!data || !player || ignoreUpdates) return;
+
+                    // Video dəyişmişsə
+                    if (data.id !== currentVideoId) {
+                        currentVideoId = data.id;
+                        player.loadVideoById(data.id);
+                        document.getElementById('currentVideoTitle').textContent = data.title || 'Video';
+                    }
+
+                    // Sinxronizasiya
+                    const serverTime = getServerTime();
+                    const latency = (serverTime - data.timestamp) / 1000;
+                    const targetTime = data.time + (data.isPlaying ? latency : 0);
+                    const current = player.getCurrentTime();
+                    
+                    if (Math.abs(current - targetTime) > 1) {
+                        ignoreUpdates = true;
+                        player.seekTo(targetTime, true);
+                        setTimeout(() => ignoreUpdates = false, 300);
+                    }
+
+                    const isPlaying = player.getPlayerState() === YT.PlayerState.PLAYING;
+                    if (data.isPlaying && !isPlaying) {
+                        ignoreUpdates = true;
+                        player.playVideo();
+                        setTimeout(() => ignoreUpdates = false, 300);
+                    } else if (!data.isPlaying && isPlaying) {
+                        ignoreUpdates = true;
+                        player.pauseVideo();
+                        setTimeout(() => ignoreUpdates = false, 300);
+                    }
+                    
+                    document.getElementById('latencyDisplay').textContent = Math.round(latency*1000) + 'ms';
+                });
+            }
+
+            // İstifadəçilər
+            db.ref(`rooms/${currentRoom}/users`).on('value', (snap) => {
+                const users = snap.val() || {};
+                const list = document.getElementById('usersList');
+                list.innerHTML = '';
+                Object.entries(users).forEach(([uid, u]) => {
                     const div = document.createElement('div');
-                    div.className = 'flex items-center space-x-2 text-sm p-2 rounded hover:bg-gray-800/50';
+                    div.className = 'flex items-center space-x-2 text-xs';
                     div.innerHTML = `
-                        <div class="w-2 h-2 rounded-full ${user.isHost ? 'bg-yellow-500' : 'bg-green-500'}"></div>
-                        <span class="${user.isHost ? 'font-bold text-yellow-400' : 'text-gray-300'} truncate">${user.name}</span>
-                        ${user.isHost ? '<span class="text-[10px] text-yellow-600 ml-auto">HOST</span>' : ''}
+                        <div class="w-2 h-2 rounded-full ${u.isHost ? 'bg-yellow-500' : 'bg-green-500'}"></div>
+                        <span class="${u.isHost ? 'text-yellow-400 font-bold' : 'text-gray-300'}">${u.name}</span>
                     `;
-                    container.appendChild(div);
+                    list.appendChild(div);
                 });
             });
-        }
 
-        function listenChat() {
-            db.ref(`rooms/${currentRoom}/chat`).on('child_added', snapshot => {
-                const msg = snapshot.val();
-                const container = document.getElementById('chatMessages');
-                
-                // Remove "empty" message if exists
-                if (container.children.length === 1 && container.children[0].classList.contains('italic')) {
-                    container.innerHTML = '';
-                }
-                
+            // Chat
+            db.ref(`rooms/${currentRoom}/chat`).on('child_added', (snap) => {
+                const msg = snap.val();
                 const div = document.createElement('div');
-                div.className = 'animate-fade-in';
+                div.className = 'text-xs break-words';
                 const isMe = msg.userId === userId;
                 div.innerHTML = `
-                    <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'}">
-                        <div class="flex items-baseline space-x-2 mb-1">
-                            <span class="text-xs font-bold ${msg.isHost ? 'text-yellow-500' : 'text-blue-400'}">${msg.name}</span>
-                            <span class="text-[10px] text-gray-600">${new Date(msg.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                        </div>
-                        <div class="max-w-[90%] px-3 py-2 rounded-lg ${isMe ? 'bg-red-600 text-white' : 'bg-gray-800 text-gray-200'} text-sm">
+                    <div class="${isMe ? 'text-right' : ''}">
+                        <span class="font-bold ${msg.isHost ? 'text-yellow-500' : 'text-blue-400'} text-[10px]">${msg.name}</span>
+                        <div class="inline-block px-2 py-1 rounded mt-0.5 ${isMe ? 'bg-red-900/50 text-red-100' : 'bg-gray-800 text-gray-200'}">
                             ${escapeHtml(msg.text)}
                         </div>
                     </div>
                 `;
+                const container = document.getElementById('chatMessages');
                 container.appendChild(div);
                 container.scrollTop = container.scrollHeight;
             });
@@ -670,33 +540,38 @@
         function sendMessage() {
             const input = document.getElementById('messageInput');
             const text = input.value.trim();
-            if (!text || !currentRoom) return;
+            if (!text) return;
             
             const name = isHost ? document.getElementById('hostName').value : document.getElementById('guestName').value;
-            
             db.ref(`rooms/${currentRoom}/chat`).push({
-                userId, name, text, isHost, time: firebase.database.ServerValue.TIMESTAMP
+                userId, name, text, isHost,
+                time: firebase.database.ServerValue.TIMESTAMP
             });
-            
             input.value = '';
         }
 
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
+        function escapeHtml(t) {
+            const d = document.createElement('div');
+            d.textContent = t;
+            return d.innerHTML;
         }
 
-        function copyCode() {
-            const code = document.getElementById('roomCode').textContent;
-            navigator.clipboard.writeText(code);
-            alert('Kod kopyalandı: ' + code);
+        function syncFromServer() {
+            db.ref(`rooms/${currentRoom}/currentVideo`).once('value').then(snap => {
+                const data = snap.val();
+                if (data && player) player.loadVideoById(data.id);
+            });
         }
 
-        // Window events
-        window.onbeforeunload = () => {
-            if (currentRoom) leaveRoom();
-        };
+        function leaveRoom() {
+            if (currentRoom) {
+                db.ref(`rooms/${currentRoom}/users/${userId}`).remove();
+                if (isHost) setTimeout(() => db.ref(`rooms/${currentRoom}`).remove(), 3000);
+            }
+            location.reload();
+        }
+
+        window.onbeforeunload = leaveRoom;
     </script>
 </body>
 </html>
