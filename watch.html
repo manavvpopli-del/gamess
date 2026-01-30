@@ -18,165 +18,331 @@
         
         body { background: #0a0a0a; color: white; overflow: hidden; touch-action: manipulation; }
         
-        .glass { 
-            background: rgba(20, 20, 25, 0.95); 
+        /* Blue Theme */
+        .glass-blue { 
+            background: rgba(15, 23, 42, 0.95); 
             backdrop-filter: blur(20px); 
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid rgba(59, 130, 246, 0.15);
         }
         
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
-        
-        .gradient-text { background: linear-gradient(135deg, #ff3333 0%, #cc0000 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        
-        .message-bubble {
-            max-width: 85%;
-            padding: 10px 14px;
-            border-radius: 16px;
-            font-size: 14px;
-            line-height: 1.4;
-            animation: messageSlide 0.3s ease;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-            word-break: normal;
-            white-space: pre-wrap;
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(59, 130, 246, 0.1);
         }
         
-        @keyframes messageSlide {
-            from { opacity: 0; transform: translateY(10px); }
+        /* Chat Container - New Design */
+        .chat-container {
+            background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+            border-left: 1px solid rgba(59, 130, 246, 0.1);
+        }
+        
+        /* Messages Area */
+        .messages-scroll {
+            overflow-y: auto;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        
+        /* Modern Message Bubbles - Medium Size */
+        .msg-wrapper {
+            display: flex;
+            width: 100%;
+            margin-bottom: 2px;
+            animation: msgAppear 0.2s ease-out;
+        }
+        
+        @keyframes msgAppear {
+            from { opacity: 0; transform: translateY(8px); }
             to { opacity: 1; transform: translateY(0); }
         }
         
-        .avatar-upload {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            border: 3px dashed rgba(255,255,255,0.3);
-            cursor: pointer;
+        .msg-bubble {
+            max-width: 75%;
+            padding: 8px 12px;
+            border-radius: 16px;
+            font-size: 13.5px;
+            line-height: 1.35;
             position: relative;
-            overflow: hidden;
-            background: rgba(255,255,255,0.05);
-            transition: all 0.3s;
-        }
-        .avatar-upload:hover { border-color: #ef4444; }
-        .avatar-preview { width: 100%; height: 100%; object-fit: cover; }
-        .avatar-placeholder {
-            position: absolute; inset: 0;
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            color: rgba(255,255,255,0.5);
+            word-wrap: break-word;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
         
-        .status-dot {
-            width: 8px; height: 8px;
+        /* Own Message - Blue Gradient */
+        .msg-own {
+            margin-left: auto;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+        
+        /* Other Message - Blue Gray */
+        .msg-other {
+            margin-right: auto;
+            background: rgba(51, 65, 85, 0.9);
+            color: #e2e8f0;
+            border: 1px solid rgba(71, 85, 105, 0.5);
+            border-bottom-left-radius: 4px;
+        }
+        
+        /* Reply Styling */
+        .msg-reply {
+            background: rgba(0,0,0,0.15);
+            border-left: 2px solid rgba(255,255,255,0.4);
+            padding: 4px 8px;
+            margin-bottom: 4px;
+            border-radius: 6px;
+            font-size: 11px;
+            opacity: 0.9;
+        }
+        
+        .msg-other .msg-reply {
+            background: rgba(0,0,0,0.2);
+            border-left-color: #60a5fa;
+        }
+        
+        /* Meta Info (Time) */
+        .msg-meta {
+            font-size: 10px;
+            margin-top: 2px;
+            opacity: 0.8;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            justify-content: flex-end;
+        }
+        
+        .msg-other .msg-meta {
+            color: #94a3b8;
+        }
+        
+        /* Sender Name */
+        .msg-sender {
+            font-size: 11px;
+            font-weight: 600;
+            color: #60a5fa;
+            margin-bottom: 2px;
+            margin-left: 44px;
+        }
+        
+        /* Avatar */
+        .msg-avatar {
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
-            box-shadow: 0 0 6px currentColor;
+            object-fit: cover;
+            border: 2px solid rgba(59, 130, 246, 0.3);
+            margin-right: 8px;
+            align-self: flex-end;
+            margin-bottom: 4px;
         }
-        .status-active { background: #22c55e; color: #22c55e; }
-        .status-background { background: #f59e0b; color: #f59e0b; }
         
-        .viewer-overlay { position: absolute; inset: 0; z-index: 50; cursor: default; }
-        
-        .spinner { 
-            border: 3px solid rgba(255,255,255,0.1); 
-            border-left-color: #ef4444; 
-            border-radius: 50%; 
-            width: 24px; height: 24px; 
-            animation: spin 1s linear infinite; 
+        /* Input Area - Modern */
+        .chat-input-area {
+            background: rgba(15, 23, 42, 0.98);
+            border-top: 1px solid rgba(59, 130, 246, 0.1);
+            padding: 12px 16px 20px;
         }
-        @keyframes spin { to { transform: rotate(360deg); } }
         
-        .sync-pulse { animation: pulse 2s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
-        
-        .notification-toast {
-            position: fixed;
-            top: 80px; right: 20px;
-            background: rgba(30, 30, 35, 0.98);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            padding: 12px 16px;
-            border-radius: 12px;
-            z-index: 100;
-            transform: translateX(400px);
-            transition: transform 0.3s ease;
+        .input-container {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 24px;
+            display: flex;
+            align-items: flex-end;
+            padding: 4px;
+            transition: all 0.2s;
         }
-        .notification-toast.show { transform: translateX(0); }
         
-        .user-modal {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.8);
-            backdrop-filter: blur(5px);
-            z-index: 100;
-            display: none;
+        .input-container:focus-within {
+            border-color: rgba(59, 130, 246, 0.5);
+            background: rgba(30, 41, 59, 0.95);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .chat-textarea {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: white;
+            font-size: 14px;
+            padding: 10px 16px;
+            resize: none;
+            max-height: 100px;
+            min-height: 40px;
+            line-height: 1.4;
+        }
+        
+        .chat-textarea::placeholder {
+            color: #64748b;
+        }
+        
+        .send-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            border: none;
+            display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
-        }
-        .user-modal.show { display: flex; }
-        
-        .modal-content {
-            background: linear-gradient(145deg, #1a1a1f, #0f0f12);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 24px;
-            padding: 24px;
-            max-width: 400px;
-            width: 100%;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.8);
+            cursor: pointer;
+            margin: 2px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
         }
         
-        .permission-toggle {
+        .send-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.5);
+        }
+        
+        .send-btn:active {
+            transform: scale(0.95);
+        }
+        
+        /* Reply Indicator - Blue Theme */
+        .reply-bar {
+            background: rgba(30, 41, 59, 0.95);
+            border-left: 3px solid #3b82f6;
+            padding: 8px 16px;
+            margin-bottom: 8px;
+            border-radius: 12px 12px 0 0;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 12px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 12px;
-            margin-bottom: 8px;
-            border: 1px solid rgba(255,255,255,0.05);
+            animation: slideUp 0.2s ease;
         }
         
-        .toggle-switch {
-            width: 50px;
-            height: 26px;
-            background: #374151;
-            border-radius: 13px;
-            position: relative;
+        @keyframes slideUp {
+            from { transform: translateY(10px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        /* Users List - Blue Style */
+        .users-bar {
+            background: rgba(15, 23, 42, 0.9);
+            border-bottom: 1px solid rgba(59, 130, 246, 0.1);
+            padding: 12px 16px;
+        }
+        
+        .user-chip {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 20px;
             cursor: pointer;
-            transition: background 0.3s;
+            transition: all 0.2s;
+            white-space: nowrap;
         }
-        .toggle-switch.active { background: #10b981; }
         
-        .toggle-switch::after {
+        .user-chip:hover {
+            background: rgba(59, 130, 246, 0.2);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+        }
+        
+        .user-chip.host {
+            background: rgba(234, 179, 8, 0.1);
+            border-color: rgba(234, 179, 8, 0.3);
+        }
+        
+        .user-chip.host:hover {
+            background: rgba(234, 179, 8, 0.2);
+            box-shadow: 0 4px 12px rgba(234, 179, 8, 0.2);
+        }
+        
+        /* Date Separator */
+        .date-separator {
+            text-align: center;
+            margin: 16px 0;
+            position: relative;
+        }
+        
+        .date-separator::before {
             content: '';
             position: absolute;
-            width: 22px;
-            height: 22px;
-            background: white;
-            border-radius: 50%;
-            top: 2px;
-            left: 2px;
-            transition: transform 0.3s;
+            left: 0;
+            right: 0;
+            top: 50%;
+            height: 1px;
+            background: rgba(59, 130, 246, 0.2);
         }
-        .toggle-switch.active::after { transform: translateX(24px); }
         
-        .danger-btn {
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            color: #ef4444;
-            padding: 12px;
-            border-radius: 12px;
-            width: 100%;
-            font-weight: 600;
-            transition: all 0.2s;
-            margin-top: 8px;
+        .date-separator span {
+            background: #1e293b;
+            padding: 0 12px;
+            font-size: 11px;
+            color: #64748b;
+            position: relative;
+            border-radius: 10px;
         }
-        .danger-btn:hover { background: rgba(239, 68, 68, 0.2); }
+        
+        /* Scrollbar */
+        .messages-scroll::-webkit-scrollbar {
+            width: 4px;
+        }
+        
+        .messages-scroll::-webkit-scrollbar-thumb {
+            background: rgba(59, 130, 246, 0.3);
+            border-radius: 4px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar {
+            height: 4px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(59, 130, 246, 0.3);
+            border-radius: 4px;
+        }
+        
+        /* Modal Blue Theme */
+        .modal-overlay {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+        }
+        
+        .modal-content-blue {
+            background: linear-gradient(145deg, #0f172a, #1e293b);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(59, 130, 246, 0.1);
+        }
+        
+        .toggle-blue {
+            background: #334155;
+        }
+        
+        .toggle-blue.active {
+            background: #3b82f6;
+        }
+        
+        .toggle-blue::after {
+            background: white;
+        }
+        
+        /* Other existing styles */
+        .spinner { border: 3px solid rgba(255,255,255,0.1); border-left-color: #3b82f6; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        .notification-blue {
+            background: rgba(15, 23, 42, 0.98);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.2);
+        }
     </style>
 </head>
-<body class="h-screen flex flex-col">
+<body class="h-screen flex flex-col bg-slate-950">
 
     <script>
         const firebaseConfig = {
@@ -201,54 +367,53 @@
         let replyingTo = null, userName = '', userAvatar = '';
         let selectedUserId = null;
         let blockedUsers = JSON.parse(localStorage.getItem('blockedUsers') || '[]');
-        let userPermissions = {}; // Store permissions locally
+        let userPermissions = {};
         
         db.ref(".info/serverTimeOffset").on("value", (snap) => { serverOffset = snap.val() || 0; });
         const getServerTime = () => Date.now() + serverOffset;
         
-        // Check if user is blocked
         function isBlocked(uid) { return blockedUsers.includes(uid); }
     </script>
 
     <!-- LANDING PAGE -->
-    <div id="landing" class="flex-1 flex items-center justify-center p-4 bg-gradient-to-br from-gray-900 via-black to-gray-900 overflow-auto">
-        <div class="max-w-md w-full space-y-6 pb-10">
+    <div id="landing" class="flex-1 flex items-center justify-center p-4 bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950 overflow-auto">
+        <div class="max-w-md w-full space-y-6 pb-8">
             <div class="text-center space-y-2">
-                <h1 class="text-5xl font-bold gradient-text mb-2">SyncRoom</h1>
-                <p class="text-gray-400 text-sm">Premium sinxron izləmə</p>
+                <h1 class="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400 mb-2">SyncRoom</h1>
+                <p class="text-slate-400 text-sm">Premium sinxron izləmə</p>
             </div>
 
-            <div class="glass rounded-3xl p-8 space-y-6 shadow-2xl">
+            <div class="glass-blue rounded-3xl p-8 space-y-6 shadow-2xl shadow-blue-500/10">
                 <div class="flex flex-col items-center space-y-3">
-                    <label class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Profil Şəkli (Məcburi)</label>
-                    <div class="avatar-upload" id="avatarUpload" onclick="document.getElementById('avatarInput').click()">
+                    <label class="text-xs font-semibold text-blue-300 uppercase tracking-wider">Profil Şəkli</label>
+                    <div class="avatar-upload border-blue-500/30 hover:border-blue-400" id="avatarUpload" onclick="document.getElementById('avatarInput').click()">
                         <div class="avatar-placeholder" id="avatarPlaceholder">
-                            <i class="fas fa-camera text-2xl mb-1"></i>
-                            <span class="text-xs">Şəkil seç</span>
+                            <i class="fas fa-camera text-2xl mb-1 text-blue-400"></i>
+                            <span class="text-xs text-blue-300">Şəkil seç</span>
                         </div>
                         <img id="avatarPreview" class="avatar-preview hidden" alt="Avatar">
                     </div>
                     <input type="file" id="avatarInput" accept="image/*" class="hidden" onchange="handleAvatarSelect(event)">
-                    <p class="text-xs text-red-500 hidden" id="avatarError"><i class="fas fa-exclamation-circle mr-1"></i>Şəkil seçilməlidir</p>
+                    <p class="text-xs text-red-400 hidden" id="avatarError"><i class="fas fa-exclamation-circle mr-1"></i>Şəkil seçilməlidir</p>
                 </div>
 
                 <div class="space-y-3">
-                    <input type="text" id="hostName" placeholder="Adınızı daxil edin" class="w-full px-4 py-3 rounded-xl bg-black/40 border border-gray-700 text-white focus:outline-none focus:border-red-600 transition text-center font-medium">
+                    <input type="text" id="hostName" placeholder="Adınızı daxil edin" class="w-full px-4 py-3 rounded-xl bg-slate-900/50 border border-blue-500/20 text-white focus:outline-none focus:border-blue-500 transition text-center font-medium placeholder-slate-500">
                     
-                    <button onclick="createRoom()" class="w-full py-3.5 bg-gradient-to-r from-red-700 to-red-900 rounded-xl font-bold hover:opacity-90 transition shadow-lg shadow-red-900/30">
+                    <button onclick="createRoom()" class="w-full py-3.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 rounded-xl font-bold transition shadow-lg shadow-blue-500/25 text-white">
                         <i class="fas fa-plus-circle mr-2"></i>Otaq Yarat
                     </button>
                 </div>
 
                 <div class="relative flex items-center py-2">
-                    <div class="flex-grow border-t border-gray-700"></div>
-                    <span class="px-3 text-gray-500 text-xs">VE YA</span>
-                    <div class="flex-grow border-t border-gray-700"></div>
+                    <div class="flex-grow border-t border-blue-500/20"></div>
+                    <span class="px-3 text-blue-400/60 text-xs">VE YA</span>
+                    <div class="flex-grow border-t border-blue-500/20"></div>
                 </div>
 
                 <div class="space-y-3">
-                    <input type="text" id="joinRoomId" placeholder="Otaq Kodu (ABC123)" class="w-full px-4 py-3 rounded-xl bg-black/40 border border-gray-700 text-white uppercase text-center font-bold tracking-widest focus:outline-none focus:border-red-600 transition">
-                    <button onclick="joinRoom()" class="w-full py-3.5 bg-gray-800 hover:bg-gray-700 rounded-xl font-bold transition border border-gray-700">
+                    <input type="text" id="joinRoomId" placeholder="Otaq Kodu" class="w-full px-4 py-3 rounded-xl bg-slate-900/50 border border-blue-500/20 text-white uppercase text-center font-bold tracking-widest focus:outline-none focus:border-blue-500 transition placeholder-slate-500">
+                    <button onclick="joinRoom()" class="w-full py-3.5 bg-slate-800 hover:bg-slate-700 rounded-xl font-bold transition border border-blue-500/20 text-blue-100">
                         <i class="fas fa-sign-in-alt mr-2"></i>Qoşul
                     </button>
                 </div>
@@ -256,74 +421,76 @@
         </div>
     </div>
 
-    <!-- USER MANAGEMENT MODAL (Moderator Only) -->
-    <div id="userModal" class="user-modal" onclick="if(event.target === this) closeUserModal()">
-        <div class="modal-content">
+    <!-- MODERATOR MODAL -->
+    <div id="userModal" class="fixed inset-0 modal-overlay hidden z-50 flex items-center justify-center p-4" onclick="if(event.target === this) closeUserModal()">
+        <div class="modal-content-blue rounded-3xl p-6 w-full max-w-sm transform transition-all scale-100">
             <div class="flex items-center gap-4 mb-6">
-                <img id="modalUserAvatar" src="" class="w-16 h-16 rounded-full object-cover border-2 border-gray-700">
-                <div>
+                <img id="modalUserAvatar" src="" class="w-16 h-16 rounded-full object-cover border-2 border-blue-500/50 shadow-lg shadow-blue-500/20">
+                <div class="flex-1">
                     <h3 id="modalUserName" class="text-lg font-bold text-white"></h3>
-                    <p class="text-xs text-gray-400" id="modalUserStatus">İzləyici</p>
+                    <p class="text-xs text-blue-400" id="modalUserStatus">İzləyici</p>
                 </div>
-                <button onclick="closeUserModal()" class="ml-auto p-2 text-gray-400 hover:text-white">
+                <button onclick="closeUserModal()" class="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-full transition">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             
-            <div class="space-y-4">
-                <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">İcazələr</h4>
+            <div class="space-y-3">
+                <h4 class="text-xs font-bold text-blue-400 uppercase tracking-wider mb-2">İcazələr</h4>
                 
-                <div class="permission-toggle">
+                <div class="flex items-center justify-between p-3 rounded-xl bg-slate-800/50 border border-blue-500/10">
                     <div class="flex items-center gap-3">
-                        <i class="fas fa-comment text-blue-400"></i>
-                        <span class="text-sm font-medium">Yazı Yazmaq</span>
+                        <div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-400">
+                            <i class="fas fa-comment text-sm"></i>
+                        </div>
+                        <span class="text-sm font-medium text-slate-200">Yazı Yazmaq</span>
                     </div>
-                    <div class="toggle-switch active" id="permChat" onclick="togglePermission('chat')"></div>
+                    <div class="toggle-blue w-12 h-6 rounded-full relative cursor-pointer transition-colors" id="permChat" onclick="togglePermission('chat')">
+                        <div class="absolute w-5 h-5 bg-white rounded-full top-0.5 left-0.5 transition-transform shadow-md"></div>
+                    </div>
                 </div>
                 
-                <div class="permission-toggle">
+                <div class="flex items-center justify-between p-3 rounded-xl bg-slate-800/50 border border-blue-500/10">
                     <div class="flex items-center gap-3">
-                        <i class="fas fa-microphone text-green-400"></i>
-                        <span class="text-sm font-medium">Səsli Danışıq</span>
+                        <div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center text-purple-400">
+                            <i class="fas fa-eye text-sm"></i>
+                        </div>
+                        <span class="text-sm font-medium text-slate-200">Video İzləmə</span>
                     </div>
-                    <div class="toggle-switch active" id="permVoice" onclick="togglePermission('voice')"></div>
-                </div>
-                
-                <div class="permission-toggle">
-                    <div class="flex items-center gap-3">
-                        <i class="fas fa-eye text-purple-400"></i>
-                        <span class="text-sm font-medium">Video İzləmə</span>
+                    <div class="toggle-blue w-12 h-6 rounded-full relative cursor-pointer transition-colors" id="permVideo" onclick="togglePermission('video')">
+                        <div class="absolute w-5 h-5 bg-white rounded-full top-0.5 left-0.5 transition-transform shadow-md"></div>
                     </div>
-                    <div class="toggle-switch active" id="permVideo" onclick="togglePermission('video')"></div>
                 </div>
             </div>
             
-            <div class="mt-6 pt-4 border-t border-gray-800">
-                <button onclick="kickUser()" class="danger-btn mb-2">
-                    <i class="fas fa-sign-out-alt mr-2"></i>Otaqdan At
+            <div class="mt-6 space-y-2">
+                <button onclick="kickUser()" class="w-full py-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-xl font-semibold transition flex items-center justify-center gap-2">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Otaqdan At
                 </button>
-                <button onclick="blockUser()" class="danger-btn bg-red-900/20 border-red-800/50 hover:bg-red-900/30">
-                    <i class="fas fa-ban mr-2"></i>Saytdan Blokla
+                <button onclick="blockUser()" class="w-full py-3 bg-red-950/30 hover:bg-red-900/40 text-red-500 border border-red-800/30 rounded-xl font-semibold transition flex items-center justify-center gap-2">
+                    <i class="fas fa-ban"></i>
+                    Blokla
                 </button>
             </div>
         </div>
     </div>
 
     <!-- ROOM INTERFACE -->
-    <div id="room" class="hidden flex-1 flex flex-col h-screen bg-black">
+    <div id="room" class="hidden flex-1 flex flex-col h-screen bg-slate-950">
         <!-- Header -->
-        <header class="glass border-b border-gray-800 h-14 flex items-center justify-between px-4 shrink-0 z-20">
+        <header class="glass-blue border-b border-blue-500/10 h-14 flex items-center justify-between px-4 shrink-0 z-20">
             <div class="flex items-center space-x-3">
-                <h1 class="text-lg font-bold text-white">Sync<span class="text-red-600">Room</span></h1>
+                <h1 class="text-lg font-bold text-white">Sync<span class="text-blue-500">Room</span></h1>
                 
-                <div class="flex items-center gap-2 px-3 py-1 rounded-xl bg-gray-900/80 border border-gray-700">
-                    <span class="text-[10px] text-gray-400 uppercase font-bold">Kod:</span>
-                    <span id="roomCode" class="font-mono text-red-400 font-bold text-sm">---</span>
-                    <div class="flex items-center gap-1 ml-1 border-l border-gray-700 pl-2">
-                        <button onclick="copyCode()" class="p-1.5 text-gray-400 hover:text-white transition" title="Kopyala">
+                <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900/80 border border-blue-500/20">
+                    <span class="text-[10px] text-blue-400 uppercase font-bold">Kod:</span>
+                    <span id="roomCode" class="font-mono text-cyan-400 font-bold text-sm tracking-wider">---</span>
+                    <div class="flex items-center gap-1 ml-2 border-l border-blue-500/20 pl-2">
+                        <button onclick="copyCode()" class="p-1.5 text-slate-400 hover:text-blue-400 transition" title="Kopyala">
                             <i class="fas fa-copy text-xs"></i>
                         </button>
-                        <button onclick="shareCode()" class="p-1.5 text-gray-400 hover:text-red-400 transition" title="Paylaş">
+                        <button onclick="shareCode()" class="p-1.5 text-slate-400 hover:text-blue-400 transition" title="Paylaş">
                             <i class="fas fa-share-alt text-xs"></i>
                         </button>
                     </div>
@@ -331,12 +498,12 @@
             </div>
             
             <div class="flex items-center space-x-2">
-                <span id="activeUsersCount" class="hidden md:flex items-center px-2 py-1 rounded-full bg-gray-800/50 border border-gray-700 text-xs text-gray-300">
-                    <i class="fas fa-users mr-1 text-gray-400"></i>
+                <span id="activeUsersCount" class="hidden md:flex items-center px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-xs text-blue-300">
+                    <i class="fas fa-users mr-1.5 text-blue-400"></i>
                     <span id="usersCountText">1</span>
                 </span>
-                <span id="userType" class="px-2 py-1 rounded-full text-xs font-bold bg-gray-800 text-gray-300 border border-gray-700">İzləyici</span>
-                <button onclick="leaveRoom()" class="w-8 h-8 flex items-center justify-center bg-red-600/10 text-red-500 border border-red-600/30 rounded-full hover:bg-red-600/20 transition">
+                <span id="userType" class="px-3 py-1 rounded-full text-xs font-bold bg-slate-800 text-slate-300 border border-blue-500/20">İzləyici</span>
+                <button onclick="leaveRoom()" class="w-8 h-8 flex items-center justify-center bg-red-500/10 text-red-400 border border-red-500/30 rounded-full hover:bg-red-500/20 transition">
                     <i class="fas fa-times text-sm"></i>
                 </button>
             </div>
@@ -345,21 +512,21 @@
         <div class="flex-1 flex flex-col lg:flex-row overflow-hidden">
             <!-- Video Section -->
             <div class="flex-1 relative bg-black flex flex-col min-h-0" style="height: 50vh;">
-                <button id="changeVideoBtn" onclick="toggleSearch()" class="hidden absolute top-4 right-4 z-40 glass px-4 py-2 rounded-xl border border-gray-700 hover:border-red-500 text-sm font-bold text-white shadow-lg">
-                    <i class="fas fa-film mr-2"></i>Video Dəyiş
+                <button id="changeVideoBtn" onclick="toggleSearch()" class="hidden absolute top-4 right-4 z-40 glass-blue px-4 py-2 rounded-xl border border-blue-500/30 hover:border-blue-400 text-sm font-bold text-white shadow-lg shadow-blue-500/20">
+                    <i class="fas fa-film mr-2 text-blue-400"></i>Video Dəyiş
                 </button>
 
                 <div id="searchContainer" class="hidden absolute top-16 left-1/2 transform -translate-x-1/2 z-30 w-full max-w-lg px-4">
-                    <div class="glass rounded-2xl overflow-hidden shadow-2xl border border-gray-700">
-                        <div class="flex items-center px-4 py-3 border-b border-gray-700 bg-gray-900/80">
-                            <i class="fas fa-search text-gray-400 mr-3"></i>
-                            <input type="text" id="searchQuery" placeholder="YouTube-da axtar..." class="flex-1 bg-transparent border-none outline-none text-white placeholder-gray-500 text-sm" onkeypress="if(event.key==='Enter') searchYouTube()">
-                            <button onclick="searchYouTube()" class="px-4 py-1.5 bg-red-600 rounded-lg text-sm font-bold hover:bg-red-700 transition">Axtar</button>
-                            <button onclick="closeSearch()" class="ml-2 p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition">
+                    <div class="glass-blue rounded-2xl overflow-hidden shadow-2xl border border-blue-500/20">
+                        <div class="flex items-center px-4 py-3 border-b border-blue-500/10 bg-slate-900/50">
+                            <i class="fas fa-search text-blue-400 mr-3"></i>
+                            <input type="text" id="searchQuery" placeholder="YouTube-da axtar..." class="flex-1 bg-transparent border-none outline-none text-white placeholder-slate-500 text-sm" onkeypress="if(event.key==='Enter') searchYouTube()">
+                            <button onclick="searchYouTube()" class="px-4 py-1.5 bg-blue-600 hover:bg-blue-500 rounded-lg text-sm font-bold transition shadow-lg shadow-blue-500/30">Axtar</button>
+                            <button onclick="closeSearch()" class="ml-2 p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition">
                                 <i class="fas fa-times"></i>
                             </button>
                         </div>
-                        <div id="searchResults" class="hidden max-h-[35vh] overflow-y-auto p-3 bg-gray-900/95 space-y-2"></div>
+                        <div id="searchResults" class="hidden max-h-[35vh] overflow-y-auto p-3 bg-slate-900/98 space-y-2"></div>
                     </div>
                 </div>
 
@@ -373,65 +540,65 @@
                     </div>
                 </div>
 
-                <div id="hostControls" class="hidden glass border-t border-gray-800 p-3 shrink-0">
+                <div id="hostControls" class="hidden glass-blue border-t border-blue-500/10 p-3 shrink-0">
                     <div class="flex items-center justify-center space-x-6">
-                        <button onclick="playerControl('seek', -10)" class="p-2 text-gray-300 hover:text-white transition">
+                        <button onclick="playerControl('seek', -10)" class="p-2 text-slate-300 hover:text-blue-400 transition">
                             <i class="fas fa-backward"></i>
                         </button>
-                        <button id="playPauseBtn" onclick="playerControl('toggle')" class="w-12 h-12 bg-white text-black rounded-full flex items-center justify-center hover:scale-105 transition shadow-lg">
-                            <i class="fas fa-play ml-1" id="playIcon"></i>
+                        <button id="playPauseBtn" onclick="playerControl('toggle')" class="w-12 h-12 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-full flex items-center justify-center hover:scale-105 transition shadow-lg shadow-blue-500/30">
+                            <i class="fas fa-play ml-0.5" id="playIcon"></i>
                             <i class="fas fa-pause hidden" id="pauseIcon"></i>
                         </button>
-                        <button onclick="playerControl('seek', 10)" class="p-2 text-gray-300 hover:text-white transition">
+                        <button onclick="playerControl('seek', 10)" class="p-2 text-slate-300 hover:text-blue-400 transition">
                             <i class="fas fa-forward"></i>
                         </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Chat Section - DÜZƏLİŞ EDİLMİŞ SCROLL -->
-            <div class="w-full lg:w-96 glass border-t lg:border-t-0 lg:border-l border-gray-800 flex flex-col shrink-0" style="height: 50vh;">
+            <!-- CHAT SECTION - NEW BLUE DESIGN -->
+            <div class="chat-container w-full lg:w-[420px] flex flex-col shrink-0" style="height: 50vh;">
                 
-                <!-- Users List -->
-                <div class="p-3 border-b border-gray-800 shrink-0 bg-gray-900/20 cursor-pointer" onclick="if(isHost) showNotification('İpucu', 'İstifadəçi üzərinə vuraraq idarə edə bilərsiniz')">
+                <!-- Users Bar -->
+                <div class="users-bar shrink-0">
                     <div class="flex items-center justify-between mb-2">
-                        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Otaqda</h3>
-                        <span class="text-[10px] text-gray-500" id="onlineCount">0 onlayn</span>
+                        <h3 class="text-xs font-bold text-blue-400 uppercase tracking-wider flex items-center gap-1">
+                            <i class="fas fa-users text-[10px]"></i>
+                            İştirakçılar
+                        </h3>
+                        <span class="text-[11px] text-slate-500 bg-slate-800/50 px-2 py-0.5 rounded-full" id="onlineCount">0 onlayn</span>
                     </div>
-                    <div id="usersList" class="flex gap-2 overflow-x-auto pb-1"></div>
+                    <div id="usersList" class="flex gap-2 overflow-x-auto custom-scrollbar pb-1"></div>
                 </div>
 
-                <!-- Chat Messages - overflow-y-auto əlavə edildi və flex düzəlişləri -->
-                <div id="chatMessages" class="flex-1 overflow-y-auto p-3 space-y-3 min-h-0 relative" style="overscroll-behavior: contain;">
-                    <!-- Mesajlar buraya -->
-                    <div class="text-center text-gray-600 text-xs mt-4 empty-state">Söhbət başladı...</div>
+                <!-- Messages Area - Scrollable -->
+                <div id="chatMessages" class="messages-scroll flex-1 min-h-0">
+                    <!-- Messages will appear here -->
                 </div>
                 
-                <!-- Reply Indicator -->
-                <div id="replyIndicator" class="hidden px-4 py-2 bg-gray-800/50 border-t border-gray-700/50">
-                    <div class="flex items-center justify-between">
-                        <div class="flex-1 min-w-0 mr-2">
-                            <div class="text-[10px] text-gray-400">Cavab:</div>
-                            <div class="text-xs text-gray-300 truncate" id="replyText"></div>
+                <!-- Reply Bar -->
+                <div id="replyIndicator" class="hidden reply-bar mx-4 mt-2">
+                    <div class="flex-1 min-w-0">
+                        <div class="text-[10px] text-blue-400 font-semibold mb-0.5 flex items-center gap-1">
+                            <i class="fas fa-reply text-[8px]"></i> Cavab
                         </div>
-                        <button onclick="cancelReply()" class="p-1 text-gray-500 hover:text-white">
-                            <i class="fas fa-times"></i>
-                        </button>
+                        <div class="text-xs text-slate-300 truncate" id="replyText"></div>
                     </div>
+                    <button onclick="cancelReply()" class="p-1.5 hover:bg-slate-700 rounded-full text-slate-400 hover:text-white transition">
+                        <i class="fas fa-times text-xs"></i>
+                    </button>
                 </div>
                 
                 <!-- Input Area -->
-                <div id="chatInputArea" class="p-4 border-t border-gray-800 bg-gray-900/40 shrink-0">
-                    <div class="flex items-end gap-2">
-                        <div class="flex-1 relative">
-                            <textarea id="messageInput" placeholder="Mesaj yaz..." rows="1" 
-                                class="w-full px-4 py-3 pr-10 bg-black/40 border border-gray-700 rounded-2xl text-sm focus:outline-none focus:border-red-600 transition text-white resize-none overflow-hidden max-h-20"
-                                oninput="autoResize(this)"
-                                onkeypress="handleKeyPress(event)"></textarea>
-                            <button onclick="sendMessage()" class="absolute right-3 bottom-3 p-1.5 text-red-500 hover:text-red-400 transition">
-                                <i class="fas fa-paper-plane"></i>
-                            </button>
-                        </div>
+                <div class="chat-input-area shrink-0">
+                    <div class="input-container">
+                        <textarea id="messageInput" placeholder="Mesaj yaz..." rows="1" 
+                            class="chat-textarea"
+                            oninput="autoResize(this)"
+                            onkeypress="handleKeyPress(event)"></textarea>
+                        <button onclick="sendMessage()" class="send-btn">
+                            <i class="fas fa-paper-plane text-sm"></i>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -439,19 +606,21 @@
     </div>
 
     <!-- Notification -->
-    <div id="notificationToast" class="notification-toast">
-        <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center shrink-0">
-                <i class="fas fa-info text-red-500 text-xs"></i>
+    <div id="notificationToast" class="notification-blue fixed top-20 right-4 p-4 rounded-2xl z-50 transform translate-x-[150%] transition-transform duration-300 max-w-xs">
+        <div class="flex items-start gap-3">
+            <div class="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center shrink-0 text-blue-400">
+                <i class="fas fa-info"></i>
             </div>
             <div>
-                <div class="text-xs font-bold text-white" id="notifTitle">Bildiriş</div>
-                <div class="text-xs text-gray-400" id="notifText">...</div>
+                <div class="text-sm font-bold text-white mb-0.5" id="notifTitle">Bildiriş</div>
+                <div class="text-xs text-slate-400 leading-relaxed" id="notifText">...</div>
             </div>
         </div>
     </div>
 
     <script>
+        // ... (keep existing JavaScript functions: handleAvatarSelect, validateInputs, createRoom, joinRoom, enterRoom, setupListeners, etc.)
+        
         function handleAvatarSelect(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -473,12 +642,8 @@
         function validateInputs() {
             const name = document.getElementById('hostName').value.trim();
             const hasAvatar = !document.getElementById('avatarPreview').classList.contains('hidden');
-            
             if (!name) { alert('Adınızı daxil edin!'); return false; }
-            if (!hasAvatar) { 
-                document.getElementById('avatarError').classList.remove('hidden');
-                return false; 
-            }
+            if (!hasAvatar) { document.getElementById('avatarError').classList.remove('hidden'); return false; }
             return true;
         }
 
@@ -495,7 +660,8 @@
                 createdAt: firebase.database.ServerValue.TIMESTAMP,
                 hostId: userId,
                 currentVideo: { id: 'jfKfPfyJRdk', title: 'Lofi Girl', time: 0, isPlaying: false, timestamp: firebase.database.ServerValue.TIMESTAMP },
-                users: { [userId]: { name: userName, avatar: userAvatar, isHost: true, joinedAt: firebase.database.ServerValue.TIMESTAMP, status: 'active' }}
+                users: { [userId]: { name: userName, avatar: userAvatar, isHost: true, joinedAt: firebase.database.ServerValue.TIMESTAMP, status: 'active' }},
+                permissions: {}
             });
             enterRoom(code, true);
         }
@@ -506,14 +672,9 @@
             if (!code) return alert('Kodu daxil edin!');
             
             userName = document.getElementById('hostName').value.trim();
-            
-            // Check if blocked by host
             const roomSnap = await db.ref(`rooms/${code}`).once('value');
             if (!roomSnap.exists()) return alert('Otaq tapılmadı!');
-            
-            if (isBlocked(roomSnap.val().hostId)) {
-                return alert('Bu otağın moderatoru sizi bloklayıb!');
-            }
+            if (isBlocked(roomSnap.val().hostId)) return alert('Bu otağın moderatoru sizi bloklayıb!');
             
             await db.ref(`rooms/${code}/users/${userId}`).set({
                 name: userName, avatar: userAvatar, isHost: false, 
@@ -533,42 +694,21 @@
             const userType = document.getElementById('userType');
             if (host) {
                 userType.textContent = '👑 Moderator';
-                userType.className = 'px-2 py-1 rounded-full text-xs font-bold bg-red-600/20 text-red-400 border border-red-600/30';
+                userType.className = 'px-3 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30';
                 document.getElementById('hostControls').classList.remove('hidden');
                 document.getElementById('changeVideoBtn').classList.remove('hidden');
                 document.getElementById('searchContainer').classList.remove('hidden');
             } else {
                 userType.textContent = '👁️ İzləyici';
-                userType.className = 'px-2 py-1 rounded-full text-xs font-bold bg-blue-600/20 text-blue-400 border border-blue-600/30';
+                userType.className = 'px-3 py-1 rounded-full text-xs font-bold bg-blue-500/10 text-blue-400 border border-blue-500/30';
                 document.getElementById('viewerOverlay').classList.remove('hidden');
             }
             
             initPlayer();
             setupListeners();
             setupVisibility();
-            
-            // Check permissions for non-host
-            if (!host) {
-                db.ref(`rooms/${currentRoom}/permissions/${userId}`).on('value', (snap) => {
-                    userPermissions = snap.val() || { chat: true, voice: true, video: true };
-                    updatePermissionUI();
-                });
-            }
         }
         
-        function updatePermissionUI() {
-            const input = document.getElementById('messageInput');
-            if (userPermissions.chat === false) {
-                input.disabled = true;
-                input.placeholder = 'Yazı yazmağınız qadağandır';
-                input.classList.add('opacity-50');
-            } else {
-                input.disabled = false;
-                input.placeholder = 'Mesaj yaz...';
-                input.classList.remove('opacity-50');
-            }
-        }
-
         function setupVisibility() {
             document.addEventListener('visibilitychange', () => {
                 const status = document.hidden ? 'background' : 'active';
@@ -580,7 +720,6 @@
 
         function initPlayer() {
             if (typeof YT === 'undefined') { setTimeout(initPlayer, 100); return; }
-            
             player = new YT.Player('player', {
                 height: '100%', width: '100%',
                 videoId: 'jfKfPfyJRdk',
@@ -600,8 +739,6 @@
                         timestamp: firebase.database.ServerValue.TIMESTAMP
                     });
                 }, 2000);
-            } else {
-                syncViewer();
             }
         }
 
@@ -615,42 +752,17 @@
             });
         }
 
-        function syncViewer() {
-            db.ref(`rooms/${currentRoom}/currentVideo`).on('value', (snap) => {
-                const data = snap.val();
-                if (!data || !player) return;
-                
-                if (data.id !== currentVideoId) {
-                    currentVideoId = data.id;
-                    player.loadVideoById(data.id);
-                }
-                
-                const serverTime = getServerTime();
-                const latency = (serverTime - data.timestamp) / 1000;
-                const targetTime = data.time + (data.isPlaying ? latency : 0);
-                
-                if (Math.abs(player.getCurrentTime() - targetTime) > 1.5) {
-                    player.seekTo(targetTime, true);
-                }
-                
-                const isPlaying = player.getPlayerState() === YT.PlayerState.PLAYING;
-                if (data.isPlaying && !isPlaying) player.playVideo();
-                else if (!data.isPlaying && isPlaying) player.pauseVideo();
-            });
+        function updatePlayIcon(playing) {
+            document.getElementById('playIcon').classList.toggle('hidden', playing);
+            document.getElementById('pauseIcon').classList.toggle('hidden', !playing);
         }
 
-        function toggleSearch() {
-            document.getElementById('searchContainer').classList.toggle('hidden');
-        }
-        function closeSearch() {
-            document.getElementById('searchContainer').classList.add('hidden');
-            document.getElementById('searchResults').classList.add('hidden');
-        }
+        function toggleSearch() { document.getElementById('searchContainer').classList.toggle('hidden'); }
+        function closeSearch() { document.getElementById('searchContainer').classList.add('hidden'); document.getElementById('searchResults').classList.add('hidden'); }
 
         async function searchYouTube() {
             const query = document.getElementById('searchQuery').value.trim();
             if (!query) return;
-            
             const resultsDiv = document.getElementById('searchResults');
             resultsDiv.innerHTML = '<div class="flex justify-center p-4"><div class="spinner"></div></div>';
             resultsDiv.classList.remove('hidden');
@@ -658,22 +770,21 @@
             try {
                 const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=8&q=${encodeURIComponent(query)}&type=video&key=${YOUTUBE_API_KEY}`);
                 const data = await res.json();
-                
                 resultsDiv.innerHTML = '';
                 data.items.forEach(item => {
                     const card = document.createElement('div');
-                    card.className = 'flex space-x-3 p-2 rounded-lg bg-gray-800/40 hover:bg-gray-800 cursor-pointer transition border border-transparent hover:border-gray-600';
+                    card.className = 'flex space-x-3 p-2 rounded-lg bg-slate-800/50 hover:bg-slate-700 cursor-pointer transition border border-transparent hover:border-blue-500/30';
                     card.onclick = () => selectVideo(item.id.videoId, item.snippet.title);
                     card.innerHTML = `
-                        <div class="relative w-28 h-16 shrink-0">
-                            <img src="${item.snippet.thumbnails.medium.url}" class="w-full h-full object-cover rounded bg-gray-900">
-                            <div class="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 flex items-center justify-center transition rounded">
+                        <div class="relative w-28 h-16 shrink-0 rounded-lg overflow-hidden bg-slate-900">
+                            <img src="${item.snippet.thumbnails.medium.url}" class="w-full h-full object-cover">
+                            <div class="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 flex items-center justify-center transition">
                                 <i class="fas fa-play text-white"></i>
                             </div>
                         </div>
                         <div class="flex-1 min-w-0">
                             <h4 class="text-xs font-bold text-white line-clamp-2 mb-1">${item.snippet.title}</h4>
-                            <p class="text-[10px] text-gray-500">${item.snippet.channelTitle}</p>
+                            <p class="text-[10px] text-slate-400">${item.snippet.channelTitle}</p>
                         </div>
                     `;
                     resultsDiv.appendChild(card);
@@ -688,7 +799,6 @@
             currentVideoId = id;
             player.loadVideoById(id);
             closeSearch();
-            
             db.ref(`rooms/${currentRoom}/currentVideo`).set({
                 id: id, title: title, time: 0, isPlaying: true,
                 timestamp: firebase.database.ServerValue.TIMESTAMP
@@ -700,7 +810,6 @@
             if (!isHost || !player) return;
             ignoreUpdates = true;
             setTimeout(() => ignoreUpdates = false, 500);
-            
             if (action === 'toggle') {
                 if (player.getPlayerState() === YT.PlayerState.PLAYING) player.pauseVideo();
                 else player.playVideo();
@@ -709,118 +818,114 @@
             }
         }
 
-        function updatePlayIcon(playing) {
-            document.getElementById('playIcon').classList.toggle('hidden', playing);
-            document.getElementById('pauseIcon').classList.toggle('hidden', !playing);
-        }
-
         // MODERATOR FUNCTIONS
         function openUserModal(uid, userData) {
             if (!isHost || uid === userId) return;
-            
             selectedUserId = uid;
             document.getElementById('modalUserName').textContent = userData.name;
             document.getElementById('modalUserAvatar').src = userData.avatar || 'https://via.placeholder.com/64';
             document.getElementById('modalUserStatus').textContent = userData.isHost ? 'Moderator' : 'İzləyici';
             
-            // Get current permissions
             db.ref(`rooms/${currentRoom}/permissions/${uid}`).once('value').then(snap => {
-                const perms = snap.val() || { chat: true, voice: true, video: true };
-                
-                updateToggleUI('permChat', perms.chat !== false);
-                updateToggleUI('permVoice', perms.voice !== false);
-                updateToggleUI('permVideo', perms.video !== false);
+                const perms = snap.val() || { chat: true, video: true };
+                updateToggleUI(document.getElementById('permChat'), perms.chat !== false);
+                updateToggleUI(document.getElementById('permVideo'), perms.video !== false);
             });
             
-            document.getElementById('userModal').classList.add('show');
+            document.getElementById('userModal').classList.remove('hidden');
         }
         
-        function closeUserModal() {
-            document.getElementById('userModal').classList.remove('show');
-            selectedUserId = null;
-        }
+        function closeUserModal() { document.getElementById('userModal').classList.add('hidden'); selectedUserId = null; }
         
-        function updateToggleUI(id, active) {
-            const el = document.getElementById(id);
+        function updateToggleUI(el, active) {
+            const dot = el.querySelector('div');
             if (active) {
                 el.classList.add('active');
+                dot.style.transform = 'translateX(24px)';
             } else {
                 el.classList.remove('active');
+                dot.style.transform = 'translateX(0)';
             }
         }
         
         function togglePermission(type) {
             if (!selectedUserId) return;
-            
-            const el = document.getElementById(type === 'chat' ? 'permChat' : type === 'voice' ? 'permVoice' : 'permVideo');
+            const el = document.getElementById(type === 'chat' ? 'permChat' : 'permVideo');
             const isActive = el.classList.contains('active');
             const newValue = !isActive;
-            
-            updateToggleUI(type === 'chat' ? 'permChat' : type === 'voice' ? 'permVoice' : 'permVideo', newValue);
-            
-            // Save to DB
-            const updates = {};
-            updates[`rooms/${currentRoom}/permissions/${selectedUserId}/${type}`] = newValue;
-            db.ref().update(updates);
-            
-            showNotification('İcaza dəyişdirildi', `${type} icazəsi ${newValue ? 'verildi' : 'alindi'}`);
+            updateToggleUI(el, newValue);
+            db.ref(`rooms/${currentRoom}/permissions/${selectedUserId}/${type}`).set(newValue);
+            showNotification('İcaza dəyişdirildi', `${type}: ${newValue ? 'Aktiv' : 'Deaktiv'}`);
         }
         
         function kickUser() {
-            if (!selectedUserId) return;
-            
-            if (confirm('Bu istifadəçini otaqdan atmaq istədiyinizə əminsiniz?')) {
-                db.ref(`rooms/${currentRoom}/users/${selectedUserId}`).remove();
-                db.ref(`rooms/${currentRoom}/permissions/${selectedUserId}`).remove();
-                closeUserModal();
-                showNotification('İstifadəçi atıldı', 'İstifadəçi otaqdan çıxarıldı');
-            }
+            if (!selectedUserId || !confirm('Bu istifadəçini otaqdan atmaq istəyirsiniz?')) return;
+            db.ref(`rooms/${currentRoom}/users/${selectedUserId}`).remove();
+            closeUserModal();
+            showNotification('Tamamlandı', 'İstifadəçi otaqdan atıldı');
         }
         
         function blockUser() {
-            if (!selectedUserId) return;
-            
-            if (confirm('Bu istifadəçini saytdan bloklamaq istədiyinizə əminsiniz? (Local storage-a əlavə olunacaq)')) {
-                if (!blockedUsers.includes(selectedUserId)) {
-                    blockedUsers.push(selectedUserId);
-                    localStorage.setItem('blockedUsers', JSON.stringify(blockedUsers));
-                }
-                
-                // Also kick
-                db.ref(`rooms/${currentRoom}/users/${selectedUserId}`).remove();
-                closeUserModal();
-                showNotification('İstifadəçi bloklandı', 'İstifadəçi blok siyahısına əlavə edildi');
+            if (!selectedUserId || !confirm('Bu istifadəçini bloklamaq istəyirsiniz?')) return;
+            if (!blockedUsers.includes(selectedUserId)) {
+                blockedUsers.push(selectedUserId);
+                localStorage.setItem('blockedUsers', JSON.stringify(blockedUsers));
             }
+            db.ref(`rooms/${currentRoom}/users/${selectedUserId}`).remove();
+            closeUserModal();
+            showNotification('Tamamlandı', 'İstifadəçi bloklandı');
         }
 
         function setupListeners() {
-            // Users
+            if (!isHost) {
+                db.ref(`rooms/${currentRoom}/currentVideo`).on('value', (snap) => {
+                    const data = snap.val();
+                    if (!data || !player) return;
+                    if (data.id !== currentVideoId) {
+                        currentVideoId = data.id;
+                        player.loadVideoById(data.id);
+                    }
+                    const serverTime = getServerTime();
+                    const latency = (serverTime - data.timestamp) / 1000;
+                    const targetTime = data.time + (data.isPlaying ? latency : 0);
+                    if (Math.abs(player.getCurrentTime() - targetTime) > 1.5) player.seekTo(targetTime, true);
+                    const isPlaying = player.getPlayerState() === YT.PlayerState.PLAYING;
+                    if (data.isPlaying && !isPlaying) player.playVideo();
+                    else if (!data.isPlaying && isPlaying) player.pauseVideo();
+                });
+                
+                db.ref(`rooms/${currentRoom}/permissions/${userId}`).on('value', (snap) => {
+                    userPermissions = snap.val() || { chat: true, video: true };
+                    const input = document.getElementById('messageInput');
+                    if (userPermissions.chat === false) {
+                        input.disabled = true;
+                        input.placeholder = 'Yazı yazmağınız qadağandır';
+                        input.classList.add('opacity-50');
+                    } else {
+                        input.disabled = false;
+                        input.placeholder = 'Mesaj yaz...';
+                        input.classList.remove('opacity-50');
+                    }
+                });
+            }
+            
             db.ref(`rooms/${currentRoom}/users`).on('value', (snap) => {
                 const users = snap.val() || {};
                 const list = document.getElementById('usersList');
                 list.innerHTML = '';
-                
                 let count = 0;
+                
                 Object.entries(users).forEach(([uid, u]) => {
-                    if (isBlocked(uid)) return; // Don't show blocked users
+                    if (isBlocked(uid)) return;
                     count++;
-                    
                     const div = document.createElement('div');
-                    div.className = 'flex items-center gap-2 px-2 py-1.5 rounded-full bg-gray-800 hover:bg-gray-700 transition border border-gray-700 shrink-0 cursor-pointer select-none';
-                    if (isHost && uid !== userId) {
-                        div.onclick = () => openUserModal(uid, u);
-                        div.title = 'Basaraq idarə et';
-                    }
-                    
-                    const statusColor = u.status === 'background' ? 'status-background' : 'status-active';
+                    div.className = `user-chip ${u.isHost ? 'host' : ''}`;
+                    if (isHost && uid !== userId) div.onclick = () => openUserModal(uid, u);
                     
                     div.innerHTML = `
-                        <div class="relative">
-                            <img src="${u.avatar || 'https://via.placeholder.com/32'}" class="w-7 h-7 rounded-full object-cover border border-gray-600">
-                            <div class="status-dot ${statusColor} absolute -bottom-0.5 -right-0.5 border-2 border-gray-800 w-2 h-2"></div>
-                        </div>
-                        <span class="text-[11px] font-bold ${u.isHost ? 'text-yellow-400' : 'text-gray-200'} truncate max-w-[70px]">${u.name}</span>
-                        ${isHost && uid !== userId ? '<i class="fas fa-cog text-[10px] text-gray-600 ml-1"></i>' : ''}
+                        <img src="${u.avatar || 'https://via.placeholder.com/32'}" class="w-5 h-5 rounded-full object-cover border border-slate-600">
+                        <span class="text-xs font-bold ${u.isHost ? 'text-amber-400' : 'text-slate-200'}">${u.name}</span>
+                        ${isHost && uid !== userId ? '<i class="fas fa-cog text-[10px] text-slate-500"></i>' : ''}
                     `;
                     list.appendChild(div);
                     
@@ -831,23 +936,13 @@
                 
                 document.getElementById('usersCountText').textContent = count;
                 document.getElementById('onlineCount').textContent = count + ' onlayn';
-                
-                // Remove empty state if users exist
-                if (count > 0) {
-                    const emptyState = document.querySelector('.empty-state');
-                    if (emptyState) emptyState.remove();
-                }
             });
             
-            // Chat
             db.ref(`rooms/${currentRoom}/chat`).on('child_added', (snap) => {
                 const msg = snap.val();
-                
-                // Check if sender is blocked
                 if (isBlocked(msg.userId)) return;
-                
                 if (msg.userId !== userId && (document.hidden || !document.hasFocus())) {
-                    if ('vibrate' in navigator) navigator.vibrate([100, 50, 100]);
+                    if ('vibrate' in navigator) navigator.vibrate([80, 40, 80]);
                 }
                 appendMessage(msg, snap.key);
             });
@@ -856,67 +951,74 @@
         function appendMessage(msg, msgId) {
             const container = document.getElementById('chatMessages');
             const isSelf = msg.userId === userId;
+            const isHostMsg = msg.isHost;
             
-            // Remove empty state if exists
-            const emptyState = container.querySelector('.empty-state');
-            if (emptyState) emptyState.remove();
+            const wrapper = document.createElement('div');
+            wrapper.className = 'msg-wrapper';
             
-            const div = document.createElement('div');
-            div.className = `flex ${isSelf ? 'justify-end' : 'justify-start'} mb-3`;
+            let html = '';
             
-            // Reply HTML
-            let replyHtml = '';
-            if (msg.replyTo) {
-                replyHtml = `
-                    <div class="bg-black/20 rounded-lg px-3 py-1.5 mb-1.5 text-xs border-l-2 border-gray-400">
-                        <div class="text-[10px] text-gray-300 font-bold">${escapeHtml(msg.replyTo.name)}</div>
-                        <div class="text-gray-200 truncate max-w-[200px]">${escapeHtml(msg.replyTo.text)}</div>
-                    </div>
-                `;
-            }
-            
-            div.innerHTML = `
-                ${!isSelf ? `<img src="${msg.avatar || 'https://via.placeholder.com/32'}" class="w-8 h-8 rounded-full object-cover mr-2 mt-1 border border-gray-700 shrink-0">` : ''}
+            if (!isSelf) {
+                html += `<img src="${msg.avatar || 'https://via.placeholder.com/32'}" class="msg-avatar" onclick="showUserInfo('${msg.userId}')">`;
                 
-                <div class="flex flex-col ${isSelf ? 'items-end' : 'items-start'} max-w-[80%]">
-                    ${!isSelf ? `<span class="text-[11px] text-gray-500 mb-1 ml-1">${escapeHtml(msg.name)}</span>` : ''}
-                    
-                    <div class="message-bubble ${isSelf ? 'bg-red-600 text-white' : 'bg-gray-700 text-gray-100'}">
-                        ${replyHtml}
-                        <div class="whitespace-pre-wrap break-words">${escapeHtml(msg.text)}</div>
-                        <div class="text-[10px] mt-1 opacity-70 flex items-center gap-1 ${isSelf ? 'justify-end' : ''}">
-                            ${new Date(msg.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                            ${isSelf ? '<i class="fas fa-check-double ml-1"></i>' : ''}
-                        </div>
-                    </div>
-                    
-                    ${!isSelf ? `
-                    <button onclick='startReply("${msgId}", "${escapeHtml(msg.name)}", "${escapeHtml(msg.text)}")' 
-                        class="mt-1 text-[11px] text-gray-500 hover:text-gray-300 flex items-center gap-1 px-2 py-1 rounded hover:bg-gray-800 transition">
-                        <i class="fas fa-reply"></i> Cavab
-                    </button>` : ''}
-                </div>
-            `;
-            
-            container.appendChild(div);
-            
-            // Auto scroll to bottom only if user is near bottom
-            const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
-            if (isNearBottom) {
-                container.scrollTop = container.scrollHeight;
+                // Sender name only for first message in sequence (simplified logic)
+                html += `<div class="flex flex-col items-start max-w-[75%]">
+                    <span class="msg-sender ${isHostMsg ? 'text-amber-400' : 'text-blue-400'}">${escapeHtml(msg.name)}</span>`;
+            } else {
+                html += `<div class="flex flex-col items-end max-w-[75%] ml-auto">`;
             }
+            
+            // Reply
+            if (msg.replyTo) {
+                html += `<div class="msg-reply mb-1">
+                    <div class="text-[10px] opacity-70 font-semibold">${escapeHtml(msg.replyTo.name)}</div>
+                    <div class="truncate">${escapeHtml(msg.replyTo.text)}</div>
+                </div>`;
+            }
+            
+            // Message bubble
+            html += `<div class="msg-bubble ${isSelf ? 'msg-own' : 'msg-other'}" id="msg-${msgId}">
+                <div class="leading-relaxed">${escapeHtml(msg.text)}</div>
+                <div class="msg-meta ${isSelf ? 'text-blue-100' : ''}">
+                    ${new Date(msg.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                    ${isSelf ? '<i class="fas fa-check-double text-[10px] opacity-70"></i>' : ''}
+                </div>
+            </div>`;
+            
+            // Reply button for others
+            if (!isSelf) {
+                html += `<button onclick='startReply("${msgId}", "${escapeHtml(msg.name)}", "${escapeHtml(msg.text)}")' 
+                    class="mt-1 text-[10px] text-slate-500 hover:text-blue-400 opacity-0 hover:opacity-100 transition px-2 py-1">
+                    Cavab
+                </button>`;
+            }
+            
+            html += `</div>`;
+            wrapper.innerHTML = html;
+            container.appendChild(wrapper);
+            
+            // Auto scroll
+            const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150;
+            if (isNearBottom) container.scrollTop = container.scrollHeight;
+        }
+
+        function showUserInfo(uid) {
+            // Optional: show user info modal for non-host users
         }
 
         function startReply(msgId, name, text) {
             replyingTo = { msgId, name, text };
-            document.getElementById('replyText').textContent = text.length > 30 ? text.substring(0, 30) + '...' : text;
-            document.getElementById('replyIndicator').classList.remove('hidden');
+            document.getElementById('replyText').textContent = text.length > 40 ? text.substring(0, 40) + '...' : text;
+            const indicator = document.getElementById('replyIndicator');
+            indicator.classList.remove('hidden');
+            indicator.style.display = 'flex';
             document.getElementById('messageInput').focus();
         }
 
         function cancelReply() {
             replyingTo = null;
             document.getElementById('replyIndicator').classList.add('hidden');
+            document.getElementById('replyIndicator').style.display = 'none';
         }
 
         function handleKeyPress(e) {
@@ -928,18 +1030,13 @@
 
         function autoResize(textarea) {
             textarea.style.height = 'auto';
-            textarea.style.height = Math.min(textarea.scrollHeight, 80) + 'px';
+            textarea.style.height = Math.min(textarea.scrollHeight, 100) + 'px';
         }
 
         function sendMessage() {
-            if (userPermissions.chat === false && !isHost) {
-                showNotification('Xəta', 'Yazı yazmağınız qadağandır');
-                return;
-            }
-            
             const input = document.getElementById('messageInput');
             const text = input.value.trim();
-            if (!text) return;
+            if (!text || (userPermissions.chat === false && !isHost)) return;
             
             const msgData = {
                 userId, name: userName, avatar: userAvatar, text, isHost,
@@ -959,62 +1056,35 @@
             const toast = document.getElementById('notificationToast');
             document.getElementById('notifTitle').textContent = title;
             document.getElementById('notifText').textContent = text;
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3000);
+            toast.style.transform = 'translateX(0)';
+            setTimeout(() => toast.style.transform = 'translateX(150%)', 3000);
         }
 
         function escapeHtml(text) {
             if (!text) return '';
-            return text
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
 
         function copyCode() {
-            navigator.clipboard.writeText(currentRoom).then(() => {
-                showNotification('Kopyalandı', currentRoom);
-            });
+            navigator.clipboard.writeText(currentRoom).then(() => showNotification('Kopyalandı', currentRoom));
         }
 
         function shareCode() {
-            const shareData = {
-                title: 'SyncRoom',
-                text: `SyncRoom otaq kodu: ${currentRoom}`,
-                url: window.location.href
-            };
-            
             if (navigator.share) {
-                navigator.share(shareData);
-            } else {
-                copyCode();
-            }
+                navigator.share({ title: 'SyncRoom', text: `Otaq kodu: ${currentRoom}`, url: window.location.href });
+            } else copyCode();
         }
 
         function leaveRoom() {
             if (currentRoom) {
                 db.ref(`rooms/${currentRoom}/users/${userId}`).remove();
-                if (isHost) {
-                    // Transfer host or delete after delay
-                    setTimeout(() => {
-                        db.ref(`rooms/${currentRoom}`).once('value').then(snap => {
-                            if (!snap.exists() || !snap.val().users) {
-                                db.ref(`rooms/${currentRoom}`).remove();
-                            }
-                        });
-                    }, 3000);
-                }
+                if (isHost) setTimeout(() => db.ref(`rooms/${currentRoom}`).remove(), 3000);
             }
             location.reload();
         }
 
-        window.onbeforeunload = () => {
-            if (currentRoom) leaveRoom();
-        };
+        window.onbeforeunload = () => { if (currentRoom) leaveRoom(); };
         
-        // Preload avatar
         const savedAvatar = localStorage.getItem('userAvatar');
         if (savedAvatar) {
             userAvatar = savedAvatar;
