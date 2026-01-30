@@ -161,7 +161,7 @@
             border: none; 
             outline: none; 
             color: white; 
-            font-size: 16px; /* iOS zoom fix */
+            font-size: 16px;
             padding: 10px 16px; 
             resize: none; 
             max-height: 80px; 
@@ -269,13 +269,7 @@
         .danger-btn { background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #ef4444; padding: 12px; border-radius: 12px; width: 100%; font-weight: 600; transition: all 0.2s; margin-top: 8px; cursor: pointer; }
         .danger-btn:hover { background: rgba(239, 68, 68, 0.25); }
         
-        .viewer-overlay { 
-            position: absolute; 
-            inset: 0; 
-            background: transparent; 
-            z-index: 5; 
-            display: none; /* iOS Safari fix - always allow interaction */
-        }
+        .viewer-overlay { display: none !important; }
         
         .theme-btn { display: flex; align-items: center; gap: 6px; padding: 6px 12px; background: transparent; border: 1px solid var(--border-color); border-radius: 20px; color: white; font-size: 12px; cursor: pointer; transition: all 0.3s; touch-action: manipulation; }
         .theme-btn:hover { background: rgba(255,255,255,0.1); border-color: var(--primary-color); }
@@ -290,13 +284,13 @@
         @supports (-webkit-touch-callout: none) {
             .chat-container { height: calc(60vh - 56px); }
             #videoSection { height: 40vh; }
-            .chat-textarea { font-size: 16px; } /* Prevent zoom on focus */
+            .chat-textarea { font-size: 16px; }
         }
         
         @media (hover: none) {
             .user-chip:active { transform: scale(0.95); }
             .send-btn:active { transform: scale(0.95); }
-            .msg-wrapper .reaction-btn { opacity: 1; } /* Always show on touch devices */
+            .msg-wrapper .reaction-btn { opacity: 1; }
         }
         
         button:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -465,7 +459,7 @@
 
         <header class="glass-red border-b flex items-center justify-between px-4 shrink-0 z-20" style="border-color: var(--border-color); height: 56px; min-height: 56px;">
             <div class="flex items-center space-x-3">
-                <h1 class="text-lg font-bold text-white">Kino<span style="color: var(--primary-color)">Zal</span></h1>
+                <h1 class="text-lg font-bold text-white">Kino<span id="headerPrimary" style="color: var(--primary-color)">Zal</span></h1>
                 
                 <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-black/40 border" style="border-color: var(--border-color)">
                     <span class="text-[10px] uppercase font-bold" style="color: var(--primary-color)">Kod:</span>
@@ -523,7 +517,6 @@
                 <div class="flex-1 relative flex items-center justify-center bg-black h-full">
                     <div id="playerWrapper" class="w-full h-full relative">
                         <div id="player"></div>
-                        <div id="viewerOverlay" class="hidden viewer-overlay"></div>
                     </div>
                     <div id="playerLoader" class="absolute inset-0 flex items-center justify-center bg-black z-10">
                         <div class="spinner"></div>
@@ -609,7 +602,7 @@
     </div>
 
     <script>
-        // iOS Safari bfcache fix - reload if coming from back/forward cache
+        // iOS Safari bfcache fix
         window.onpageshow = function(event) {
             if (event.persisted) {
                 window.location.reload();
@@ -632,15 +625,6 @@
         const db = firebase.database();
         const YOUTUBE_API_KEY = "AIzaSyBterRsxZoTvVbxlsOzESKWBDAY2B8BWc4";
         
-        // Enable offline persistence with care for Safari
-        try {
-            firebase.database().enablePersistence({ synchronizeTabs: true }).catch((err) => {
-                console.log("Persistence not enabled:", err.code);
-            });
-        } catch(e) {
-            console.log("Persistence error:", e);
-        }
-        
         let userId = localStorage.getItem('syncUserId');
         if (!userId) {
             userId = 'user_' + Math.random().toString(36).substr(2, 9);
@@ -651,7 +635,6 @@
         let isHost = false;
         let player = null;
         let serverOffset = 0;
-        let ignoreUpdates = false;
         let currentVideoId = null;
         let replyingTo = null;
         let userName = '';
@@ -661,9 +644,10 @@
         let typingTimeout = null;
         let cinemaMode = false;
         let currentReactionMessageId = null;
-        let listeners = [];
-        let isSending = false; // Prevent double send on iOS
-        let messageIds = new Set(); // Track rendered message IDs to prevent duplicates
+        let isSending = false;
+        let messageIds = new Set();
+        let playerReady = false;
+        let lastVideoState = null;
         
         const themes = [
             { id: 'red', name: 'Qırmızı', color: '#dc2626' },
@@ -677,13 +661,13 @@
             { id: 'orange', name: 'Narıncı', color: '#f97316' }
         ];
         
+        // Server time sync
         db.ref(".info/serverTimeOffset").on("value", (snap) => { 
             serverOffset = snap.val() || 0; 
         });
         
         const getServerTime = () => Date.now() + serverOffset;
         
-        // Initialize saved avatar on DOM ready
         document.addEventListener('DOMContentLoaded', function() {
             if (userAvatar) {
                 updateAvatarUI(userAvatar);
@@ -693,7 +677,6 @@
         function updateAvatarUI(imageData) {
             const preview = document.getElementById('avatarPreview');
             const placeholder = document.getElementById('avatarPlaceholder');
-            
             if (preview && placeholder) {
                 preview.src = imageData;
                 preview.classList.add('show');
@@ -725,41 +708,23 @@
                 userAvatar = e.target.result;
                 localStorage.setItem('userAvatar', userAvatar);
                 updateAvatarUI(userAvatar);
-                
-                const error = document.getElementById('avatarError');
-                if (error) error.classList.add('hidden');
-                
+                document.getElementById('avatarError')?.classList.add('hidden');
                 showNotification('Uğurlu', 'Profil şəkli seçildi');
             };
-            
-            reader.onerror = function() {
-                showNotification('Xəta', 'Şəkil oxunarkən xəta baş verdi');
-            };
-            
             reader.readAsDataURL(file);
         }
         
         function validateInputs() {
-            const nameInput = document.getElementById('hostName');
-            if (!nameInput) {
-                console.error('hostName input not found');
-                return false;
-            }
-            
-            const name = nameInput.value.trim();
-            
+            const name = document.getElementById('hostName')?.value.trim();
             if (!name) { 
                 showNotification('Xəta', 'Adınızı daxil edin!'); 
                 return false; 
             }
-            
             if (!userAvatar) { 
-                const error = document.getElementById('avatarError');
-                if (error) error.classList.remove('hidden');
+                document.getElementById('avatarError')?.classList.remove('hidden');
                 showNotification('Xəta', 'Profil şəkli seçilməlidir');
                 return false; 
             }
-            
             return true;
         }
 
@@ -772,7 +737,6 @@
             if (!grid) return;
             
             grid.innerHTML = '';
-            
             themes.forEach(theme => {
                 const btn = document.createElement('div');
                 btn.className = 'theme-option';
@@ -785,6 +749,12 @@
                 btn.dataset.theme = theme.id;
                 grid.appendChild(btn);
             });
+            
+            // Update active state
+            const currentTheme = document.body.className.match(/theme-(\w+)/)?.[1] || 'red';
+            document.querySelectorAll('.theme-option').forEach(el => {
+                if (el.dataset.theme === currentTheme) el.classList.add('active');
+            });
         }
         
         function openThemePicker() {
@@ -792,13 +762,11 @@
                 showNotification('İcazə yoxdur', 'Temanı yalnız moderator dəyişə bilər');
                 return;
             }
-            const picker = document.getElementById('themePicker');
-            if (picker) picker.classList.add('active');
+            document.getElementById('themePicker')?.classList.add('active');
         }
         
         function closeThemePicker() {
-            const picker = document.getElementById('themePicker');
-            if (picker) picker.classList.remove('active');
+            document.getElementById('themePicker')?.classList.remove('active');
         }
         
         function changeTheme(themeId) {
@@ -808,54 +776,53 @@
                 return;
             }
             
+            // Apply locally immediately
+            applyTheme(themeId);
+            
+            // Save to Firebase
             db.ref(`rooms/${currentRoom}/theme`).set({
                 color: themeId,
                 updatedBy: userId,
-                timestamp: firebase.database.ServerValue.TIMESTAMP
+                updatedAt: firebase.database.ServerValue.TIMESTAMP
             });
             
             closeThemePicker();
+            showNotification('Tema dəyişdirildi', themes.find(t => t.id === themeId)?.name || '');
         }
         
         function applyTheme(themeId) {
+            // Remove old theme classes
             document.body.className = document.body.className.replace(/theme-\w+/g, '').trim();
+            // Add new theme
             document.body.classList.add(`theme-${themeId}`);
             
+            // Update picker UI if open
             document.querySelectorAll('.theme-option').forEach(el => {
-                el.classList.remove('active');
-                if (el.dataset.theme === themeId) el.classList.add('active');
+                el.classList.toggle('active', el.dataset.theme === themeId);
             });
         }
 
         async function createRoom() {
-            console.log('Creating room...');
+            if (!validateInputs()) return;
             
-            if (!validateInputs()) {
-                console.log('Validation failed');
-                return;
-            }
-            
-            const nameInput = document.getElementById('hostName');
-            userName = nameInput ? nameInput.value.trim() : 'İsimsiz';
+            userName = document.getElementById('hostName').value.trim();
             const code = generateRoomCode();
             
-            console.log('Generated code:', code);
-            
             try {
-                const roomData = {
+                await db.ref(`rooms/${code}`).set({
                     createdAt: firebase.database.ServerValue.TIMESTAMP,
                     hostId: userId,
                     theme: { 
                         color: 'red', 
                         updatedBy: userId, 
-                        timestamp: firebase.database.ServerValue.TIMESTAMP 
+                        updatedAt: firebase.database.ServerValue.TIMESTAMP 
                     },
                     currentVideo: { 
                         id: 'jfKfPfyJRdk', 
                         title: 'Lofi Girl', 
                         time: 0, 
                         isPlaying: false, 
-                        timestamp: firebase.database.ServerValue.TIMESTAMP 
+                        updatedAt: firebase.database.ServerValue.TIMESTAMP 
                     },
                     users: { 
                         [userId]: { 
@@ -867,25 +834,17 @@
                         }
                     },
                     permissions: {}
-                };
-                
-                console.log('Saving room data:', roomData);
-                
-                await db.ref(`rooms/${code}`).set(roomData);
-                console.log('Room created successfully');
+                });
                 
                 enterRoom(code, true);
             } catch (error) {
                 console.error("Error creating room:", error);
-                showNotification('Xəta', 'Otaq yaradılarkən xəta baş verdi: ' + error.message);
+                showNotification('Xəta', 'Otaq yaradılarkən xəta baş verdi');
             }
         }
 
         async function joinRoom() {
-            const codeInput = document.getElementById('joinRoomId');
-            if (!codeInput) return;
-            
-            const code = codeInput.value.trim().toUpperCase();
+            const code = document.getElementById('joinRoomId')?.value.trim().toUpperCase();
             
             if (!validateInputs()) return;
             if (!code) {
@@ -893,8 +852,7 @@
                 return;
             }
             
-            const nameInput = document.getElementById('hostName');
-            userName = nameInput ? nameInput.value.trim() : 'İsimsiz';
+            userName = document.getElementById('hostName').value.trim();
             
             try {
                 const roomSnap = await db.ref(`rooms/${code}`).once('value');
@@ -903,8 +861,12 @@
                     return;
                 }
                 
-                const themeData = roomSnap.val().theme;
-                if (themeData) applyTheme(themeData.color);
+                const roomData = roomSnap.val();
+                
+                // Apply existing theme immediately
+                if (roomData.theme?.color) {
+                    applyTheme(roomData.theme.color);
+                }
                 
                 await db.ref(`rooms/${code}/users/${userId}`).set({
                     name: userName, 
@@ -917,7 +879,7 @@
                 enterRoom(code, false);
             } catch (error) {
                 console.error("Error joining room:", error);
-                showNotification('Xəta', 'Otağa qoşularkən xəta baş verdi: ' + error.message);
+                showNotification('Xəta', 'Otağa qoşularkən xəta baş verdi');
             }
         }
 
@@ -925,88 +887,38 @@
             currentRoom = code;
             isHost = host;
             
-            const landing = document.getElementById('landing');
-            const room = document.getElementById('room');
-            const roomCodeDisplay = document.getElementById('roomCode');
-            
-            if (landing) landing.classList.add('hidden');
-            if (room) room.classList.remove('hidden');
-            if (roomCodeDisplay) roomCodeDisplay.textContent = code;
+            document.getElementById('landing')?.classList.add('hidden');
+            document.getElementById('room')?.classList.remove('hidden');
+            document.getElementById('roomCode').textContent = code;
             
             const userType = document.getElementById('userType');
             if (host) {
-                if (userType) {
-                    userType.textContent = '👑 Moderator';
-                    userType.style.background = 'rgba(234, 179, 8, 0.1)';
-                    userType.style.color = '#fbbf24';
-                    userType.style.borderColor = 'rgba(234, 179, 8, 0.3)';
-                }
+                userType.textContent = '👑 Moderator';
+                userType.style.background = 'rgba(234, 179, 8, 0.1)';
+                userType.style.color = '#fbbf24';
+                userType.style.borderColor = 'rgba(234, 179, 8, 0.3)';
                 
-                const hostControls = document.getElementById('hostControls');
-                const changeVideoBtn = document.getElementById('changeVideoBtn');
-                const viewerOverlay = document.getElementById('viewerOverlay');
-                const searchContainer = document.getElementById('searchContainer');
-                
-                if (hostControls) hostControls.classList.remove('hidden');
-                if (changeVideoBtn) changeVideoBtn.classList.remove('hidden');
-                if (searchContainer) searchContainer.classList.remove('hidden');
-                if (viewerOverlay) viewerOverlay.classList.add('hidden');
+                document.getElementById('hostControls')?.classList.remove('hidden');
+                document.getElementById('changeVideoBtn')?.classList.remove('hidden');
                 
                 userPermissions = { chat: true, video: true, changeVideo: true };
             } else {
-                if (userType) {
-                    userType.textContent = '👁️ İzləyici';
-                    userType.style.color = 'var(--primary-color)';
-                }
-                
-                const viewerOverlay = document.getElementById('viewerOverlay');
-                if (viewerOverlay) viewerOverlay.classList.remove('hidden');
-                
-                loadUserPermissions();
+                userType.textContent = '👁️ İzləyici';
+                userType.style.color = 'var(--primary-color)';
             }
             
             initThemePicker();
             initPlayer();
-            setupListeners();
+            setupRealTimeListeners();
             setupVisibility();
             
-            setTimeout(() => {
-                window.dispatchEvent(new Event('resize'));
-            }, 100);
+            setTimeout(() => window.dispatchEvent(new Event('resize')), 100);
         }
 
-        async function loadUserPermissions() {
-            try {
-                const snap = await db.ref(`rooms/${currentRoom}/permissions/${userId}`).once('value');
-                const perms = snap.val();
-                if (perms) {
-                    userPermissions = { ...userPermissions, ...perms };
-                    const changeVideoBtn = document.getElementById('changeVideoBtn');
-                    if (changeVideoBtn) {
-                        if (perms.changeVideo) {
-                            changeVideoBtn.classList.remove('hidden');
-                        } else {
-                            changeVideoBtn.classList.add('hidden');
-                        }
-                    }
-                }
-            } catch (error) {
-                console.error("Error loading permissions:", error);
-            }
-        }
-        
         function setupVisibility() {
-            // Clear listeners when page is hidden to prevent duplicates on show
             document.addEventListener('visibilitychange', () => {
                 if (!currentRoom) return;
-                
-                if (document.hidden) {
-                    db.ref(`rooms/${currentRoom}/users/${userId}/status`).set('background');
-                } else {
-                    db.ref(`rooms/${currentRoom}/users/${userId}/status`).set('active');
-                    // Clear message cache when becoming visible to prevent duplicates
-                    messageIds.clear();
-                }
+                db.ref(`rooms/${currentRoom}/users/${userId}/status`).set(document.hidden ? 'background' : 'active');
             });
             
             window.addEventListener('blur', () => { 
@@ -1027,11 +939,8 @@
             
             if (cinemaMode) {
                 if (document.documentElement.requestFullscreen) {
-                    document.documentElement.requestFullscreen().catch(err => {
-                        console.log("Fullscreen error:", err);
-                    });
+                    document.documentElement.requestFullscreen().catch(() => {});
                 }
-                showNotification('Sinema Rejimi', 'Tam ekran aktivləşdirildi');
             } else {
                 if (document.exitFullscreen && document.fullscreenElement) {
                     document.exitFullscreen();
@@ -1063,8 +972,7 @@
                         disablekb: isHost ? 0 : 1, 
                         rel: 0, 
                         playsinline: 1,
-                        webkitplaysinline: 1,
-                        muted: 0,
+                        enablejsapi: 1,
                         origin: window.location.origin
                     },
                     events: { 
@@ -1073,100 +981,73 @@
                         onError: onPlayerError
                     }
                 });
-                
-                const loader = document.getElementById('playerLoader');
-                if (loader) loader.style.display = 'none';
             } catch(e) {
                 console.error("Player init error:", e);
                 setTimeout(initPlayer, 500);
             }
         }
 
-        function onPlayerError(event) {
-            console.error("YouTube Player Error:", event.data);
-            // Try to reload video on error
-            if (currentVideoId && player && player.loadVideoById) {
-                setTimeout(() => {
-                    player.loadVideoById(currentVideoId);
+        function onPlayerReady() {
+            playerReady = true;
+            document.getElementById('playerLoader').style.display = 'none';
+            
+            // Start sync mechanism
+            if (isHost) {
+                // Host sends current state every 2 seconds
+                setInterval(() => {
+                    if (!player || !currentRoom) return;
+                    const state = player.getPlayerState();
+                    const time = player.getCurrentTime();
+                    
+                    db.ref(`rooms/${currentRoom}/currentVideo`).update({
+                        time: time,
+                        isPlaying: state === YT.PlayerState.PLAYING,
+                        updatedAt: firebase.database.ServerValue.TIMESTAMP
+                    });
+                }, 2000);
+            } else {
+                // Viewer checks for updates every second
+                setInterval(() => {
+                    if (!player || !currentRoom) return;
+                    syncViewer();
                 }, 1000);
             }
         }
 
-        function onPlayerReady() {
-            // Unmute attempt for iOS (requires user interaction first, handled by overlay click)
-            if (player && player.unMute) {
-                try {
-                    player.unMute();
-                } catch(e) {}
-            }
+        function syncViewer() {
+            if (isHost || !playerReady) return;
             
-            if (isHost || userPermissions.changeVideo) {
-                setInterval(() => {
-                    if (!player?.getCurrentTime || ignoreUpdates || !currentRoom) return;
-                    if (isHost) {
-                        db.ref(`rooms/${currentRoom}/currentVideo`).update({
-                            time: player.getCurrentTime(),
-                            isPlaying: player.getPlayerState() === YT.PlayerState.PLAYING,
-                            timestamp: firebase.database.ServerValue.TIMESTAMP
-                        });
-                    }
-                }, 2000);
-            }
-            
-            syncVideo();
-        }
-
-        function syncVideo() {
-            if (!currentRoom) return;
-            
-            if (videoListener) videoListener.off();
-            const videoRef = db.ref(`rooms/${currentRoom}/currentVideo`);
-            listeners.push(videoRef);
-            
-            videoRef.on('value', (snap) => {
-                if (!player?.loadVideoById || ignoreUpdates) return;
+            db.ref(`rooms/${currentRoom}/currentVideo`).once('value').then(snap => {
                 const video = snap.val();
                 if (!video) return;
                 
-                if (currentVideoId !== video.id) {
+                // Handle video change
+                if (video.id && video.id !== currentVideoId) {
                     currentVideoId = video.id;
-                    // iOS requires special handling - load video but don't autoplay unless host
-                    player.loadVideoById({
-                        videoId: video.id,
-                        suggestedQuality: 'default'
-                    });
-                    
-                    if (!isHost && !userPermissions.changeVideo) {
-                        showNotification('Yeni video', video.title?.substring(0, 40) + (video.title?.length > 40 ? '...' : ''));
-                    }
+                    player.loadVideoById(video.id);
+                    showNotification('Yeni video', video.title?.substring(0, 40) + (video.title?.length > 40 ? '...' : '') || 'Video dəyişdirildi');
+                    return;
                 }
                 
-                if (!isHost && !userPermissions.changeVideo) {
-                    const currentTime = player.getCurrentTime ? player.getCurrentTime() : 0;
+                // Sync time and play state
+                if (video.time !== undefined && video.isPlaying !== undefined) {
+                    const currentTime = player.getCurrentTime() || 0;
                     const timeDiff = Math.abs(currentTime - video.time);
                     
-                    if (timeDiff > 2) {
+                    // Seek if difference is more than 3 seconds
+                    if (timeDiff > 3) {
                         player.seekTo(video.time, true);
                     }
                     
-                    const playerState = player.getPlayerState ? player.getPlayerState() : -1;
-                    const isPlaying = playerState === YT.PlayerState.PLAYING;
+                    // Sync play/pause
+                    const state = player.getPlayerState();
+                    const isPlaying = state === YT.PlayerState.PLAYING;
                     
-                    if (video.isPlaying && !isPlaying) {
+                    if (video.isPlaying && !isPlaying && state !== YT.PlayerState.BUFFERING) {
                         player.playVideo();
                     } else if (!video.isPlaying && isPlaying) {
                         player.pauseVideo();
                     }
-                }
-            });
-            
-            const themeRef = db.ref(`rooms/${currentRoom}/theme`);
-            listeners.push(themeRef);
-            
-            themeRef.on('value', (snap) => {
-                const themeData = snap.val();
-                if (themeData && themeData.color) {
-                    applyTheme(themeData.color);
                 }
             });
         }
@@ -1174,112 +1055,86 @@
         function onPlayerStateChange(e) {
             updatePlayIcon(e.data === YT.PlayerState.PLAYING);
             
-            if ((!isHost && !userPermissions.changeVideo) || ignoreUpdates || !currentRoom) return;
+            // Only host updates state immediately
+            if (!isHost || !currentRoom) return;
             
-            // Debounce state changes for Safari
-            clearTimeout(window.playerStateTimeout);
-            window.playerStateTimeout = setTimeout(() => {
+            // Debounce
+            clearTimeout(window.stateChangeTimeout);
+            window.stateChangeTimeout = setTimeout(() => {
                 db.ref(`rooms/${currentRoom}/currentVideo`).update({
                     isPlaying: e.data === YT.PlayerState.PLAYING,
                     time: player.getCurrentTime(),
-                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                    updatedAt: firebase.database.ServerValue.TIMESTAMP
                 });
-            }, 100);
+            }, 500);
+        }
+
+        function onPlayerError(event) {
+            console.error("Player Error:", event.data);
         }
 
         function updatePlayIcon(playing) {
-            const playIcon = document.getElementById('playIcon');
-            const pauseIcon = document.getElementById('pauseIcon');
-            
-            if (playIcon && pauseIcon) {
-                playIcon.classList.toggle('hidden', playing);
-                pauseIcon.classList.toggle('hidden', !playing);
-            }
+            document.getElementById('playIcon')?.classList.toggle('hidden', playing);
+            document.getElementById('pauseIcon')?.classList.toggle('hidden', !playing);
         }
 
         function toggleSearch() { 
-            const canChange = isHost || userPermissions.changeVideo;
-            if (!canChange) {
-                showNotification('İcazə yoxdur', 'Video dəyişmək üçün moderatordan icazə istəyin');
+            if (!isHost && !userPermissions.changeVideo) {
+                showNotification('İcazə yoxdur', 'Video dəyişmək üçün moderator olmalısınız');
                 return;
             }
-            const container = document.getElementById('searchContainer');
-            if (container) container.classList.toggle('hidden'); 
+            document.getElementById('searchContainer')?.classList.toggle('hidden'); 
         }
         
         function closeSearch() { 
-            const container = document.getElementById('searchContainer');
-            const results = document.getElementById('searchResults');
-            if (container) container.classList.add('hidden'); 
-            if (results) {
-                results.classList.add('hidden');
-                results.innerHTML = '';
-            }
+            document.getElementById('searchContainer')?.classList.add('hidden'); 
+            document.getElementById('searchResults')?.classList.add('hidden');
         }
 
         async function searchYouTube() {
-            const queryInput = document.getElementById('searchQuery');
-            if (!queryInput) return;
-            
-            const query = queryInput.value.trim();
+            const query = document.getElementById('searchQuery')?.value.trim();
             if (!query) return;
             
             const resultsDiv = document.getElementById('searchResults');
-            if (resultsDiv) {
-                resultsDiv.innerHTML = '<div class="flex justify-center p-4"><div class="spinner"></div></div>';
-                resultsDiv.classList.remove('hidden');
-            }
+            resultsDiv.innerHTML = '<div class="flex justify-center p-4"><div class="spinner"></div></div>';
+            resultsDiv.classList.remove('hidden');
             
             try {
                 const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=8&q=${encodeURIComponent(query)}&type=video&key=${YOUTUBE_API_KEY}`);
-                
-                if (!res.ok) throw new Error('Search failed');
-                
                 const data = await res.json();
                 
-                if (resultsDiv) {
-                    resultsDiv.innerHTML = '';
-                    
-                    if (!data.items || data.items.length === 0) {
-                        resultsDiv.innerHTML = '<div class="text-xs text-center p-2 text-neutral-400">Nəticə tapılmadı</div>';
-                        return;
-                    }
-                    
-                    data.items.forEach(item => {
-                        const card = document.createElement('div');
-                        card.className = 'flex space-x-3 p-2 rounded-lg bg-neutral-900/50 hover:bg-neutral-800 cursor-pointer transition border border-transparent hover:border-gray-700 active:scale-95';
-                        card.onclick = () => selectVideo(item.id.videoId, item.snippet.title);
-                        
-                        const thumbnail = item.snippet.thumbnails.medium?.url || item.snippet.thumbnails.default?.url;
-                        
-                        card.innerHTML = `
-                            <div class="relative w-28 h-16 shrink-0 rounded-lg overflow-hidden bg-neutral-950">
-                                <img src="${thumbnail}" class="w-full h-full object-cover" loading="lazy" alt="${escapeHtml(item.snippet.title)}">
-                                <div class="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 flex items-center justify-center transition">
-                                    <i class="fas fa-play text-white"></i>
-                                </div>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <h4 class="text-xs font-bold text-white line-clamp-2 mb-1">${escapeHtml(item.snippet.title)}</h4>
-                            </div>
-                        `;
-                        resultsDiv.appendChild(card);
-                    });
+                resultsDiv.innerHTML = '';
+                if (!data.items?.length) {
+                    resultsDiv.innerHTML = '<div class="text-xs text-center p-2 text-neutral-400">Nəticə tapılmadı</div>';
+                    return;
                 }
+                
+                data.items.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'flex space-x-3 p-2 rounded-lg bg-neutral-900/50 hover:bg-neutral-800 cursor-pointer transition';
+                    card.onclick = () => selectVideo(item.id.videoId, item.snippet.title);
+                    
+                    const thumb = item.snippet.thumbnails.medium?.url || item.snippet.thumbnails.default?.url;
+                    card.innerHTML = `
+                        <div class="relative w-28 h-16 shrink-0 rounded-lg overflow-hidden">
+                            <img src="${thumb}" class="w-full h-full object-cover" loading="lazy">
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h4 class="text-xs font-bold text-white line-clamp-2">${escapeHtml(item.snippet.title)}</h4>
+                        </div>
+                    `;
+                    resultsDiv.appendChild(card);
+                });
             } catch (err) {
-                console.error("Search error:", err);
-                if (resultsDiv) {
-                    resultsDiv.innerHTML = `<div class="text-xs text-center p-2 text-red-400">Axtarış zamanı xəta baş verdi</div>`;
-                }
+                resultsDiv.innerHTML = '<div class="text-xs text-center p-2 text-red-400">Axtarış xətası</div>';
             }
         }
 
         function selectVideo(id, title) {
-            const canChange = isHost || userPermissions.changeVideo;
-            if (!canChange || !currentRoom) return;
+            if (!isHost && !userPermissions.changeVideo) return;
             
             currentVideoId = id;
-            if (player && player.loadVideoById) {
+            if (player?.loadVideoById) {
                 player.loadVideoById(id);
             }
             
@@ -1290,17 +1145,15 @@
                 title: title, 
                 time: 0, 
                 isPlaying: true,
-                timestamp: firebase.database.ServerValue.TIMESTAMP
+                updatedBy: userId,
+                updatedAt: firebase.database.ServerValue.TIMESTAMP
             });
             
             showNotification('Video dəyişdirildi', title.substring(0, 30) + (title.length > 30 ? '...' : ''));
         }
 
         function playerControl(action, val) {
-            if ((!isHost && !userPermissions.changeVideo) || !player) return;
-            
-            ignoreUpdates = true;
-            setTimeout(() => ignoreUpdates = false, 500);
+            if (!isHost || !player) return;
             
             if (action === 'toggle') {
                 const state = player.getPlayerState();
@@ -1310,187 +1163,106 @@
                     player.playVideo();
                 }
             } else if (action === 'seek') {
-                const currentTime = player.getCurrentTime();
-                player.seekTo(currentTime + val, true);
+                player.seekTo(player.getCurrentTime() + val, true);
             }
         }
 
-        function openUserModal(uid, userData) {
-            if (!isHost || uid === userId) return;
-            
-            selectedUserId = uid;
-            
-            const nameEl = document.getElementById('modalUserName');
-            const avatarEl = document.getElementById('modalUserAvatar');
-            const statusEl = document.getElementById('modalUserStatus');
-            const modal = document.getElementById('userModal');
-            
-            if (nameEl) nameEl.textContent = userData.name || 'Naməlum';
-            if (avatarEl) avatarEl.src = userData.avatar || 'https://via.placeholder.com/64';
-            if (statusEl) statusEl.textContent = userData.isHost ? 'Moderator' : 'İzləyici';
-            
-            db.ref(`rooms/${currentRoom}/permissions/${uid}`).once('value').then(snap => {
-                const perms = snap.val() || { chat: true, video: true, changeVideo: false };
-                updateToggleUI(document.getElementById('permChat'), perms.chat !== false);
-                updateToggleUI(document.getElementById('permVideo'), perms.video !== false);
-                updateToggleUI(document.getElementById('permChangeVideo'), perms.changeVideo === true);
-            });
-            
-            if (modal) modal.classList.remove('hidden');
-        }
-        
-        function closeUserModal() { 
-            const modal = document.getElementById('userModal');
-            if (modal) modal.classList.add('hidden'); 
-            selectedUserId = null;
-        }
-        
-        function updateToggleUI(el, active) {
-            if (!el) return;
-            if (active) el.classList.add('active');
-            else el.classList.remove('active');
-        }
-        
-        function togglePermission(type) {
-            if (!selectedUserId || !currentRoom) return;
-            
-            const el = document.getElementById('perm' + type.charAt(0).toUpperCase() + type.slice(1));
-            if (!el) return;
-            
-            const newState = !el.classList.contains('active');
-            updateToggleUI(el, newState);
-            
-            db.ref(`rooms/${currentRoom}/permissions/${selectedUserId}/${type}`).set(newState);
-        }
-        
-        function kickUser() {
-            if (!selectedUserId || !currentRoom) return;
-            
-            if (confirm('İstifadəçini otaqdan atmaq istədiyinizə əminsiniz?')) {
-                db.ref(`rooms/${currentRoom}/users/${selectedUserId}`).remove();
-                db.ref(`rooms/${currentRoom}/permissions/${selectedUserId}`).remove();
-                closeUserModal();
-                showNotification('İstifadəçi atıldı', 'İstifadəçi otaqdan çıxarıldı');
-            }
-        }
-
-        function setupListeners() {
+        function setupRealTimeListeners() {
             if (!currentRoom) return;
             
-            // Cleanup existing listeners first to prevent duplicates
-            listeners.forEach(ref => ref.off());
-            listeners = [];
-            messageIds.clear();
-            
-            const usersRef = db.ref(`rooms/${currentRoom}/users`);
-            listeners.push(usersRef);
-            
-            usersRef.on('value', (snap) => {
-                const users = snap.val() || {};
-                const list = document.getElementById('usersList');
-                if (!list) return;
-                
-                list.innerHTML = '';
-                let count = 0;
-                
-                Object.entries(users).forEach(([uid, data]) => {
-                    if (data.status !== 'active') return;
-                    count++;
-                    
-                    const chip = document.createElement('div');
-                    chip.className = `user-chip ${data.isHost ? 'host' : ''}`;
-                    chip.onclick = () => openUserModal(uid, data);
-                    chip.innerHTML = `
-                        <img src="${data.avatar || 'https://via.placeholder.com/24'}" class="w-6 h-6 rounded-full object-cover" alt="" loading="lazy">
-                        <span class="text-xs font-medium text-neutral-200">${escapeHtml(data.name)}</span>
-                        ${data.isHost ? '<i class="fas fa-crown text-amber-400 text-[10px]"></i>' : ''}
-                    `;
-                    list.appendChild(chip);
-                });
-                
-                const onlineCount = document.getElementById('onlineCount');
-                const usersCountText = document.getElementById('usersCountText');
-                
-                if (onlineCount) onlineCount.textContent = count + ' onlayn';
-                if (usersCountText) usersCountText.textContent = count;
-            });
-
-            const messagesRef = db.ref(`rooms/${currentRoom}/messages`).limitToLast(50);
-            listeners.push(messagesRef);
-            
-            messagesRef.on('child_added', (snap) => {
-                const msg = snap.val();
-                const msgId = snap.key;
-                if (msg && msgId) {
-                    // Deduplication check - prevent rendering same message twice
-                    if (!messageIds.has(msgId)) {
-                        messageIds.add(msgId);
-                        displayMessage(msgId, msg);
-                    }
+            // Theme listener - REAL TIME
+            db.ref(`rooms/${currentRoom}/theme`).on('value', (snap) => {
+                const themeData = snap.val();
+                if (themeData?.color) {
+                    applyTheme(themeData.color);
                 }
             });
-
-            const typingRef = db.ref(`rooms/${currentRoom}/typing`);
-            listeners.push(typingRef);
             
-            typingRef.on('value', (snap) => {
+            // Video info listener (for title updates)
+            db.ref(`rooms/${currentRoom}/currentVideo/id`).on('value', (snap) => {
+                const newId = snap.val();
+                if (newId && newId !== currentVideoId && !isHost) {
+                    // Viewer will handle this in syncViewer loop
+                }
+            });
+            
+            // Users listener
+            db.ref(`rooms/${currentRoom}/users`).on('value', (snap) => {
+                const users = snap.val() || {};
+                const list = document.getElementById('usersList');
+                list.innerHTML = '';
+                
+                let count = 0;
+                Object.entries(users).forEach(([uid, data]) => {
+                    if (data.status === 'active') {
+                        count++;
+                        const chip = document.createElement('div');
+                        chip.className = `user-chip ${data.isHost ? 'host' : ''}`;
+                        chip.onclick = () => openUserModal(uid, data);
+                        chip.innerHTML = `
+                            <img src="${data.avatar || 'https://via.placeholder.com/24'}" class="w-6 h-6 rounded-full object-cover" alt="">
+                            <span class="text-xs font-medium">${escapeHtml(data.name)}</span>
+                            ${data.isHost ? '<i class="fas fa-crown text-amber-400 text-[10px]"></i>' : ''}
+                        `;
+                        list.appendChild(chip);
+                    }
+                });
+                
+                document.getElementById('onlineCount').textContent = count + ' onlayn';
+                document.getElementById('usersCountText').textContent = count;
+            });
+            
+            // Messages listener
+            db.ref(`rooms/${currentRoom}/messages`).limitToLast(50).on('child_added', (snap) => {
+                const msg = snap.val();
+                const msgId = snap.key;
+                if (msg && !messageIds.has(msgId)) {
+                    messageIds.add(msgId);
+                    displayMessage(msgId, msg);
+                }
+            });
+            
+            // Typing listener
+            db.ref(`rooms/${currentRoom}/typing`).on('value', (snap) => {
                 const typing = snap.val() || {};
                 const now = Date.now();
                 const typingUsers = Object.entries(typing)
                     .filter(([uid, data]) => uid !== userId && data.timestamp > now - 3000)
-                    .map(([uid, data]) => data.name);
+                    .map(([_, data]) => data.name);
                 
                 const indicator = document.getElementById('typingIndicator');
-                const typingText = document.getElementById('typingText');
-                
-                if (indicator && typingText) {
-                    if (typingUsers.length > 0) {
-                        indicator.classList.remove('hidden');
-                        typingText.textContent = typingUsers.join(', ') + ' yazır...';
-                    } else {
-                        indicator.classList.add('hidden');
-                    }
+                if (typingUsers.length > 0) {
+                    indicator.classList.remove('hidden');
+                    document.getElementById('typingText').textContent = typingUsers.join(', ') + ' yazır...';
+                } else {
+                    indicator.classList.add('hidden');
                 }
             });
             
+            // Permissions (for non-hosts)
             if (!isHost) {
-                const permRef = db.ref(`rooms/${currentRoom}/permissions/${userId}`);
-                listeners.push(permRef);
-                
-                permRef.on('value', (snap) => {
+                db.ref(`rooms/${currentRoom}/permissions/${userId}`).on('value', (snap) => {
                     const perms = snap.val();
                     if (perms) {
                         userPermissions = { ...userPermissions, ...perms };
                         
-                        const changeVideoBtn = document.getElementById('changeVideoBtn');
-                        if (changeVideoBtn) {
-                            if (perms.changeVideo) {
-                                changeVideoBtn.classList.remove('hidden');
-                            } else {
-                                changeVideoBtn.classList.add('hidden');
-                            }
-                        }
+                        const changeBtn = document.getElementById('changeVideoBtn');
+                        if (perms.changeVideo) changeBtn?.classList.remove('hidden');
+                        else changeBtn?.classList.add('hidden');
                         
-                        const messageInput = document.getElementById('messageInput');
-                        if (messageInput) {
-                            if (perms.chat === false) {
-                                messageInput.disabled = true;
-                                messageInput.placeholder = 'Yazı yazmaq qadağandır';
-                            } else {
-                                messageInput.disabled = false;
-                                messageInput.placeholder = 'Mesaj yaz...';
-                            }
+                        const msgInput = document.getElementById('messageInput');
+                        if (msgInput) {
+                            msgInput.disabled = perms.chat === false;
+                            msgInput.placeholder = perms.chat === false ? 'Yazı yazmaq qadağandır' : 'Mesaj yaz...';
                         }
                     }
                 });
                 
-                const userRef = db.ref(`rooms/${currentRoom}/users/${userId}`);
-                listeners.push(userRef);
-                
-                userRef.on('value', (snap) => {
-                    if (!snap.exists() && currentRoom) {
+                // Kick detection
+                db.ref(`rooms/${currentRoom}/users/${userId}`).on('value', (snap) => {
+                    if (!snap.exists()) {
                         alert('Siz otaqdan atıldınız!');
-                        cleanupAndReload();
+                        location.reload();
                     }
                 });
             }
@@ -1512,133 +1284,92 @@
 
         function displayMessage(msgId, msg) {
             const container = document.getElementById('chatMessages');
-            if (!container) return;
-            
-            // Double check if element already exists (Safari bfcache fix)
             if (document.getElementById('msg-' + msgId)) return;
             
             const isOwn = msg.userId === userId;
-            
             const wrapper = document.createElement('div');
             wrapper.className = 'msg-wrapper';
             wrapper.id = 'msg-' + msgId;
             
-            let replyHtml = '';
-            if (msg.replyTo) {
-                replyHtml = `<div class="msg-reply"><i class="fas fa-reply text-[10px] mr-1"></i>${escapeHtml(msg.replyTo.text)}</div>`;
-            }
+            const replyHtml = msg.replyTo ? `<div class="msg-reply">${escapeHtml(msg.replyTo.text)}</div>` : '';
+            const avatarHtml = `<img src="${msg.avatar || 'https://via.placeholder.com/32'}" class="msg-avatar" alt="" onclick="setReply('${msgId}', '${escapeHtml(msg.name)}', '${escapeHtml(msg.text)}')">`;
             
-            let reactionsHtml = '<div class="reaction-bar" id="reactions-' + msgId + '"></div>';
-            
-            const avatarHtml = `<img src="${msg.avatar || 'https://via.placeholder.com/32'}" class="msg-avatar" alt="" loading="lazy" onclick="${!isOwn ? `setReply('${msgId}', '${escapeHtml(msg.name)}', '${escapeHtml(msg.text)}')` : ''}">`;
-            
-            const html = `
+            wrapper.innerHTML = `
                 ${!isOwn ? avatarHtml : ''}
                 <div class="flex flex-col ${isOwn ? 'items-end' : 'items-start'} flex-1">
                     ${!isOwn ? `<div class="msg-sender">${escapeHtml(msg.name)}</div>` : ''}
-                    <div class="msg-bubble ${isOwn ? 'msg-own' : 'msg-other'}" ontouchstart="this.dataset.touched=true" ondblclick="showReactionPicker('${msgId}')" onclick="if(this.dataset.touched) { this.dataset.touched=false; return; } showReactionPicker('${msgId}')">
+                    <div class="msg-bubble ${isOwn ? 'msg-own' : 'msg-other'}" onclick="showReactionPicker('${msgId}')">
                         ${replyHtml}
                         <div class="break-words">${escapeHtml(msg.text)}</div>
                         <div class="msg-meta">
                             <span>${formatTime(msg.timestamp)}</span>
-                            ${isOwn ? '<i class="fas fa-check-double text-[10px]"></i>' : ''}
                         </div>
                     </div>
-                    ${reactionsHtml}
+                    <div class="reaction-bar" id="reactions-${msgId}"></div>
                 </div>
-                ${isOwn ? avatarHtml : ''}
             `;
             
-            wrapper.innerHTML = html;
-            
             const typingIndicator = document.getElementById('typingIndicator');
-            if (typingIndicator) {
-                container.insertBefore(wrapper, typingIndicator);
-            } else {
-                container.appendChild(wrapper);
-            }
-            
+            container.insertBefore(wrapper, typingIndicator);
             container.scrollTop = container.scrollHeight;
             
-            loadReactions(msgId);
-        }
-
-        function loadReactions(msgId) {
-            const ref = db.ref(`rooms/${currentRoom}/messages/${msgId}/reactions`);
-            listeners.push(ref);
-            
-            ref.on('value', (snap) => {
+            // Load reactions
+            db.ref(`rooms/${currentRoom}/messages/${msgId}/reactions`).on('value', (snap) => {
                 const reactions = snap.val() || {};
                 const bar = document.getElementById('reactions-' + msgId);
                 if (!bar) return;
                 
                 bar.innerHTML = '';
                 const counts = {};
-                const userReacted = {};
-                
                 Object.entries(reactions).forEach(([uid, emoji]) => {
                     counts[emoji] = (counts[emoji] || 0) + 1;
-                    if (uid === userId) userReacted[emoji] = true;
                 });
                 
                 Object.entries(counts).forEach(([emoji, count]) => {
+                    const userReacted = reactions[userId] === emoji;
                     const btn = document.createElement('div');
-                    btn.className = 'reaction-item ' + (userReacted[emoji] ? 'user-reacted' : '');
-                    btn.innerHTML = `<span>${emoji}</span><span class="font-bold">${count}</span>`;
-                    btn.onclick = () => toggleReaction(msgId, emoji);
+                    btn.className = 'reaction-item ' + (userReacted ? 'user-reacted' : '');
+                    btn.innerHTML = `<span>${emoji}</span><span>${count}</span>`;
+                    btn.onclick = (e) => { e.stopPropagation(); toggleReaction(msgId, emoji); };
                     bar.appendChild(btn);
                 });
             });
         }
 
         function showReactionPicker(msgId) {
-            if (event) event.stopPropagation();
             currentReactionMessageId = msgId;
             
-            // Remove existing pickers
-            document.querySelectorAll('.emoji-picker.active').forEach(el => el.remove());
+            // Remove existing
+            document.querySelectorAll('.emoji-picker').forEach(el => {
+                if (el.id !== 'emojiPickerTemplate') el.remove();
+            });
             
-            const template = document.getElementById('emojiPickerTemplate');
-            if (!template) return;
-            
-            const picker = template.cloneNode(true);
-            picker.id = 'activePicker-' + msgId;
+            const picker = document.getElementById('emojiPickerTemplate').cloneNode(true);
+            picker.id = 'activePicker';
             picker.classList.add('show');
             
             const msgEl = document.getElementById('msg-' + msgId);
-            if (!msgEl) return;
-            
             const bubble = msgEl.querySelector('.msg-bubble');
-            if (bubble) {
-                bubble.appendChild(picker);
-            }
-            
-            // Close picker after 5 seconds or on outside click
-            setTimeout(() => {
-                if (picker.parentNode) picker.remove();
-            }, 5000);
+            bubble.appendChild(picker);
             
             setTimeout(() => {
-                document.addEventListener('click', function closePicker(e) {
-                    if (!e.target.closest('.emoji-picker') && picker.parentNode) {
+                document.addEventListener('click', function close(e) {
+                    if (!e.target.closest('.emoji-picker')) {
                         picker.remove();
-                        document.removeEventListener('click', closePicker);
+                        document.removeEventListener('click', close);
                     }
                 }, { once: true });
             }, 100);
         }
 
         function addReaction(emoji) {
-            if (!currentReactionMessageId) return;
-            toggleReaction(currentReactionMessageId, emoji);
-            
-            const activePicker = document.getElementById('activePicker-' + currentReactionMessageId);
-            if (activePicker) activePicker.remove();
+            if (currentReactionMessageId) {
+                toggleReaction(currentReactionMessageId, emoji);
+                document.getElementById('activePicker')?.remove();
+            }
         }
 
         function toggleReaction(msgId, emoji) {
-            if (!currentRoom) return;
-            
             const ref = db.ref(`rooms/${currentRoom}/messages/${msgId}/reactions/${userId}`);
             ref.once('value').then(snap => {
                 if (snap.val() === emoji) {
@@ -1650,39 +1381,23 @@
         }
 
         function setReply(msgId, name, text) {
-            const shortText = text.length > 30 ? text.substring(0, 30) + '...' : text;
-            replyingTo = { id: msgId, name, text: shortText };
-            
-            const replyIndicator = document.getElementById('replyIndicator');
-            const replyText = document.getElementById('replyText');
-            const messageInput = document.getElementById('messageInput');
-            
-            if (replyIndicator) replyIndicator.classList.remove('hidden');
-            if (replyText) replyText.textContent = name + ': ' + shortText;
-            if (messageInput) {
-                messageInput.focus();
-                // Scroll to input on mobile
-                messageInput.scrollIntoView({ behavior: 'smooth' });
-            }
+            replyingTo = { id: msgId, name, text: text.length > 30 ? text.substring(0, 30) + '...' : text };
+            document.getElementById('replyIndicator').classList.remove('hidden');
+            document.getElementById('replyText').textContent = name + ': ' + replyingTo.text;
+            document.getElementById('messageInput').focus();
         }
 
         function cancelReply() {
             replyingTo = null;
-            const replyIndicator = document.getElementById('replyIndicator');
-            if (replyIndicator) replyIndicator.classList.add('hidden');
+            document.getElementById('replyIndicator').classList.add('hidden');
         }
 
         function sendMessage() {
-            // Prevent double send on iOS Safari
             if (isSending) return;
             
             const input = document.getElementById('messageInput');
-            const sendBtn = document.getElementById('sendBtn');
-            
-            if (!input || !currentRoom) return;
-            
             const text = input.value.trim();
-            if (!text) return;
+            if (!text || !currentRoom) return;
             
             if (!isHost && userPermissions.chat === false) {
                 showNotification('Xəta', 'Sizə yazı yazmaq qadağan edilib');
@@ -1690,7 +1405,6 @@
             }
             
             isSending = true;
-            if (sendBtn) sendBtn.disabled = true;
             
             const msg = {
                 type: 'text',
@@ -1710,16 +1424,9 @@
                 input.value = '';
                 input.style.height = 'auto';
                 db.ref(`rooms/${currentRoom}/typing/${userId}`).remove();
-                
-                // Re-enable after short delay to prevent accidental double taps
-                setTimeout(() => {
-                    isSending = false;
-                    if (sendBtn) sendBtn.disabled = false;
-                }, 500);
-            }).catch((err) => {
-                console.error("Send error:", err);
                 isSending = false;
-                if (sendBtn) sendBtn.disabled = false;
+            }).catch(() => {
+                isSending = false;
                 showNotification('Xəta', 'Mesaj göndərilmədi');
             });
         }
@@ -1732,7 +1439,6 @@
         }
 
         function autoResize(el) {
-            if (!el) return;
             el.style.height = 'auto';
             el.style.height = Math.min(el.scrollHeight, 80) + 'px';
         }
@@ -1752,53 +1458,72 @@
 
         function showNotification(title, text) {
             const notif = document.getElementById('notificationToast');
-            const notifTitle = document.getElementById('notifTitle');
-            const notifText = document.getElementById('notifText');
+            document.getElementById('notifTitle').textContent = title;
+            document.getElementById('notifText').textContent = text;
+            notif.style.transform = 'translateX(0)';
             
-            if (notif && notifTitle && notifText) {
-                notifTitle.textContent = title;
-                notifText.textContent = text;
-                notif.style.transform = 'translateX(0)';
-                
-                setTimeout(() => {
-                    notif.style.transform = 'translateX(150%)';
-                }, 3000);
-            }
+            setTimeout(() => {
+                notif.style.transform = 'translateX(150%)';
+            }, 3000);
         }
 
         function copyCode() {
             if (!currentRoom) return;
             navigator.clipboard.writeText(currentRoom).then(() => {
                 showNotification('Kopyalandı', 'Otaq kodu kopyalandı');
-            }).catch(() => {
-                showNotification('Xəta', 'Kopyalama baş tutmadı');
             });
         }
 
         function shareCode() {
+            const shareData = { title: 'KinoZal', text: 'KinoZal otağına qoşul: ' + currentRoom };
             if (navigator.share) {
-                navigator.share({
-                    title: 'KinoZal',
-                    text: 'KinoZal otağına qoşul: ' + currentRoom
-                }).catch(err => {
-                    copyCode();
-                });
+                navigator.share(shareData).catch(() => copyCode());
             } else {
                 copyCode();
             }
         }
 
-        function cleanupAndReload() {
-            listeners.forEach(ref => ref.off());
-            listeners = [];
-            messageIds.clear();
+        function openUserModal(uid, userData) {
+            if (!isHost || uid === userId) return;
             
-            if (currentRoom) {
-                db.ref(`rooms/${currentRoom}/users/${userId}`).remove();
-                db.ref(`rooms/${currentRoom}/typing/${userId}`).remove();
+            selectedUserId = uid;
+            document.getElementById('modalUserName').textContent = userData.name || 'Naməlum';
+            document.getElementById('modalUserAvatar').src = userData.avatar || 'https://via.placeholder.com/64';
+            document.getElementById('modalUserStatus').textContent = userData.isHost ? 'Moderator' : 'İzləyici';
+            
+            db.ref(`rooms/${currentRoom}/permissions/${uid}`).once('value').then(snap => {
+                const perms = snap.val() || {};
+                document.getElementById('permChat').classList.toggle('active', perms.chat !== false);
+                document.getElementById('permVideo').classList.toggle('active', perms.video !== false);
+                document.getElementById('permChangeVideo').classList.toggle('active', perms.changeVideo === true);
+            });
+            
+            document.getElementById('userModal').classList.remove('hidden');
+        }
+        
+        function closeUserModal() {
+            document.getElementById('userModal').classList.add('hidden');
+            selectedUserId = null;
+        }
+        
+        function togglePermission(type) {
+            if (!selectedUserId) return;
+            
+            const el = document.getElementById('perm' + type.charAt(0).toUpperCase() + type.slice(1));
+            const newState = !el.classList.contains('active');
+            el.classList.toggle('active');
+            
+            db.ref(`rooms/${currentRoom}/permissions/${selectedUserId}/${type}`).set(newState);
+        }
+        
+        function kickUser() {
+            if (!selectedUserId) return;
+            if (confirm('İstifadəçini otaqdan atmaq istədiyinizə əminsiniz?')) {
+                db.ref(`rooms/${currentRoom}/users/${selectedUserId}`).remove();
+                db.ref(`rooms/${currentRoom}/permissions/${selectedUserId}`).remove();
+                closeUserModal();
+                showNotification('İstifadəçi atıldı', 'İstifadəçi otaqdan çıxarıldı');
             }
-            
-            location.reload();
         }
 
         function leaveRoom() {
@@ -1806,14 +1531,20 @@
                 if (document.fullscreenElement) {
                     document.exitFullscreen().catch(() => {});
                 }
-                cleanupAndReload();
+                
+                if (currentRoom) {
+                    db.ref(`rooms/${currentRoom}/users/${userId}`).remove();
+                    db.ref(`rooms/${currentRoom}/typing/${userId}`).remove();
+                }
+                
+                location.reload();
             }
         }
         
-        // Prevent safari zoom on input focus
-        document.addEventListener('gesturestart', function (e) {
-            e.preventDefault();
-        });
+        // Prevent double tap zoom on iOS
+        document.addEventListener('dblclick', function(event) {
+            event.preventDefault();
+        }, { passive: false });
     </script>
 </body>
 </html>
