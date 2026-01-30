@@ -244,11 +244,9 @@
         .user-chip:hover { background: rgba(255,255,255,0.1); transform: translateY(-1px); box-shadow: 0 4px 12px var(--shadow-color); border-color: var(--primary-color); }
         .user-chip.host { background: rgba(234, 179, 8, 0.1); border-color: rgba(234, 179, 8, 0.3); }
         .user-chip.host:hover { background: rgba(234, 179, 8, 0.2); box-shadow: 0 4px 12px rgba(234, 179, 8, 0.2); }
-        .user-chip.creator { background: rgba(139, 92, 246, 0.15); border-color: rgba(139, 92, 246, 0.4); }
-        .user-chip.creator:hover { background: rgba(139, 92, 246, 0.25); box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3); }
+        .user-chip.creator { background: rgba(245, 158, 11, 0.15); border-color: #f59e0b; box-shadow: 0 0 10px rgba(245, 158, 11, 0.2); }
         
         .user-chip img { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; pointer-events: none; }
-        .user-chip .boss-icon { width: 16px; height: 16px; object-fit: contain; pointer-events: none; }
         
         .avatar-upload { width: 100px; height: 100px; border-radius: 50%; border: 3px dashed var(--primary-color); cursor: pointer; position: relative; overflow: hidden; background: rgba(255,255,255,0.02); transition: all 0.3s; box-shadow: 0 4px 20px var(--shadow-color); }
         .avatar-upload:hover { border-color: var(--primary-light); background: rgba(255,255,255,0.05); transform: scale(1.05); }
@@ -283,6 +281,7 @@
         
         .hidden { display: none !important; }
         
+        /* iOS specific fixes */
         @supports (-webkit-touch-callout: none) {
             .chat-container { height: calc(60vh - 56px); }
             #videoSection { height: 40vh; }
@@ -297,11 +296,84 @@
         
         button:disabled { opacity: 0.5; cursor: not-allowed; }
         
+        /* Prevent text selection on UI elements but allow on inputs */
         input, textarea { -webkit-user-select: text; user-select: text; }
+
+        /* Creator Animation */
+        @keyframes creatorPulse {
+            0% { transform: scale(0.8); opacity: 0; }
+            50% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes creatorGlow {
+            0%, 100% { box-shadow: 0 0 20px rgba(245, 158, 11, 0.5); }
+            50% { box-shadow: 0 0 60px rgba(245, 158, 11, 0.8), 0 0 100px rgba(245, 158, 11, 0.4); }
+        }
+        @keyframes fadeOutCreator {
+            from { opacity: 1; }
+            to { opacity: 0; visibility: hidden; }
+        }
+        .creator-overlay {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at center, rgba(180, 83, 9, 0.2), rgba(0,0,0,0.95));
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            animation: fadeOutCreator 0.5s ease 2s forwards;
+            pointer-events: none;
+        }
+        .creator-icon {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 4px solid #f59e0b;
+            background: rgba(245, 158, 11, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: creatorPulse 0.6s ease, creatorGlow 2s ease-in-out infinite;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+        .creator-icon img {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+        }
+        .creator-text {
+            font-size: 48px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b, #d97706);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            animation: creatorPulse 0.6s ease 0.2s both;
+            text-shadow: 0 0 40px rgba(245, 158, 11, 0.5);
+        }
+        .creator-subtext {
+            font-size: 16px;
+            color: rgba(251, 191, 36, 0.8);
+            margin-top: 10px;
+            letter-spacing: 0.1em;
+            animation: fadeIn 0.5s ease 0.8s both;
+        }
+        .boss-badge {
+            width: 20px;
+            height: 20px;
+            object-fit: contain;
+            margin-left: 4px;
+            filter: drop-shadow(0 0 4px rgba(245, 158, 11, 0.6));
+        }
     </style>
 </head>
 <body class="h-screen flex flex-col theme-red">
 
+    <!-- Hidden File Input -->
     <input type="file" id="avatarInput" style="display: none;" accept="image/*" onchange="handleAvatarSelect(event)">
 
     <!-- LANDING PAGE -->
@@ -359,29 +431,32 @@
                     </button>
                 </div>
 
+                <!-- QURUCU GİRİŞİ BÖLMƏSİ -->
                 <div class="relative flex items-center py-2">
-                    <div class="flex-grow border-t" style="border-color: var(--border-color)"></div>
-                    <span class="px-3 text-xs" style="color: #8b5cf6">QURUCU</span>
-                    <div class="flex-grow border-t" style="border-color: var(--border-color)"></div>
+                    <div class="flex-grow border-t border-amber-600/30"></div>
+                    <span class="px-3 text-xs text-amber-500 font-bold tracking-wider">★ QURUCU GİRİŞİ ★</span>
+                    <div class="flex-grow border-t border-amber-600/30"></div>
                 </div>
 
                 <div class="space-y-3">
                     <input type="text" id="creatorRoomId" placeholder="Otaq Kodu" 
-                        class="w-full px-4 py-3 rounded-xl bg-black/40 border text-white uppercase text-center font-bold tracking-widest focus:outline-none transition placeholder-white/30" 
-                        style="border-color: rgba(139, 92, 246, 0.4); font-size: 16px;">
-                    <input type="password" id="creatorCode" placeholder="Qurucu Kodu" 
-                        class="w-full px-4 py-3 rounded-xl bg-black/40 border text-white text-center font-bold tracking-widest focus:outline-none transition placeholder-white/30" 
-                        style="border-color: rgba(139, 92, 246, 0.4); font-size: 16px;">
-                    <button onclick="creatorJoin()" 
-                        class="w-full py-3.5 rounded-xl font-bold transition shadow-lg text-white hover:opacity-90 active:scale-95" 
-                        style="background: linear-gradient(135deg, #7c3aed, #4c1d95); box-shadow: 0 10px 30px rgba(124, 58, 237, 0.2);">
-                        <i class="fas fa-key mr-2"></i>Qurucu Girişi
+                        class="w-full px-4 py-3 rounded-xl bg-amber-950/20 border border-amber-700/50 text-white uppercase text-center font-bold tracking-widest focus:outline-none transition placeholder-white/30 focus:border-amber-500 focus:bg-amber-950/40" 
+                        style="font-size: 16px;">
+                    <input type="password" id="creatorPassword" placeholder="Qurucu Şifrəsi" 
+                        class="w-full px-4 py-3 rounded-xl bg-amber-950/20 border border-amber-700/50 text-white text-center font-bold tracking-widest focus:outline-none transition placeholder-white/30 focus:border-amber-500 focus:bg-amber-950/40" 
+                        style="font-size: 16px;">
+                    <button onclick="enterAsCreator()" 
+                        class="w-full py-3.5 rounded-xl font-bold transition shadow-lg text-white active:scale-95 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 border border-amber-500/50 hover:shadow-amber-500/30" 
+                        style="box-shadow: 0 10px 30px rgba(245, 158, 11, 0.2);">
+                        <i class="fas fa-key mr-2 text-amber-200"></i>Qurucu olaraq daxil ol
                     </button>
                 </div>
+                <!-- /QURUCU GİRİŞİ BÖLMƏSİ -->
             </div>
         </div>
     </div>
 
+    <!-- THEME PICKER MODAL -->
     <div id="themePicker" class="theme-picker">
         <div class="flex justify-between items-center mb-4">
             <h3 class="text-lg font-bold">🎨 Tema Seç</h3>
@@ -393,6 +468,7 @@
         <p class="text-xs text-center mt-4 opacity-60">Yalnız moderator dəyişə bilər</p>
     </div>
 
+    <!-- MODERATOR MODAL -->
     <div id="userModal" class="fixed inset-0 modal-overlay hidden z-50 flex items-center justify-center p-4" onclick="if(event.target === this) closeUserModal()">
         <div class="modal-content-red rounded-3xl p-6 w-full max-w-sm">
             <div class="flex items-center gap-4 mb-6">
@@ -448,6 +524,7 @@
         </div>
     </div>
 
+    <!-- REACTION PICKER TEMPLATE -->
     <div id="emojiPickerTemplate" class="emoji-picker">
         <button class="emoji-btn" onclick="addReaction('👍')">👍</button>
         <button class="emoji-btn" onclick="addReaction('❤️')">❤️</button>
@@ -463,6 +540,7 @@
         <button class="emoji-btn" onclick="addReaction('👎')">👎</button>
     </div>
 
+    <!-- ROOM INTERFACE -->
     <div id="room" class="hidden flex-1 flex flex-col relative">
         <button class="cinema-toggle" onclick="toggleCinemaMode()" title="Sinema Rejimi">
             <i class="fas fa-film text-xl"></i>
@@ -618,12 +696,14 @@
     </div>
 
     <script>
+        // iOS Safari bfcache fix
         window.onpageshow = function(event) {
             if (event.persisted) {
                 window.location.reload();
             }
         };
         
+        // Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyCM5WdZNSj9oFipNI-J3csHpOIvK8PfyJRdk",
             authDomain: "sevgili-testi.firebaseapp.com",
@@ -647,7 +727,7 @@
         
         let currentRoom = null;
         let isHost = false;
-        let isCreator = false;
+        let isCreator = false;  // Qurucu statusu
         let player = null;
         let serverOffset = 0;
         let currentVideoId = null;
@@ -662,6 +742,7 @@
         let isSending = false;
         let messageIds = new Set();
         let playerReady = false;
+        let lastVideoState = null;
         
         const themes = [
             { id: 'red', name: 'Qırmızı', color: '#dc2626' },
@@ -675,6 +756,7 @@
             { id: 'orange', name: 'Narıncı', color: '#f97316' }
         ];
         
+        // Server time sync
         db.ref(".info/serverTimeOffset").on("value", (snap) => { 
             serverOffset = snap.val() || 0; 
         });
@@ -770,7 +852,7 @@
         }
         
         function openThemePicker() {
-            if (!isHost && !isCreator && !userPermissions.changeVideo) {
+            if (!isHost && !userPermissions.changeVideo && !isCreator) {
                 showNotification('İcazə yoxdur', 'Temanı yalnız moderator dəyişə bilər');
                 return;
             }
@@ -783,7 +865,7 @@
         
         function changeTheme(themeId) {
             if (!currentRoom) return;
-            if (!isHost && !isCreator && !userPermissions.changeVideo) {
+            if (!isHost && !userPermissions.changeVideo && !isCreator) {
                 showNotification('İcazə yoxdur', 'Temanı yalnız moderator dəyişə bilər');
                 return;
             }
@@ -836,6 +918,7 @@
                             name: userName, 
                             avatar: userAvatar, 
                             isHost: true, 
+                            isCreator: false,
                             joinedAt: firebase.database.ServerValue.TIMESTAMP, 
                             status: 'active' 
                         }
@@ -878,6 +961,7 @@
                     name: userName, 
                     avatar: userAvatar, 
                     isHost: false, 
+                    isCreator: false,
                     joinedAt: firebase.database.ServerValue.TIMESTAMP, 
                     status: 'active'
                 });
@@ -889,26 +973,27 @@
             }
         }
 
-        async function creatorJoin() {
-            const roomCode = document.getElementById('creatorRoomId')?.value.trim().toUpperCase();
-            const creatorCode = document.getElementById('creatorCode')?.value.trim();
+        // QURUCU GİRİŞİ FUNKSİYALARI
+        async function enterAsCreator() {
+            const code = document.getElementById('creatorRoomId')?.value.trim().toUpperCase();
+            const password = document.getElementById('creatorPassword')?.value.trim();
             
-            if (!validateInputs()) return;
-            
-            if (!roomCode) {
+            if (!code) {
                 showNotification('Xəta', 'Otaq kodunu daxil edin!');
                 return;
             }
             
-            if (creatorCode !== 'moderator123') {
-                showNotification('Xəta', 'Yanlış qurucu kodu!');
+            if (password !== 'mod123') {
+                showNotification('Xəta', 'Yanlış qurucu şifrəsi!');
                 return;
             }
+            
+            if (!validateInputs()) return;
             
             userName = document.getElementById('hostName').value.trim();
             
             try {
-                const roomSnap = await db.ref(`rooms/${roomCode}`).once('value');
+                const roomSnap = await db.ref(`rooms/${code}`).once('value');
                 if (!roomSnap.exists()) {
                     showNotification('Xəta', 'Otaq tapılmadı!');
                     return;
@@ -920,23 +1005,75 @@
                     applyTheme(roomData.theme.color);
                 }
                 
-                await db.ref(`rooms/${roomCode}/users/${userId}`).set({
+                isCreator = true;
+                
+                // Qurucu kimi Firebase-ə yaz
+                await db.ref(`rooms/${code}/users/${userId}`).set({
                     name: userName, 
-                    avatar: userAvatar, 
-                    isHost: true,
+                    isHost: true, 
                     isCreator: true,
                     joinedAt: firebase.database.ServerValue.TIMESTAMP, 
                     status: 'active'
                 });
                 
-                isCreator = true;
-                enterRoom(roomCode, true);
+                // Xüsusi animasiyanı göstər
+                showCreatorAnimation();
+                
+                setTimeout(() => {
+                    enterRoomAsCreator(code);
+                }, 2000);
                 
             } catch (error) {
-                console.error("Creator join error:", error);
+                console.error("Error entering as creator:", error);
                 showNotification('Xəta', 'Giriş zamanı xəta baş verdi');
             }
         }
+
+        function showCreatorAnimation() {
+            const overlay = document.createElement('div');
+            overlay.className = 'creator-overlay';
+            overlay.innerHTML = `
+                <div class="creator-icon">
+                    <img src="boss.png" alt="BOSS" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3063/3063822.png'; this.onerror=null;">
+                </div>
+                <div class="creator-text">QURUCU</div>
+                <div class="creator-subtext">Xüsusi səlahiyyətlər aktivləşdirildi</div>
+            `;
+            document.body.appendChild(overlay);
+            
+            setTimeout(() => {
+                overlay.remove();
+            }, 2500);
+        }
+
+        function enterRoomAsCreator(code) {
+            currentRoom = code;
+            isHost = true;
+            
+            document.getElementById('landing')?.classList.add('hidden');
+            document.getElementById('room')?.classList.remove('hidden');
+            document.getElementById('roomCode').textContent = code;
+            
+            const userType = document.getElementById('userType');
+            userType.textContent = 'BOSS';
+            userType.style.background = 'linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(180, 83, 9, 0.2))';
+            userType.style.color = '#fbbf24';
+            userType.style.borderColor = 'rgba(245, 158, 11, 0.5)';
+            userType.style.boxShadow = '0 0 20px rgba(245, 158, 11, 0.2)';
+            
+            document.getElementById('hostControls')?.classList.remove('hidden');
+            document.getElementById('changeVideoBtn')?.classList.remove('hidden');
+            
+            userPermissions = { chat: true, video: true, changeVideo: true };
+            
+            initThemePicker();
+            initPlayer();
+            setupRealTimeListeners();
+            setupVisibility();
+            
+            setTimeout(() => window.dispatchEvent(new Event('resize')), 100);
+        }
+        // /QURUCU GİRİŞİ FUNKSİYALARI
 
         function enterRoom(code, host) {
             currentRoom = code;
@@ -947,12 +1084,11 @@
             document.getElementById('roomCode').textContent = code;
             
             const userType = document.getElementById('userType');
-            
-            if (isHost || isCreator) {
-                userType.textContent = isCreator ? 'Boss' : '👑 Moderator';
-                userType.style.background = isCreator ? 'rgba(139, 92, 246, 0.15)' : 'rgba(234, 179, 8, 0.1)';
-                userType.style.color = isCreator ? '#a78bfa' : '#fbbf24';
-                userType.style.borderColor = isCreator ? 'rgba(139, 92, 246, 0.4)' : 'rgba(234, 179, 8, 0.3)';
+            if (host) {
+                userType.textContent = '👑 Moderator';
+                userType.style.background = 'rgba(234, 179, 8, 0.1)';
+                userType.style.color = '#fbbf24';
+                userType.style.borderColor = 'rgba(234, 179, 8, 0.3)';
                 
                 document.getElementById('hostControls')?.classList.remove('hidden');
                 document.getElementById('changeVideoBtn')?.classList.remove('hidden');
@@ -1024,8 +1160,8 @@
                     videoId: 'jfKfPfyJRdk',
                     playerVars: { 
                         autoplay: 0, 
-                        controls: isHost || isCreator ? 1 : 0, 
-                        disablekb: isHost || isCreator ? 0 : 1, 
+                        controls: (isHost || isCreator) ? 1 : 0, 
+                        disablekb: (isHost || isCreator) ? 0 : 1, 
                         rel: 0, 
                         playsinline: 1,
                         enablejsapi: 1,
@@ -1047,52 +1183,33 @@
             playerReady = true;
             document.getElementById('playerLoader').style.display = 'none';
             
-            // Load current video from Firebase immediately
-            db.ref(`rooms/${currentRoom}/currentVideo`).once('value').then(snap => {
-                const video = snap.val();
-                if (video && video.id) {
-                    currentVideoId = video.id;
-                    player.loadVideoById(video.id);
-                    if (!video.isPlaying) {
-                        setTimeout(() => player.pauseVideo(), 500);
-                    } else {
-                        setTimeout(() => player.playVideo(), 500);
-                    }
-                    if (video.time > 0) {
-                        setTimeout(() => player.seekTo(video.time, true), 1000);
-                    }
-                }
-            });
-            
-            // Setup real-time sync
             if (isHost || isCreator) {
-                // Host/Creator: Send state every 2 seconds
                 setInterval(() => {
                     if (!player || !currentRoom) return;
-                    try {
-                        const state = player.getPlayerState();
-                        const time = player.getCurrentTime();
-                        
-                        db.ref(`rooms/${currentRoom}/currentVideo`).update({
-                            time: time,
-                            isPlaying: state === YT.PlayerState.PLAYING,
-                            updatedAt: firebase.database.ServerValue.TIMESTAMP
-                        });
-                    } catch(e) {}
+                    const state = player.getPlayerState();
+                    const time = player.getCurrentTime();
+                    
+                    db.ref(`rooms/${currentRoom}/currentVideo`).update({
+                        time: time,
+                        isPlaying: state === YT.PlayerState.PLAYING,
+                        updatedAt: firebase.database.ServerValue.TIMESTAMP
+                    });
                 }, 2000);
             } else {
-                // Viewer: Sync continuously
-                setupViewerSync();
+                setInterval(() => {
+                    if (!player || !currentRoom) return;
+                    syncViewer();
+                }, 1000);
             }
         }
 
-        function setupViewerSync() {
-            // Listen for video changes
-            db.ref(`rooms/${currentRoom}/currentVideo`).on('value', (snap) => {
+        function syncViewer() {
+            if ((isHost || isCreator) || !playerReady) return;
+            
+            db.ref(`rooms/${currentRoom}/currentVideo`).once('value').then(snap => {
                 const video = snap.val();
-                if (!video || !player) return;
+                if (!video) return;
                 
-                // Handle video ID change
                 if (video.id && video.id !== currentVideoId) {
                     currentVideoId = video.id;
                     player.loadVideoById(video.id);
@@ -1100,26 +1217,22 @@
                     return;
                 }
                 
-                // Sync time and play state
                 if (video.time !== undefined && video.isPlaying !== undefined) {
-                    try {
-                        const currentTime = player.getCurrentTime() || 0;
-                        const timeDiff = Math.abs(currentTime - video.time);
-                        const state = player.getPlayerState();
-                        const isPlaying = state === YT.PlayerState.PLAYING;
-                        
-                        // Seek if difference is more than 2 seconds
-                        if (timeDiff > 2) {
-                            player.seekTo(video.time, true);
-                        }
-                        
-                        // Sync play/pause (but not during buffering)
-                        if (video.isPlaying && !isPlaying && state !== YT.PlayerState.BUFFERING) {
-                            player.playVideo();
-                        } else if (!video.isPlaying && isPlaying) {
-                            player.pauseVideo();
-                        }
-                    } catch(e) {}
+                    const currentTime = player.getCurrentTime() || 0;
+                    const timeDiff = Math.abs(currentTime - video.time);
+                    
+                    if (timeDiff > 3) {
+                        player.seekTo(video.time, true);
+                    }
+                    
+                    const state = player.getPlayerState();
+                    const isPlaying = state === YT.PlayerState.PLAYING;
+                    
+                    if (video.isPlaying && !isPlaying && state !== YT.PlayerState.BUFFERING) {
+                        player.playVideo();
+                    } else if (!video.isPlaying && isPlaying) {
+                        player.pauseVideo();
+                    }
                 }
             });
         }
@@ -1131,14 +1244,12 @@
             
             clearTimeout(window.stateChangeTimeout);
             window.stateChangeTimeout = setTimeout(() => {
-                try {
-                    db.ref(`rooms/${currentRoom}/currentVideo`).update({
-                        isPlaying: e.data === YT.PlayerState.PLAYING,
-                        time: player.getCurrentTime(),
-                        updatedAt: firebase.database.ServerValue.TIMESTAMP
-                    });
-                } catch(e) {}
-            }, 300);
+                db.ref(`rooms/${currentRoom}/currentVideo`).update({
+                    isPlaying: e.data === YT.PlayerState.PLAYING,
+                    time: player.getCurrentTime(),
+                    updatedAt: firebase.database.ServerValue.TIMESTAMP
+                });
+            }, 500);
         }
 
         function onPlayerError(event) {
@@ -1151,7 +1262,7 @@
         }
 
         function toggleSearch() { 
-            if (!isHost && !isCreator && !userPermissions.changeVideo) {
+            if ((!isHost && !userPermissions.changeVideo && !isCreator)) {
                 showNotification('İcazə yoxdur', 'Video dəyişmək üçün moderator olmalısınız');
                 return;
             }
@@ -1177,7 +1288,7 @@
                 
                 resultsDiv.innerHTML = '';
                 if (!data.items?.length) {
-                    resultsDiv.innerHTML = 'div class="text-xs text-center p-2 text-neutral-400">Nəticə tapılmadı</div>';
+                    resultsDiv.innerHTML = '<div class="text-xs text-center p-2 text-neutral-400">Nəticə tapılmadı</div>';
                     return;
                 }
                 
@@ -1203,11 +1314,15 @@
         }
 
         function selectVideo(id, title) {
-            if (!isHost && !isCreator && !userPermissions.changeVideo) return;
+            if ((!isHost && !userPermissions.changeVideo && !isCreator)) return;
             
             currentVideoId = id;
+            if (player?.loadVideoById) {
+                player.loadVideoById(id);
+            }
             
-            // Update Firebase first
+            closeSearch();
+            
             db.ref(`rooms/${currentRoom}/currentVideo`).set({
                 id: id, 
                 title: title, 
@@ -1217,36 +1332,27 @@
                 updatedAt: firebase.database.ServerValue.TIMESTAMP
             });
             
-            // Then load in player
-            if (player?.loadVideoById) {
-                player.loadVideoById(id);
-            }
-            
-            closeSearch();
             showNotification('Video dəyişdirildi', title.substring(0, 30) + (title.length > 30 ? '...' : ''));
         }
 
         function playerControl(action, val) {
             if ((!isHost && !isCreator) || !player) return;
             
-            try {
-                if (action === 'toggle') {
-                    const state = player.getPlayerState();
-                    if (state === YT.PlayerState.PLAYING) {
-                        player.pauseVideo();
-                    } else {
-                        player.playVideo();
-                    }
-                } else if (action === 'seek') {
-                    player.seekTo(player.getCurrentTime() + val, true);
+            if (action === 'toggle') {
+                const state = player.getPlayerState();
+                if (state === YT.PlayerState.PLAYING) {
+                    player.pauseVideo();
+                } else {
+                    player.playVideo();
                 }
-            } catch(e) {}
+            } else if (action === 'seek') {
+                player.seekTo(player.getCurrentTime() + val, true);
+            }
         }
 
         function setupRealTimeListeners() {
             if (!currentRoom) return;
             
-            // Theme listener
             db.ref(`rooms/${currentRoom}/theme`).on('value', (snap) => {
                 const themeData = snap.val();
                 if (themeData?.color) {
@@ -1254,7 +1360,13 @@
                 }
             });
             
-            // Users listener with boss.png for creator
+            db.ref(`rooms/${currentRoom}/currentVideo/id`).on('value', (snap) => {
+                const newId = snap.val();
+                if (newId && newId !== currentVideoId && !isHost && !isCreator) {
+                    // Viewer handles in syncViewer
+                }
+            });
+            
             db.ref(`rooms/${currentRoom}/users`).on('value', (snap) => {
                 const users = snap.val() || {};
                 const list = document.getElementById('usersList');
@@ -1266,7 +1378,7 @@
                         count++;
                         const chip = document.createElement('div');
                         
-                        // Creator gets special styling, others get host or normal
+                        // Qurucu yoxlanışı
                         if (data.isCreator) {
                             chip.className = 'user-chip creator';
                         } else if (data.isHost) {
@@ -1275,20 +1387,20 @@
                             chip.className = 'user-chip';
                         }
                         
-                        chip.onclick = () => openUserModal(uid, data);
+                        chip.onclick = () => {
+                            if ((isHost || isCreator) && uid !== userId) {
+                                openUserModal(uid, data);
+                            }
+                        };
                         
-                        // Use boss.png for creator, crown for host
-                        let iconHtml = '';
-                        if (data.isCreator) {
-                            iconHtml = '<img src="boss.png" class="boss-icon" alt="Boss" onerror="this.style.display=\'none\'">';
-                        } else if (data.isHost) {
-                            iconHtml = '<i class="fas fa-crown text-amber-400 text-[10px]"></i>';
-                        }
+                        // Avatar: Qurucu üçün boss.png, digərləri üçün adi avatar
+                        const avatarSrc = data.isCreator ? 'boss.png' : (data.avatar || 'https://via.placeholder.com/24');
                         
                         chip.innerHTML = `
-                            <img src="${data.avatar || 'https://via.placeholder.com/24'}" class="w-6 h-6 rounded-full object-cover" alt="">
+                            <img src="${avatarSrc}" class="w-6 h-6 rounded-full object-cover" alt="" onerror="this.src='https://via.placeholder.com/24'">
                             <span class="text-xs font-medium">${escapeHtml(data.name)}</span>
-                            ${iconHtml}
+                            ${data.isCreator ? '<img src="boss.png" class="boss-badge" alt="BOSS" onerror="this.style.display=\'none\'">' : ''}
+                            ${(data.isHost && !data.isCreator) ? '<i class="fas fa-crown text-amber-400 text-[10px]"></i>' : ''}
                         `;
                         list.appendChild(chip);
                     }
@@ -1298,7 +1410,6 @@
                 document.getElementById('usersCountText').textContent = count;
             });
             
-            // Messages listener
             db.ref(`rooms/${currentRoom}/messages`).limitToLast(50).on('child_added', (snap) => {
                 const msg = snap.val();
                 const msgId = snap.key;
@@ -1308,7 +1419,6 @@
                 }
             });
             
-            // Typing listener
             db.ref(`rooms/${currentRoom}/typing`).on('value', (snap) => {
                 const typing = snap.val() || {};
                 const now = Date.now();
@@ -1376,15 +1486,22 @@
             wrapper.id = 'msg-' + msgId;
             
             const replyHtml = msg.replyTo ? `<div class="msg-reply">${escapeHtml(msg.replyTo.text)}</div>` : '';
-            const avatarHtml = `<img src="${msg.avatar || 'https://via.placeholder.com/32'}" class="msg-avatar" alt="" onclick="setReply('${msgId}', '${escapeHtml(msg.name)}', '${escapeHtml(msg.text)}')">`;
+            
+            // Qurucu üçün boss.png, yoxsa normal avatar
+            const avatarSrc = msg.isCreator ? 'boss.png' : (msg.avatar || 'https://via.placeholder.com/32');
+            
+            const avatarHtml = !isOwn ? `<img src="${avatarSrc}" class="msg-avatar" alt="" onclick="setReply('${msgId}', '${escapeHtml(msg.name)}', '${escapeHtml(msg.text)}')">` : '';
             
             wrapper.innerHTML = `
-                ${!isOwn ? avatarHtml : ''}
+                ${avatarHtml}
                 <div class="flex flex-col ${isOwn ? 'items-end' : 'items-start'} flex-1">
-                    ${!isOwn ? `<div class="msg-sender">${escapeHtml(msg.name)}</div>` : ''}
+                    ${!isOwn ? `<div class="msg-sender flex items-center gap-1">
+                        ${escapeHtml(msg.name)}
+                        ${msg.isCreator ? '<img src="boss.png" class="w-3 h-3 object-contain" alt="BOSS" onerror="this.style.display=\'none\'">' : ''}
+                    </div>` : ''}
                     <div class="msg-bubble ${isOwn ? 'msg-own' : 'msg-other'}" onclick="showReactionPicker('${msgId}')">
                         ${replyHtml}
-                        <div class="break-words>${escapeHtml(msg.text)}</div>
+                        <div class="break-words">${escapeHtml(msg.text)}</div>
                         <div class="msg-meta">
                             <span>${formatTime(msg.timestamp)}</span>
                         </div>
@@ -1481,7 +1598,7 @@
             const text = input.value.trim();
             if (!text || !currentRoom) return;
             
-            if (!isHost && !isCreator && userPermissions.chat === false) {
+            if ((!isHost && !isCreator) && userPermissions.chat === false) {
                 showNotification('Xəta', 'Sizə yazı yazmaq qadağan edilib');
                 return;
             }
@@ -1494,6 +1611,7 @@
                 userId: userId,
                 name: userName,
                 avatar: userAvatar,
+                isCreator: isCreator,  // Qurucu statusunu mesajda saxla
                 timestamp: firebase.database.ServerValue.TIMESTAMP
             };
             
@@ -1570,8 +1688,8 @@
             
             selectedUserId = uid;
             document.getElementById('modalUserName').textContent = userData.name || 'Naməlum';
-            document.getElementById('modalUserAvatar').src = userData.avatar || 'https://via.placeholder.com/64';
-            document.getElementById('modalUserStatus').textContent = userData.isHost ? 'Moderator' : 'İzləyici';
+            document.getElementById('modalUserAvatar').src = userData.isCreator ? 'boss.png' : (userData.avatar || 'https://via.placeholder.com/64');
+            document.getElementById('modalUserStatus').textContent = userData.isCreator ? 'Qurucu (BOSS)' : (userData.isHost ? 'Moderator' : 'İzləyici');
             
             db.ref(`rooms/${currentRoom}/permissions/${uid}`).once('value').then(snap => {
                 const perms = snap.val() || {};
