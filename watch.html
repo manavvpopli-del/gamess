@@ -14,7 +14,7 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         
-        * { font-family: 'Inter', sans-serif; }
+        * { font-family: 'Inter', sans-serif; box-sizing: border-box; }
         
         :root {
             --primary-color: #dc2626;
@@ -42,6 +42,8 @@
             overflow: hidden; 
             touch-action: manipulation;
             transition: background 0.5s ease;
+            margin: 0;
+            padding: 0;
         }
         
         body.cinema-mode { background: #000 !important; }
@@ -147,11 +149,13 @@
         .input-container { background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); border-radius: 24px; display: flex; align-items: flex-end; padding: 4px; transition: all 0.3s; }
         .input-container:focus-within { border-color: var(--primary-color); background: rgba(255,255,255,0.08); box-shadow: 0 0 0 3px var(--shadow-color), 0 4px 12px rgba(0,0,0,0.3); }
         
-        .chat-textarea { flex: 1; background: transparent; border: none; outline: none; color: white; font-size: 14px; padding: 10px 16px; resize: none; max-height: 80px; min-height: 40px; line-height: 1.4; }
+        .chat-textarea { flex: 1; background: transparent; border: none; outline: none; color: white; font-size: 14px; padding: 10px 16px; resize: none; max-height: 80px; min-height: 40px; line-height: 1.4; width: 100%; }
         .chat-textarea::placeholder { color: rgba(255,255,255,0.3); }
+        .chat-textarea:disabled { opacity: 0.5; cursor: not-allowed; }
         
         .send-btn { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); color: white; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; margin: 2px; transition: all 0.2s; box-shadow: 0 4px 12px var(--shadow-color); flex-shrink: 0; }
         .send-btn:hover { transform: scale(1.05); box-shadow: 0 6px 16px var(--shadow-color); }
+        .send-btn:active { transform: scale(0.95); }
         
         .reply-bar { background: var(--glass-bg); border-left: 3px solid var(--primary-color); padding: 8px 16px; margin: 0 16px 8px 16px; border-radius: 12px 12px 0 0; display: flex; align-items: center; justify-content: space-between; animation: slideUp 0.2s ease; border-top: 1px solid var(--border-color); transition: all 0.5s ease; flex-shrink: 0; }
         
@@ -160,6 +164,7 @@
         .msg-wrapper { display: flex; width: 100%; margin-bottom: 4px; animation: msgAppear 0.2s ease-out; position: relative; }
         .msg-wrapper:hover .reaction-btn { opacity: 1; }
         @keyframes msgAppear { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
         .msg-bubble { max-width: 75%; padding: 8px 12px; border-radius: 16px; font-size: 13.5px; line-height: 1.35; position: relative; word-wrap: break-word; overflow-wrap: break-word; word-break: normal; box-shadow: 0 2px 8px rgba(0,0,0,0.3); transition: all 0.3s ease; }
         .msg-own { margin-left: auto; background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); color: white; border-bottom-right-radius: 4px; box-shadow: 0 4px 15px var(--shadow-color); }
@@ -204,8 +209,10 @@
         
         .avatar-upload { width: 100px; height: 100px; border-radius: 50%; border: 3px dashed var(--primary-color); cursor: pointer; position: relative; overflow: hidden; background: rgba(255,255,255,0.02); transition: all 0.3s; box-shadow: 0 4px 20px var(--shadow-color); }
         .avatar-upload:hover { border-color: var(--primary-light); background: rgba(255,255,255,0.05); transform: scale(1.05); }
-        .avatar-preview { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+        .avatar-preview { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: none; }
+        .avatar-preview.show { display: block; }
         .avatar-placeholder { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--primary-color); pointer-events: none; }
+        .avatar-placeholder.hidden { display: none; }
         
         .modal-overlay { background: rgba(0, 0, 0, 0.9); backdrop-filter: blur(10px); }
         .modal-content-red { background: var(--glass-bg); border: 1px solid var(--border-color); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.9), 0 0 40px var(--shadow-color); transition: all 0.5s ease; }
@@ -219,7 +226,7 @@
         .toggle-switch::after { content: ''; position: absolute; width: 22px; height: 22px; background: white; border-radius: 50%; top: 2px; left: 2px; transition: transform 0.3s; }
         .toggle-switch.active::after { transform: translateX(24px); }
         
-        .danger-btn { background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #ef4444; padding: 12px; border-radius: 12px; width: 100%; font-weight: 600; transition: all 0.2s; margin-top: 8px; }
+        .danger-btn { background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #ef4444; padding: 12px; border-radius: 12px; width: 100%; font-weight: 600; transition: all 0.2s; margin-top: 8px; cursor: pointer; }
         .danger-btn:hover { background: rgba(239, 68, 68, 0.25); }
         
         .viewer-overlay { position: absolute; inset: 0; background: transparent; z-index: 5; }
@@ -229,43 +236,343 @@
         .theme-btn i { color: var(--primary-color); }
         .color-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--primary-color); display: inline-block; }
         
-        #searchResults { background: rgba(10, 10, 10, 0.98); }
+        #searchResults { background: rgba(10, 10, 10, 0.98); max-height: 35vh; overflow-y: auto; }
         
-        .hidden-input { display: none; }
+        .hidden { display: none !important; }
         
         @media (hover: none) {
             .user-chip:active { transform: scale(0.95); }
             .send-btn:active { transform: scale(0.95); }
         }
+        
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
     </style>
 </head>
 <body class="h-screen flex flex-col theme-red">
 
-    <!-- Hidden File Input for Avatar -->
-    <input type="file" id="avatarInput" class="hidden-input" accept="image/*" onchange="handleAvatarSelect(event)">
+    <!-- Hidden File Input -->
+    <input type="file" id="avatarInput" style="display: none;" accept="image/*" onchange="handleAvatarSelect(event)">
+
+    <!-- LANDING PAGE -->
+    <div id="landing" class="flex-1 flex items-center justify-center p-4 bg-gradient-to-br from-neutral-950 via-red-950/20 to-neutral-950 overflow-auto">
+        <div class="max-w-md w-full space-y-6 pb-8">
+            <div class="text-center space-y-2">
+                <h1 class="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-rose-600 mb-2">📽️ KinoZal</h1>
+                <p class="text-red-200/60 text-sm">Demo - Test Mərhələsi</p>
+            </div>
+
+            <div class="glass-red rounded-3xl p-8 space-y-6 shadow-2xl">
+                <div class="flex flex-col items-center space-y-3">
+                    <label class="text-xs font-semibold uppercase tracking-wider" style="color: var(--primary-color)">Profil Şəkli</label>
+                    
+                    <div class="avatar-upload" id="avatarUpload" onclick="triggerAvatarUpload()">
+                        <div class="avatar-placeholder" id="avatarPlaceholder">
+                            <i class="fas fa-camera text-2xl mb-1"></i>
+                            <span class="text-xs">Şəkil seç</span>
+                        </div>
+                        <img id="avatarPreview" class="avatar-preview" src="" alt="Avatar">
+                    </div>
+                    
+                    <p class="text-xs hidden text-red-400" id="avatarError">
+                        <i class="fas fa-exclamation-circle mr-1"></i>Şəkil seçilməlidir
+                    </p>
+                    <p class="text-[10px] text-neutral-500">Maksimum 2MB</p>
+                </div>
+
+                <div class="space-y-3">
+                    <input type="text" id="hostName" placeholder="Adınızı daxil edin" 
+                        class="w-full px-4 py-3 rounded-xl bg-black/40 border text-white focus:outline-none transition text-center font-medium placeholder-white/30" 
+                        style="border-color: var(--border-color)">
+                    
+                    <button id="createRoomBtn" onclick="createRoom()" 
+                        class="w-full py-3.5 rounded-xl font-bold transition shadow-lg text-white hover:opacity-90 active:scale-95" 
+                        style="background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); box-shadow: 0 10px 30px var(--shadow-color);">
+                        <i class="fas fa-plus-circle mr-2"></i>Otaq Yarat
+                    </button>
+                </div>
+
+                <div class="relative flex items-center py-2">
+                    <div class="flex-grow border-t" style="border-color: var(--border-color)"></div>
+                    <span class="px-3 text-xs" style="color: var(--primary-light)">VE YA</span>
+                    <div class="flex-grow border-t" style="border-color: var(--border-color)"></div>
+                </div>
+
+                <div class="space-y-3">
+                    <input type="text" id="joinRoomId" placeholder="Otaq Kodu" 
+                        class="w-full px-4 py-3 rounded-xl bg-black/40 border text-white uppercase text-center font-bold tracking-widest focus:outline-none transition placeholder-white/30" 
+                        style="border-color: var(--border-color)">
+                    <button onclick="joinRoom()" 
+                        class="w-full py-3.5 bg-neutral-900 hover:bg-neutral-800 rounded-xl font-bold transition border text-white/90 active:scale-95" 
+                        style="border-color: var(--border-color)">
+                        <i class="fas fa-sign-in-alt mr-2"></i>Qoşul
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- THEME PICKER MODAL -->
+    <div id="themePicker" class="theme-picker">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-bold">🎨 Tema Seç</h3>
+            <button onclick="closeThemePicker()" class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="theme-grid" id="themeGrid"></div>
+        <p class="text-xs text-center mt-4 opacity-60">Yalnız moderator dəyişə bilər</p>
+    </div>
+
+    <!-- MODERATOR MODAL -->
+    <div id="userModal" class="fixed inset-0 modal-overlay hidden z-50 flex items-center justify-center p-4" onclick="if(event.target === this) closeUserModal()">
+        <div class="modal-content-red rounded-3xl p-6 w-full max-w-sm">
+            <div class="flex items-center gap-4 mb-6">
+                <img id="modalUserAvatar" src="" class="w-16 h-16 rounded-full object-cover" style="border: 2px solid var(--primary-color)">
+                <div class="flex-1">
+                    <h3 id="modalUserName" class="text-lg font-bold text-white"></h3>
+                    <p class="text-xs" style="color: var(--primary-light)" id="modalUserStatus">İzləyici</p>
+                </div>
+                <button onclick="closeUserModal()" class="ml-auto p-2 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded-full transition">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="space-y-3">
+                <h4 class="text-xs font-bold uppercase tracking-wider mb-2" style="color: var(--primary-color)">İcazələr</h4>
+                
+                <div class="flex items-center justify-between p-3 rounded-xl bg-neutral-900/80 border" style="border-color: var(--border-color)">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center" style="color: var(--primary-color)">
+                            <i class="fas fa-comment text-sm"></i>
+                        </div>
+                        <span class="text-sm font-medium text-neutral-200">Yazı Yazmaq</span>
+                    </div>
+                    <div class="toggle-switch active" id="permChat" onclick="togglePermission('chat')"></div>
+                </div>
+                
+                <div class="flex items-center justify-between p-3 rounded-xl bg-neutral-900/80 border" style="border-color: var(--border-color)">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center" style="color: var(--primary-color)">
+                            <i class="fas fa-eye text-sm"></i>
+                        </div>
+                        <span class="text-sm font-medium text-neutral-200">Video İzləmə</span>
+                    </div>
+                    <div class="toggle-switch active" id="permVideo" onclick="togglePermission('video')"></div>
+                </div>
+                
+                <div class="flex items-center justify-between p-3 rounded-xl bg-neutral-900/80 border" style="border-color: var(--border-color)">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center" style="color: var(--primary-color)">
+                            <i class="fas fa-film text-sm"></i>
+                        </div>
+                        <span class="text-sm font-medium text-neutral-200">Video Seçmə</span>
+                    </div>
+                    <div class="toggle-switch" id="permChangeVideo" onclick="togglePermission('changeVideo')"></div>
+                </div>
+            </div>
+            
+            <div class="mt-6">
+                <button onclick="kickUser()" class="danger-btn">
+                    <i class="fas fa-sign-out-alt mr-2"></i>Otaqdan At
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- REACTION PICKER TEMPLATE -->
+    <div id="emojiPickerTemplate" class="emoji-picker">
+        <button class="emoji-btn" onclick="addReaction('👍')">👍</button>
+        <button class="emoji-btn" onclick="addReaction('❤️')">❤️</button>
+        <button class="emoji-btn" onclick="addReaction('😂')">😂</button>
+        <button class="emoji-btn" onclick="addReaction('😮')">😮</button>
+        <button class="emoji-btn" onclick="addReaction('😢')">😢</button>
+        <button class="emoji-btn" onclick="addReaction('😡')">😡</button>
+        <button class="emoji-btn" onclick="addReaction('🎉')">🎉</button>
+        <button class="emoji-btn" onclick="addReaction('🔥')">🔥</button>
+        <button class="emoji-btn" onclick="addReaction('👏')">👏</button>
+        <button class="emoji-btn" onclick="addReaction('😍')">😍</button>
+        <button class="emoji-btn" onclick="addReaction('🤔')">🤔</button>
+        <button class="emoji-btn" onclick="addReaction('👎')">👎</button>
+    </div>
+
+    <!-- ROOM INTERFACE -->
+    <div id="room" class="hidden flex-1 flex flex-col relative">
+        <button class="cinema-toggle" onclick="toggleCinemaMode()" title="Sinema Rejimi">
+            <i class="fas fa-film text-xl"></i>
+        </button>
+        
+        <button class="cinema-exit" onclick="toggleCinemaMode()">
+            <i class="fas fa-compress"></i>
+            <span>Sinema rejimindən çıx</span>
+        </button>
+
+        <header class="glass-red border-b flex items-center justify-between px-4 shrink-0 z-20" style="border-color: var(--border-color); height: 56px; min-height: 56px;">
+            <div class="flex items-center space-x-3">
+                <h1 class="text-lg font-bold text-white">Kino<span style="color: var(--primary-color)">Zal</span></h1>
+                
+                <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-black/40 border" style="border-color: var(--border-color)">
+                    <span class="text-[10px] uppercase font-bold" style="color: var(--primary-color)">Kod:</span>
+                    <span id="roomCode" class="font-mono font-bold text-sm tracking-wider" style="color: var(--primary-color)">---</span>
+                    <div class="flex items-center gap-1 ml-2 border-l pl-2" style="border-color: var(--border-color)">
+                        <button onclick="copyCode()" class="p-1.5 text-neutral-400 hover:text-white transition" title="Kopyala">
+                            <i class="fas fa-copy text-xs"></i>
+                        </button>
+                        <button onclick="shareCode()" class="p-1.5 text-neutral-400 hover:text-white transition" title="Paylaş">
+                            <i class="fas fa-share-alt text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-2">
+                <button onclick="openThemePicker()" class="theme-btn" title="Tema Dəyiş">
+                    <div class="color-dot"></div>
+                    <span class="hidden sm:inline">Tema</span>
+                    <i class="fas fa-palette"></i>
+                </button>
+
+                <span id="activeUsersCount" class="hidden md:flex items-center px-3 py-1 rounded-full text-xs border" style="background: var(--glass-bg); border-color: var(--border-color); color: var(--primary-color)">
+                    <i class="fas fa-users mr-1.5"></i>
+                    <span id="usersCountText">1</span>
+                </span>
+                
+                <span id="userType" class="px-3 py-1 rounded-full text-xs font-bold bg-neutral-900 border" style="border-color: var(--border-color)">İzləyici</span>
+                <button onclick="leaveRoom()" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 transition" style="color: var(--primary-color)">
+                    <i class="fas fa-times text-sm"></i>
+                </button>
+            </div>
+        </header>
+
+        <div class="main-container overflow-hidden">
+            <div id="videoSection">
+                <button id="changeVideoBtn" onclick="toggleSearch()" class="hidden absolute top-4 right-4 z-40 glass-red px-4 py-2 rounded-xl border text-sm font-bold text-white shadow-lg transition hover:scale-105" style="border-color: var(--border-color)">
+                    <i class="fas fa-film mr-2" style="color: var(--primary-color)"></i>Video Dəyiş
+                </button>
+
+                <div id="searchContainer" class="hidden absolute top-16 left-1/2 transform -translate-x-1/2 z-30 w-full max-w-lg px-4">
+                    <div class="glass-red rounded-2xl overflow-hidden shadow-2xl border" style="border-color: var(--border-color)">
+                        <div class="flex items-center px-4 py-3 border-b bg-neutral-950/50" style="border-color: var(--border-color)">
+                            <i class="fas fa-search mr-3" style="color: var(--primary-color)"></i>
+                            <input type="text" id="searchQuery" placeholder="YouTube-da axtar..." class="flex-1 bg-transparent border-none outline-none text-white placeholder-neutral-500 text-sm" onkeypress="if(event.key==='Enter') searchYouTube()">
+                            <button onclick="searchYouTube()" class="px-4 py-1.5 rounded-lg text-sm font-bold transition shadow-lg text-white" style="background: var(--primary-color)">Axtar</button>
+                            <button onclick="closeSearch()" class="ml-2 p-2 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded-lg transition">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div id="searchResults" class="hidden p-3 bg-neutral-950/98 space-y-2"></div>
+                    </div>
+                </div>
+
+                <div class="flex-1 relative flex items-center justify-center bg-black h-full">
+                    <div id="playerWrapper" class="w-full h-full relative">
+                        <div id="player"></div>
+                        <div id="viewerOverlay" class="hidden viewer-overlay"></div>
+                    </div>
+                    <div id="playerLoader" class="absolute inset-0 flex items-center justify-center bg-black z-10">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+
+                <div id="hostControls" class="hidden glass-red border-t p-3 z-30 absolute bottom-0 left-0 right-0" style="border-color: var(--border-color)">
+                    <div class="flex items-center justify-center space-x-6">
+                        <button onclick="playerControl('seek', -10)" class="p-2 transition" style="color: var(--primary-color)">
+                            <i class="fas fa-backward"></i>
+                        </button>
+                        <button id="playPauseBtn" onclick="playerControl('toggle')" class="w-12 h-12 rounded-full flex items-center justify-center hover:scale-105 transition shadow-lg text-white" style="background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); box-shadow: 0 0 20px var(--shadow-color)">
+                            <i class="fas fa-play ml-0.5" id="playIcon"></i>
+                            <i class="fas fa-pause hidden" id="pauseIcon"></i>
+                        </button>
+                        <button onclick="playerControl('seek', 10)" class="p-2 transition" style="color: var(--primary-color)">
+                            <i class="fas fa-forward"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-container">
+                <div class="users-bar">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-xs font-bold uppercase tracking-wider flex items-center gap-1" style="color: var(--primary-color)">
+                            <i class="fas fa-users text-[10px]"></i>
+                            İştirakçılar
+                        </h3>
+                        <span class="text-[11px] text-neutral-500 bg-neutral-900/50 px-2 py-0.5 rounded-full" id="onlineCount">0 onlayn</span>
+                    </div>
+                    <div id="usersList" class="flex gap-2 overflow-x-auto custom-scrollbar pb-1"></div>
+                </div>
+
+                <div id="replyIndicator" class="hidden reply-bar" style="margin: 8px 16px 0 16px;">
+                    <div class="flex-1 min-w-0">
+                        <div class="text-[10px] font-semibold mb-0.5 flex items-center gap-1" style="color: var(--primary-color)">
+                            <i class="fas fa-reply text-[8px]"></i> Cavab
+                        </div>
+                        <div class="text-xs text-neutral-300 truncate" id="replyText"></div>
+                    </div>
+                    <button onclick="cancelReply()" class="p-1.5 hover:bg-neutral-800 rounded-full text-neutral-400 hover:text-white transition">
+                        <i class="fas fa-times text-xs"></i>
+                    </button>
+                </div>
+
+                <div id="chatMessages" class="messages-scroll">
+                    <div id="typingIndicator" class="hidden typing-indicator">
+                        <div class="typing-dots">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                        <span id="typingText">kimsə yazır...</span>
+                    </div>
+                </div>
+                
+                <div class="chat-input-area">
+                    <div class="input-container">
+                        <textarea id="messageInput" placeholder="Mesaj yaz..." rows="1" 
+                            class="chat-textarea"
+                            oninput="autoResize(this); handleTyping()"
+                            onkeypress="handleKeyPress(event)"></textarea>
+                        <button onclick="sendMessage()" class="send-btn">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="notificationToast" class="notification-red fixed top-20 right-4 p-4 rounded-2xl z-50 transform translate-x-[150%] transition-transform duration-300 max-w-xs">
+        <div class="flex items-start gap-3">
+            <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0" style="color: var(--primary-color)">
+                <i class="fas fa-info"></i>
+            </div>
+            <div>
+                <div class="text-sm font-bold text-white mb-0.5" id="notifTitle">Bildiriş</div>
+                <div class="text-xs text-neutral-400 leading-relaxed" id="notifText">...</div>
+            </div>
+        </div>
+    </div>
 
     <script>
-        // Firebase Configuration - REPLACE WITH YOUR CONFIG
+        // Firebase Configuration
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_PROJECT.firebaseapp.com",
-            databaseURL: "https://YOUR_PROJECT.firebaseio.com",
-            projectId: "YOUR_PROJECT",
-            storageBucket: "YOUR_PROJECT.appspot.com",
-            messagingSenderId: "YOUR_SENDER_ID",
-            appId: "YOUR_APP_ID"
+            apiKey: "AIzaSyCM5WdZNSj9oFipNI-J3csHpOIvK8PfyJRdk",
+            authDomain: "sevgili-testi.firebaseapp.com",
+            databaseURL: "https://sevgili-testi-default-rtdb.firebaseio.com",
+            projectId: "sevgili-testi",
+            storageBucket: "sevgili-testi.firebasestorage.app",
+            messagingSenderId: "399260477557",
+            appId: "1:399260477557:web:584204a698d7bf145bb03c",
+            measurementId: "G-44P21XCZ7G"
         };
         
-        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+        const YOUTUBE_API_KEY = "AIzaSyBterRsxZoTvVbxlsOzESKWBDAY2B8BWc4";
         
-        // YouTube API Key - SHOULD BE HIDDEN IN PRODUCTION
-        const YOUTUBE_API_KEY = "YOUR_YOUTUBE_API_KEY";
-        
-        // Global State Variables
-        let userId = localStorage.getItem('syncUserId') || 'user_' + Math.random().toString(36).substr(2, 9);
-        localStorage.setItem('syncUserId', userId);
+        let userId = localStorage.getItem('syncUserId');
+        if (!userId) {
+            userId = 'user_' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('syncUserId', userId);
+        }
         
         let currentRoom = null;
         let isHost = false;
@@ -275,13 +582,13 @@
         let currentVideoId = null;
         let replyingTo = null;
         let userName = '';
-        let userAvatar = '';
+        let userAvatar = localStorage.getItem('userAvatar') || '';
         let selectedUserId = null;
         let userPermissions = { chat: true, video: true, changeVideo: false };
         let typingTimeout = null;
         let cinemaMode = false;
         let currentReactionMessageId = null;
-        let listeners = []; // Track listeners for cleanup
+        let listeners = [];
         
         const themes = [
             { id: 'red', name: 'Qırmızı', color: '#dc2626' },
@@ -295,25 +602,44 @@
             { id: 'orange', name: 'Narıncı', color: '#f97316' }
         ];
         
-        // Server time sync
         db.ref(".info/serverTimeOffset").on("value", (snap) => { 
             serverOffset = snap.val() || 0; 
         });
         
         const getServerTime = () => Date.now() + serverOffset;
         
-        // Avatar handling - FIXED
+        // Initialize saved avatar on DOM ready
+        document.addEventListener('DOMContentLoaded', function() {
+            if (userAvatar) {
+                updateAvatarUI(userAvatar);
+            }
+        });
+        
+        function updateAvatarUI(imageData) {
+            const preview = document.getElementById('avatarPreview');
+            const placeholder = document.getElementById('avatarPlaceholder');
+            
+            if (preview && placeholder) {
+                preview.src = imageData;
+                preview.classList.add('show');
+                placeholder.classList.add('hidden');
+            }
+        }
+        
+        function triggerAvatarUpload() {
+            const input = document.getElementById('avatarInput');
+            if (input) input.click();
+        }
+        
         function handleAvatarSelect(event) {
             const file = event.target.files[0];
             if (!file) return;
             
-            // Validate file size (2MB max)
             if (file.size > 2 * 1024 * 1024) { 
                 showNotification('Xəta', 'Şəkil 2MB-dan kiçik olmalıdır!'); 
                 return; 
             }
             
-            // Validate file type
             if (!file.type.startsWith('image/')) {
                 showNotification('Xəta', 'Yalnız şəkil faylları qəbul olunur!');
                 return;
@@ -322,22 +648,13 @@
             const reader = new FileReader();
             reader.onload = function(e) {
                 userAvatar = e.target.result;
-                const preview = document.getElementById('avatarPreview');
-                const placeholder = document.getElementById('avatarPlaceholder');
+                localStorage.setItem('userAvatar', userAvatar);
+                updateAvatarUI(userAvatar);
                 
-                if (preview && placeholder) {
-                    preview.src = userAvatar;
-                    preview.classList.remove('hidden');
-                    placeholder.classList.add('hidden');
-                    
-                    // Hide error if visible
-                    const error = document.getElementById('avatarError');
-                    if (error) error.classList.add('hidden');
-                    
-                    // Save to localStorage
-                    localStorage.setItem('userAvatar', userAvatar);
-                    showNotification('Uğurlu', 'Profil şəkli seçildi');
-                }
+                const error = document.getElementById('avatarError');
+                if (error) error.classList.add('hidden');
+                
+                showNotification('Uğurlu', 'Profil şəkli seçildi');
             };
             
             reader.onerror = function() {
@@ -347,26 +664,21 @@
             reader.readAsDataURL(file);
         }
         
-        // Trigger file input click
-        function triggerAvatarUpload() {
-            document.getElementById('avatarInput').click();
-        }
-        
-        // Validation
         function validateInputs() {
             const nameInput = document.getElementById('hostName');
-            if (!nameInput) return false;
+            if (!nameInput) {
+                console.error('hostName input not found');
+                return false;
+            }
             
             const name = nameInput.value.trim();
-            const preview = document.getElementById('avatarPreview');
-            const hasAvatar = preview && !preview.classList.contains('hidden');
             
             if (!name) { 
                 showNotification('Xəta', 'Adınızı daxil edin!'); 
                 return false; 
             }
             
-            if (!hasAvatar) { 
+            if (!userAvatar) { 
                 const error = document.getElementById('avatarError');
                 if (error) error.classList.remove('hidden');
                 showNotification('Xəta', 'Profil şəkli seçilməlidir');
@@ -380,7 +692,6 @@
             return Math.random().toString(36).substring(2, 8).toUpperCase();
         }
 
-        // Theme functions
         function initThemePicker() {
             const grid = document.getElementById('themeGrid');
             if (!grid) return;
@@ -432,7 +743,7 @@
         }
         
         function applyTheme(themeId) {
-            document.body.className = document.body.className.replace(/theme-\w+/g, '');
+            document.body.className = document.body.className.replace(/theme-\w+/g, '').trim();
             document.body.classList.add(`theme-${themeId}`);
             
             document.querySelectorAll('.theme-option').forEach(el => {
@@ -441,15 +752,22 @@
             });
         }
 
-        // Room Management
         async function createRoom() {
-            if (!validateInputs()) return;
+            console.log('Creating room...');
             
-            userName = document.getElementById('hostName').value.trim();
+            if (!validateInputs()) {
+                console.log('Validation failed');
+                return;
+            }
+            
+            const nameInput = document.getElementById('hostName');
+            userName = nameInput ? nameInput.value.trim() : 'İsimsiz';
             const code = generateRoomCode();
             
+            console.log('Generated code:', code);
+            
             try {
-                await db.ref(`rooms/${code}`).set({
+                const roomData = {
                     createdAt: firebase.database.ServerValue.TIMESTAMP,
                     hostId: userId,
                     theme: { 
@@ -474,12 +792,17 @@
                         }
                     },
                     permissions: {}
-                });
+                };
+                
+                console.log('Saving room data:', roomData);
+                
+                await db.ref(`rooms/${code}`).set(roomData);
+                console.log('Room created successfully');
                 
                 enterRoom(code, true);
             } catch (error) {
                 console.error("Error creating room:", error);
-                showNotification('Xəta', 'Otaq yaradılarkən xəta baş verdi');
+                showNotification('Xəta', 'Otaq yaradılarkən xəta baş verdi: ' + error.message);
             }
         }
 
@@ -495,7 +818,8 @@
                 return;
             }
             
-            userName = document.getElementById('hostName').value.trim();
+            const nameInput = document.getElementById('hostName');
+            userName = nameInput ? nameInput.value.trim() : 'İsimsiz';
             
             try {
                 const roomSnap = await db.ref(`rooms/${code}`).once('value');
@@ -518,7 +842,7 @@
                 enterRoom(code, false);
             } catch (error) {
                 console.error("Error joining room:", error);
-                showNotification('Xəta', 'Otağa qoşularkən xəta baş verdi');
+                showNotification('Xəta', 'Otağa qoşularkən xəta baş verdi: ' + error.message);
             }
         }
 
@@ -546,9 +870,11 @@
                 const hostControls = document.getElementById('hostControls');
                 const changeVideoBtn = document.getElementById('changeVideoBtn');
                 const viewerOverlay = document.getElementById('viewerOverlay');
+                const searchContainer = document.getElementById('searchContainer');
                 
                 if (hostControls) hostControls.classList.remove('hidden');
                 if (changeVideoBtn) changeVideoBtn.classList.remove('hidden');
+                if (searchContainer) searchContainer.classList.remove('hidden');
                 if (viewerOverlay) viewerOverlay.classList.add('hidden');
                 
                 userPermissions = { chat: true, video: true, changeVideo: true };
@@ -613,7 +939,6 @@
             });
         }
 
-        // Cinema Mode
         function toggleCinemaMode() {
             cinemaMode = !cinemaMode;
             document.body.classList.toggle('cinema-mode');
@@ -639,7 +964,6 @@
             }
         });
 
-        // YouTube Player
         function initPlayer() {
             if (typeof YT === 'undefined' || !YT.Player) { 
                 setTimeout(initPlayer, 100); 
@@ -668,7 +992,6 @@
         }
 
         function onPlayerReady() {
-            // Host sends sync data periodically
             if (isHost || userPermissions.changeVideo) {
                 setInterval(() => {
                     if (!player?.getCurrentTime || ignoreUpdates || !currentRoom) return;
@@ -752,7 +1075,6 @@
             }
         }
 
-        // Search
         function toggleSearch() { 
             const canChange = isHost || userPermissions.changeVideo;
             if (!canChange) {
@@ -767,7 +1089,10 @@
             const container = document.getElementById('searchContainer');
             const results = document.getElementById('searchResults');
             if (container) container.classList.add('hidden'); 
-            if (results) results.classList.add('hidden'); 
+            if (results) {
+                results.classList.add('hidden');
+                results.innerHTML = '';
+            }
         }
 
         async function searchYouTube() {
@@ -814,7 +1139,6 @@
                             </div>
                             <div class="flex-1 min-w-0">
                                 <h4 class="text-xs font-bold text-white line-clamp-2 mb-1">${escapeHtml(item.snippet.title)}</h4>
-                                <p class="text-[10px] text-neutral-500">${escapeHtml(item.snippet.channelTitle)}</p>
                             </div>
                         `;
                         resultsDiv.appendChild(card);
@@ -823,7 +1147,7 @@
             } catch (err) {
                 console.error("Search error:", err);
                 if (resultsDiv) {
-                    resultsDiv.innerHTML = `<div class="text-xs text-center p-2" style="color: var(--primary-color)">Axtarış zamanı xəta baş verdi</div>`;
+                    resultsDiv.innerHTML = `<div class="text-xs text-center p-2 text-red-400">Axtarış zamanı xəta baş verdi: ${err.message}</div>`;
                 }
             }
         }
@@ -869,7 +1193,6 @@
             }
         }
 
-        // User Modal (Moderator)
         function openUserModal(uid, userData) {
             if (!isHost || uid === userId) return;
             
@@ -929,11 +1252,9 @@
             }
         }
 
-        // Chat System
         function setupListeners() {
             if (!currentRoom) return;
             
-            // Users listener
             const usersRef = db.ref(`rooms/${currentRoom}/users`);
             listeners.push(usersRef);
             
@@ -953,7 +1274,7 @@
                     chip.className = `user-chip ${data.isHost ? 'host' : ''}`;
                     chip.onclick = () => openUserModal(uid, data);
                     chip.innerHTML = `
-                        <img src="${data.avatar || 'https://via.placeholder.com/24'}" class="w-6 h-6 rounded-full object-cover" alt="${escapeHtml(data.name)}">
+                        <img src="${data.avatar || 'https://via.placeholder.com/24'}" class="w-6 h-6 rounded-full object-cover" alt="">
                         <span class="text-xs font-medium text-neutral-200">${escapeHtml(data.name)}</span>
                         ${data.isHost ? '<i class="fas fa-crown text-amber-400 text-[10px]"></i>' : ''}
                     `;
@@ -967,7 +1288,6 @@
                 if (usersCountText) usersCountText.textContent = count;
             });
 
-            // Messages listener
             const messagesRef = db.ref(`rooms/${currentRoom}/messages`).limitToLast(50);
             listeners.push(messagesRef);
             
@@ -976,7 +1296,6 @@
                 if (msg) displayMessage(snap.key, msg);
             });
 
-            // Typing listener
             const typingRef = db.ref(`rooms/${currentRoom}/typing`);
             listeners.push(typingRef);
             
@@ -1000,7 +1319,6 @@
                 }
             });
             
-            // Permission listener for non-hosts
             if (!isHost) {
                 const permRef = db.ref(`rooms/${currentRoom}/permissions/${userId}`);
                 listeners.push(permRef);
@@ -1032,7 +1350,6 @@
                     }
                 });
                 
-                // Check if kicked
                 const userRef = db.ref(`rooms/${currentRoom}/users/${userId}`);
                 listeners.push(userRef);
                 
@@ -1076,7 +1393,7 @@
             
             let reactionsHtml = '<div class="reaction-bar" id="reactions-' + msgId + '"></div>';
             
-            const avatarHtml = `<img src="${msg.avatar || 'https://via.placeholder.com/32'}" class="msg-avatar" alt="${escapeHtml(msg.name)}" onclick="${!isOwn ? `setReply('${msgId}', '${escapeHtml(msg.name)}', '${escapeHtml(msg.text)}')` : ''}">`;
+            const avatarHtml = `<img src="${msg.avatar || 'https://via.placeholder.com/32'}" class="msg-avatar" alt="" onclick="${!isOwn ? `setReply('${msgId}', '${escapeHtml(msg.name)}', '${escapeHtml(msg.text)}')` : ''}">`;
             
             const html = `
                 ${!isOwn ? avatarHtml : ''}
@@ -1144,7 +1461,9 @@
             if (event) event.stopPropagation();
             currentReactionMessageId = msgId;
             
-            document.querySelectorAll('.emoji-picker').forEach(el => el.remove());
+            document.querySelectorAll('.emoji-picker').forEach(el => {
+                if (el.id !== 'emojiPickerTemplate') el.remove();
+            });
             
             const template = document.getElementById('emojiPickerTemplate');
             if (!template) return;
@@ -1286,8 +1605,11 @@
 
         function copyCode() {
             if (!currentRoom) return;
-            navigator.clipboard.writeText(currentRoom);
-            showNotification('Kopyalandı', 'Otaq kodu kopyalandı');
+            navigator.clipboard.writeText(currentRoom).then(() => {
+                showNotification('Kopyalandı', 'Otaq kodu kopyalandı');
+            }).catch(() => {
+                showNotification('Xəta', 'Kopyalama baş tutmadı');
+            });
         }
 
         function shareCode() {
@@ -1296,7 +1618,6 @@
                     title: 'KinoZal',
                     text: 'KinoZal otağına qoşul: ' + currentRoom
                 }).catch(err => {
-                    // User cancelled or error
                     copyCode();
                 });
             } else {
@@ -1305,11 +1626,9 @@
         }
 
         function cleanupAndReload() {
-            // Remove all listeners
             listeners.forEach(ref => ref.off());
             listeners = [];
             
-            // Remove user data
             if (currentRoom) {
                 db.ref(`rooms/${currentRoom}/users/${userId}`).remove();
                 db.ref(`rooms/${currentRoom}/typing/${userId}`).remove();
@@ -1326,325 +1645,6 @@
                 cleanupAndReload();
             }
         }
-
-        // Initialize saved avatar on load
-        const savedAvatar = localStorage.getItem('userAvatar');
-        if (savedAvatar) {
-            userAvatar = savedAvatar;
-            const preview = document.getElementById('avatarPreview');
-            const placeholder = document.getElementById('avatarPlaceholder');
-            
-            if (preview && placeholder) {
-                preview.src = savedAvatar;
-                preview.classList.remove('hidden');
-                placeholder.classList.add('hidden');
-            }
-        }
     </script>
-
-    <!-- LANDING PAGE -->
-    <div id="landing" class="flex-1 flex items-center justify-center p-4 bg-gradient-to-br from-neutral-950 via-red-950/20 to-neutral-950 overflow-auto">
-        <div class="max-w-md w-full space-y-6 pb-8">
-            <div class="text-center space-y-2">
-                <h1 class="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-rose-600 mb-2">📽️ KinoZal</h1>
-                <p class="text-red-200/60 text-sm">Demo - Test Mərhələsi</p>
-            </div>
-
-            <div class="glass-red rounded-3xl p-8 space-y-6 shadow-2xl">
-                <div class="flex flex-col items-center space-y-3">
-                    <label class="text-xs font-semibold uppercase tracking-wider" style="color: var(--primary-color)">Profil Şəkli</label>
-                    
-                    <!-- Fixed Avatar Upload -->
-                    <div class="avatar-upload" id="avatarUpload" onclick="triggerAvatarUpload()">
-                        <div class="avatar-placeholder" id="avatarPlaceholder">
-                            <i class="fas fa-camera text-2xl mb-1"></i>
-                            <span class="text-xs">Şəkil seç</span>
-                        </div>
-                        <img id="avatarPreview" class="avatar-preview hidden" alt="Avatar">
-                    </div>
-                    
-                    <p class="text-xs hidden text-red-400" id="avatarError">
-                        <i class="fas fa-exclamation-circle mr-1"></i>Şəkil seçilməlidir
-                    </p>
-                    <p class="text-[10px] text-neutral-500">Maksimum 2MB</p>
-                </div>
-
-                <div class="space-y-3">
-                    <input type="text" id="hostName" placeholder="Adınızı daxil edin" 
-                        class="w-full px-4 py-3 rounded-xl bg-black/40 border text-white focus:outline-none transition text-center font-medium placeholder-white/30" 
-                        style="border-color: var(--border-color)">
-                    
-                    <button onclick="createRoom()" 
-                        class="w-full py-3.5 rounded-xl font-bold transition shadow-lg text-white" 
-                        style="background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); box-shadow: 0 10px 30px var(--shadow-color);">
-                        <i class="fas fa-plus-circle mr-2"></i>Otaq Yarat
-                    </button>
-                </div>
-
-                <div class="relative flex items-center py-2">
-                    <div class="flex-grow border-t" style="border-color: var(--border-color)"></div>
-                    <span class="px-3 text-xs" style="color: var(--primary-light)">VE YA</span>
-                    <div class="flex-grow border-t" style="border-color: var(--border-color)"></div>
-                </div>
-
-                <div class="space-y-3">
-                    <input type="text" id="joinRoomId" placeholder="Otaq Kodu" 
-                        class="w-full px-4 py-3 rounded-xl bg-black/40 border text-white uppercase text-center font-bold tracking-widest focus:outline-none transition placeholder-white/30" 
-                        style="border-color: var(--border-color)">
-                    <button onclick="joinRoom()" 
-                        class="w-full py-3.5 bg-neutral-900 hover:bg-neutral-800 rounded-xl font-bold transition border text-white/90" 
-                        style="border-color: var(--border-color)">
-                        <i class="fas fa-sign-in-alt mr-2"></i>Qoşul
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- THEME PICKER MODAL -->
-    <div id="themePicker" class="theme-picker">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-bold">🎨 Tema Seç</h3>
-            <button onclick="closeThemePicker()" class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div class="theme-grid" id="themeGrid"></div>
-        <p class="text-xs text-center mt-4 opacity-60">Yalnız moderator dəyişə bilər</p>
-    </div>
-
-    <!-- MODERATOR MODAL -->
-    <div id="userModal" class="fixed inset-0 modal-overlay hidden z-50 flex items-center justify-center p-4" onclick="if(event.target === this) closeUserModal()">
-        <div class="modal-content-red rounded-3xl p-6 w-full max-w-sm">
-            <div class="flex items-center gap-4 mb-6">
-                <img id="modalUserAvatar" src="" class="w-16 h-16 rounded-full object-cover" style="border: 2px solid var(--primary-color)">
-                <div class="flex-1">
-                    <h3 id="modalUserName" class="text-lg font-bold text-white"></h3>
-                    <p class="text-xs" style="color: var(--primary-light)" id="modalUserStatus">İzləyici</p>
-                </div>
-                <button onclick="closeUserModal()" class="ml-auto p-2 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded-full transition">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            
-            <div class="space-y-3">
-                <h4 class="text-xs font-bold uppercase tracking-wider mb-2" style="color: var(--primary-color)">İcazələr</h4>
-                
-                <div class="permission-toggle flex items-center justify-between p-3 rounded-xl bg-neutral-900/80 border" style="border-color: var(--border-color)">
-                    <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center" style="color: var(--primary-color)">
-                            <i class="fas fa-comment text-sm"></i>
-                        </div>
-                        <span class="text-sm font-medium text-neutral-200">Yazı Yazmaq</span>
-                    </div>
-                    <div class="toggle-switch active" id="permChat" onclick="togglePermission('chat')"></div>
-                </div>
-                
-                <div class="permission-toggle flex items-center justify-between p-3 rounded-xl bg-neutral-900/80 border" style="border-color: var(--border-color)">
-                    <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center" style="color: var(--primary-color)">
-                            <i class="fas fa-eye text-sm"></i>
-                        </div>
-                        <span class="text-sm font-medium text-neutral-200">Video İzləmə</span>
-                    </div>
-                    <div class="toggle-switch active" id="permVideo" onclick="togglePermission('video')"></div>
-                </div>
-                
-                <div class="permission-toggle flex items-center justify-between p-3 rounded-xl bg-neutral-900/80 border" style="border-color: var(--border-color)">
-                    <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center" style="color: var(--primary-color)">
-                            <i class="fas fa-film text-sm"></i>
-                        </div>
-                        <span class="text-sm font-medium text-neutral-200">Video Seçmə</span>
-                    </div>
-                    <div class="toggle-switch" id="permChangeVideo" onclick="togglePermission('changeVideo')"></div>
-                </div>
-            </div>
-            
-            <div class="mt-6">
-                <button onclick="kickUser()" class="danger-btn w-full">
-                    <i class="fas fa-sign-out-alt mr-2"></i>Otaqdan At
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- REACTION PICKER TEMPLATE -->
-    <div id="emojiPickerTemplate" class="emoji-picker">
-        <button class="emoji-btn" onclick="addReaction('👍')">👍</button>
-        <button class="emoji-btn" onclick="addReaction('❤️')">❤️</button>
-        <button class="emoji-btn" onclick="addReaction('😂')">😂</button>
-        <button class="emoji-btn" onclick="addReaction('😮')">😮</button>
-        <button class="emoji-btn" onclick="addReaction('😢')">😢</button>
-        <button class="emoji-btn" onclick="addReaction('😡')">😡</button>
-        <button class="emoji-btn" onclick="addReaction('🎉')">🎉</button>
-        <button class="emoji-btn" onclick="addReaction('🔥')">🔥</button>
-        <button class="emoji-btn" onclick="addReaction('👏')">👏</button>
-        <button class="emoji-btn" onclick="addReaction('😍')">😍</button>
-        <button class="emoji-btn" onclick="addReaction('🤔')">🤔</button>
-        <button class="emoji-btn" onclick="addReaction('👎')">👎</button>
-    </div>
-
-    <!-- ROOM INTERFACE -->
-    <div id="room" class="hidden flex-1 flex flex-col relative">
-        <!-- Cinema Toggle -->
-        <button class="cinema-toggle" onclick="toggleCinemaMode()" title="Sinema Rejimi">
-            <i class="fas fa-film text-xl"></i>
-        </button>
-        
-        <button class="cinema-exit" onclick="toggleCinemaMode()">
-            <i class="fas fa-compress"></i>
-            <span>Sinema rejimindən çıx</span>
-        </button>
-
-        <header class="glass-red border-b h-14 flex items-center justify-between px-4 shrink-0 z-20" style="border-color: var(--border-color); height: 56px; min-height: 56px;">
-            <div class="flex items-center space-x-3">
-                <h1 class="text-lg font-bold text-white">Kino<span style="color: var(--primary-color)">Zal</span></h1>
-                
-                <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-black/40 border" style="border-color: var(--border-color)">
-                    <span class="text-[10px] uppercase font-bold" style="color: var(--primary-color)">Kod:</span>
-                    <span id="roomCode" class="font-mono font-bold text-sm tracking-wider" style="color: var(--primary-color)">---</span>
-                    <div class="flex items-center gap-1 ml-2 border-l pl-2" style="border-color: var(--border-color)">
-                        <button onclick="copyCode()" class="p-1.5 text-neutral-400 hover:text-white transition" title="Kopyala">
-                            <i class="fas fa-copy text-xs"></i>
-                        </button>
-                        <button onclick="shareCode()" class="p-1.5 text-neutral-400 hover:text-white transition" title="Paylaş">
-                            <i class="fas fa-share-alt text-xs"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="flex items-center space-x-2">
-                <button onclick="openThemePicker()" class="theme-btn" title="Tema Dəyiş">
-                    <div class="color-dot"></div>
-                    <span class="hidden sm:inline">Tema</span>
-                    <i class="fas fa-palette"></i>
-                </button>
-
-                <span id="activeUsersCount" class="hidden md:flex items-center px-3 py-1 rounded-full text-xs border" style="background: var(--glass-bg); border-color: var(--border-color); color: var(--primary-color)">
-                    <i class="fas fa-users mr-1.5"></i>
-                    <span id="usersCountText">1</span>
-                </span>
-                
-                <span id="userType" class="px-3 py-1 rounded-full text-xs font-bold bg-neutral-900 border" style="border-color: var(--border-color)">İzləyici</span>
-                <button onclick="leaveRoom()" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 transition" style="color: var(--primary-color)">
-                    <i class="fas fa-times text-sm"></i>
-                </button>
-            </div>
-        </header>
-
-        <!-- Main Container -->
-        <div class="main-container overflow-hidden">
-            <!-- Video Section -->
-            <div id="videoSection">
-                <button id="changeVideoBtn" onclick="toggleSearch()" class="hidden absolute top-4 right-4 z-40 glass-red px-4 py-2 rounded-xl border text-sm font-bold text-white shadow-lg transition hover:scale-105" style="border-color: var(--border-color)">
-                    <i class="fas fa-film mr-2" style="color: var(--primary-color)"></i>Video Dəyiş
-                </button>
-
-                <div id="searchContainer" class="hidden absolute top-16 left-1/2 transform -translate-x-1/2 z-30 w-full max-w-lg px-4">
-                    <div class="glass-red rounded-2xl overflow-hidden shadow-2xl border" style="border-color: var(--border-color)">
-                        <div class="flex items-center px-4 py-3 border-b bg-neutral-950/50" style="border-color: var(--border-color)">
-                            <i class="fas fa-search mr-3" style="color: var(--primary-color)"></i>
-                            <input type="text" id="searchQuery" placeholder="YouTube-da axtar..." class="flex-1 bg-transparent border-none outline-none text-white placeholder-neutral-500 text-sm" onkeypress="if(event.key==='Enter') searchYouTube()">
-                            <button onclick="searchYouTube()" class="px-4 py-1.5 rounded-lg text-sm font-bold transition shadow-lg text-white" style="background: var(--primary-color)">Axtar</button>
-                            <button onclick="closeSearch()" class="ml-2 p-2 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded-lg transition">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
-                        <div id="searchResults" class="hidden max-h-[35vh] overflow-y-auto p-3 bg-neutral-950/98 space-y-2"></div>
-                    </div>
-                </div>
-
-                <div class="flex-1 relative flex items-center justify-center bg-black h-full">
-                    <div id="playerWrapper" class="w-full h-full relative">
-                        <div id="player"></div>
-                        <div id="viewerOverlay" class="hidden viewer-overlay"></div>
-                    </div>
-                    <div id="playerLoader" class="absolute inset-0 flex items-center justify-center bg-black z-10">
-                        <div class="spinner"></div>
-                    </div>
-                </div>
-
-                <div id="hostControls" class="hidden glass-red border-t p-3 z-30 absolute bottom-0 left-0 right-0" style="border-color: var(--border-color)">
-                    <div class="flex items-center justify-center space-x-6">
-                        <button onclick="playerControl('seek', -10)" class="p-2 transition" style="color: var(--primary-color)">
-                            <i class="fas fa-backward"></i>
-                        </button>
-                        <button id="playPauseBtn" onclick="playerControl('toggle')" class="w-12 h-12 rounded-full flex items-center justify-center hover:scale-105 transition shadow-lg text-white" style="background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); box-shadow: 0 0 20px var(--shadow-color)">
-                            <i class="fas fa-play ml-0.5" id="playIcon"></i>
-                            <i class="fas fa-pause hidden" id="pauseIcon"></i>
-                        </button>
-                        <button onclick="playerControl('seek', 10)" class="p-2 transition" style="color: var(--primary-color)">
-                            <i class="fas fa-forward"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Chat Section -->
-            <div class="chat-container">
-                <div class="users-bar">
-                    <div class="flex items-center justify-between mb-2">
-                        <h3 class="text-xs font-bold uppercase tracking-wider flex items-center gap-1" style="color: var(--primary-color)">
-                            <i class="fas fa-users text-[10px]"></i>
-                            İştirakçılar
-                        </h3>
-                        <span class="text-[11px] text-neutral-500 bg-neutral-900/50 px-2 py-0.5 rounded-full" id="onlineCount">0 onlayn</span>
-                    </div>
-                    <div id="usersList" class="flex gap-2 overflow-x-auto custom-scrollbar pb-1"></div>
-                </div>
-
-                <div id="replyIndicator" class="hidden reply-bar" style="margin: 8px 16px 0 16px;">
-                    <div class="flex-1 min-w-0">
-                        <div class="text-[10px] font-semibold mb-0.5 flex items-center gap-1" style="color: var(--primary-color)">
-                            <i class="fas fa-reply text-[8px]"></i> Cavab
-                        </div>
-                        <div class="text-xs text-neutral-300 truncate" id="replyText"></div>
-                    </div>
-                    <button onclick="cancelReply()" class="p-1.5 hover:bg-neutral-800 rounded-full text-neutral-400 hover:text-white transition">
-                        <i class="fas fa-times text-xs"></i>
-                    </button>
-                </div>
-
-                <div id="chatMessages" class="messages-scroll">
-                    <div id="typingIndicator" class="hidden typing-indicator">
-                        <div class="typing-dots">
-                            <span></span>
-                            <span></span>
-                            <span></span>
-                        </div>
-                        <span id="typingText">kimsə yazır...</span>
-                    </div>
-                </div>
-                
-                <!-- Chat Input -->
-                <div class="chat-input-area">
-                    <div class="input-container">
-                        <textarea id="messageInput" placeholder="Mesaj yaz..." rows="1" 
-                            class="chat-textarea"
-                            oninput="autoResize(this); handleTyping()"
-                            onkeypress="handleKeyPress(event)"></textarea>
-                        <button onclick="sendMessage()" class="send-btn">
-                            <i class="fas fa-paper-plane"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Notification Toast -->
-    <div id="notificationToast" class="notification-red fixed top-20 right-4 p-4 rounded-2xl z-50 transform translate-x-[150%] transition-transform duration-300 max-w-xs">
-        <div class="flex items-start gap-3">
-            <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0" style="color: var(--primary-color)">
-                <i class="fas fa-info"></i>
-            </div>
-            <div>
-                <div class="text-sm font-bold text-white mb-0.5" id="notifTitle">Bildiriş</div>
-                <div class="text-xs text-neutral-400 leading-relaxed" id="notifText">...</div>
-            </div>
-        </div>
-    </div>
 </body>
 </html>
