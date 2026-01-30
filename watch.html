@@ -45,8 +45,14 @@
         .msg-wrapper {
             display: flex;
             width: 100%;
-            margin-bottom: 2px;
+            margin-bottom: 4px;
             animation: msgAppear 0.2s ease-out;
+            position: relative;
+            group: hover;
+        }
+        
+        .msg-wrapper:hover .reaction-btn {
+            opacity: 1;
         }
         
         @keyframes msgAppear {
@@ -121,6 +127,94 @@
             margin-bottom: 4px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.4);
             cursor: pointer;
+        }
+        
+        .reaction-bar {
+            display: flex;
+            gap: 4px;
+            margin-top: 4px;
+            flex-wrap: wrap;
+        }
+        
+        .reaction-item {
+            background: rgba(220, 38, 38, 0.2);
+            border: 1px solid rgba(220, 38, 38, 0.3);
+            border-radius: 12px;
+            padding: 2px 6px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+        
+        .reaction-item:hover {
+            background: rgba(220, 38, 38, 0.4);
+            transform: scale(1.1);
+        }
+        
+        .reaction-item.user-reacted {
+            background: rgba(220, 38, 38, 0.6);
+            border-color: #dc2626;
+        }
+        
+        .reaction-btn {
+            position: absolute;
+            bottom: -10px;
+            right: 0;
+            background: rgba(40, 10, 10, 0.9);
+            border: 1px solid rgba(220, 38, 38, 0.3);
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            transition: all 0.2s;
+            z-index: 10;
+            font-size: 12px;
+        }
+        
+        .msg-own .reaction-btn {
+            right: auto;
+            left: -30px;
+        }
+        
+        .emoji-picker {
+            position: absolute;
+            bottom: 36px;
+            right: 0;
+            background: rgba(20, 0, 0, 0.98);
+            border: 1px solid rgba(220, 38, 38, 0.3);
+            border-radius: 12px;
+            padding: 8px;
+            display: none;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 4px;
+            z-index: 20;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+        
+        .emoji-picker.show {
+            display: grid;
+        }
+        
+        .emoji-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 4px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        
+        .emoji-btn:hover {
+            background: rgba(220, 38, 38, 0.2);
+            transform: scale(1.2);
         }
         
         .chat-input-area {
@@ -224,6 +318,7 @@
             cursor: pointer;
             transition: all 0.2s;
             white-space: nowrap;
+            position: relative;
         }
         
         .user-chip:hover {
@@ -240,6 +335,45 @@
         .user-chip.host:hover {
             background: rgba(234, 179, 8, 0.2);
             box-shadow: 0 4px 12px rgba(234, 179, 8, 0.2);
+        }
+        
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: rgba(220, 38, 38, 0.1);
+            border-radius: 16px;
+            font-size: 11px;
+            color: #f87171;
+            margin-bottom: 8px;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .typing-dots {
+            display: flex;
+            gap: 2px;
+        }
+        
+        .typing-dots span {
+            width: 4px;
+            height: 4px;
+            background: #f87171;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+        
+        .typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+        
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
         }
         
         .messages-scroll::-webkit-scrollbar {
@@ -359,6 +493,13 @@
             margin-top: 8px;
         }
         .danger-btn:hover { background: rgba(239, 68, 68, 0.2); }
+        
+        .viewer-overlay {
+            position: absolute;
+            inset: 0;
+            background: transparent;
+            z-index: 5;
+        }
     </style>
 </head>
 <body class="h-screen flex flex-col bg-neutral-950">
@@ -385,7 +526,9 @@
         let ignoreUpdates = false, currentVideoId = null;
         let replyingTo = null, userName = '', userAvatar = '';
         let selectedUserId = null;
-        let userPermissions = { chat: true, video: true }; // Default permissions
+        let userPermissions = { chat: true, video: true, changeVideo: false };
+        let typingTimeout = null;
+        let messageListeners = [];
         
         db.ref(".info/serverTimeOffset").on("value", (snap) => { serverOffset = snap.val() || 0; });
         const getServerTime = () => Date.now() + serverOffset;
@@ -473,6 +616,16 @@
                     </div>
                     <div class="toggle-switch active" id="permVideo" onclick="togglePermission('video')"></div>
                 </div>
+                
+                <div class="permission-toggle flex items-center justify-between p-3 rounded-xl bg-neutral-900/80 border border-red-500/10">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center text-amber-400">
+                            <i class="fas fa-film text-sm"></i>
+                        </div>
+                        <span class="text-sm font-medium text-neutral-200">Video Seçmə</span>
+                    </div>
+                    <div class="toggle-switch" id="permChangeVideo" onclick="togglePermission('changeVideo')"></div>
+                </div>
             </div>
             
             <div class="mt-6">
@@ -481,6 +634,22 @@
                 </button>
             </div>
         </div>
+    </div>
+
+    <!-- REACTION PICKER TEMPLATE (Hidden) -->
+    <div id="emojiPickerTemplate" class="emoji-picker">
+        <button class="emoji-btn" onclick="addReaction('👍')">👍</button>
+        <button class="emoji-btn" onclick="addReaction('❤️')">❤️</button>
+        <button class="emoji-btn" onclick="addReaction('😂')">😂</button>
+        <button class="emoji-btn" onclick="addReaction('😮')">😮</button>
+        <button class="emoji-btn" onclick="addReaction('😢')">😢</button>
+        <button class="emoji-btn" onclick="addReaction('😡')">😡</button>
+        <button class="emoji-btn" onclick="addReaction('🎉')">🎉</button>
+        <button class="emoji-btn" onclick="addReaction('🔥')">🔥</button>
+        <button class="emoji-btn" onclick="addReaction('👏')">👏</button>
+        <button class="emoji-btn" onclick="addReaction('😍')">😍</button>
+        <button class="emoji-btn" onclick="addReaction('🤔')">🤔</button>
+        <button class="emoji-btn" onclick="addReaction('👎')">👎</button>
     </div>
 
     <!-- ROOM INTERFACE -->
@@ -589,13 +758,21 @@
                 </div>
 
                 <div id="chatMessages" class="messages-scroll min-h-0">
+                    <div id="typingIndicator" class="hidden typing-indicator">
+                        <div class="typing-dots">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                        <span id="typingText">kimsə yazır...</span>
+                    </div>
                 </div>
                 
                 <div class="chat-input-area shrink-0">
                     <div class="input-container">
                         <textarea id="messageInput" placeholder="Mesaj yaz..." rows="1" 
                             class="chat-textarea"
-                            oninput="autoResize(this)"
+                            oninput="autoResize(this); handleTyping()"
                             onkeypress="handleKeyPress(event)"></textarea>
                         <button onclick="sendMessage()" class="send-btn">
                             <i class="fas fa-paper-plane text-sm"></i>
@@ -620,6 +797,8 @@
     </div>
 
     <script>
+        let currentReactionMessageId = null;
+
         function handleAvatarSelect(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -695,17 +874,29 @@
                 document.getElementById('hostControls').classList.remove('hidden');
                 document.getElementById('changeVideoBtn').classList.remove('hidden');
                 document.getElementById('searchContainer').classList.remove('hidden');
-                // MODERATOR üçün icazələri təyin et
-                userPermissions = { chat: true, video: true };
+                document.getElementById('viewerOverlay').classList.add('hidden');
+                userPermissions = { chat: true, video: true, changeVideo: true };
             } else {
                 userType.textContent = '👁️ İzləyici';
                 userType.className = 'px-3 py-1 rounded-full text-xs font-bold bg-red-500/10 text-red-400 border border-red-500/30';
                 document.getElementById('viewerOverlay').classList.remove('hidden');
+                loadUserPermissions();
             }
             
             initPlayer();
             setupListeners();
             setupVisibility();
+        }
+
+        async function loadUserPermissions() {
+            const snap = await db.ref(`rooms/${currentRoom}/permissions/${userId}`).once('value');
+            const perms = snap.val();
+            if (perms) {
+                userPermissions = { ...userPermissions, ...perms };
+                if (perms.changeVideo) {
+                    document.getElementById('changeVideoBtn').classList.remove('hidden');
+                }
+            }
         }
         
         function setupVisibility() {
@@ -718,7 +909,7 @@
         }
 
         function initPlayer() {
-            if (typeof YT === 'undefined') { setTimeout(initPlayer, 100); return; }
+            if (typeof YT === 'undefined' || !YT.Player) { setTimeout(initPlayer, 100); return; }
             player = new YT.Player('player', {
                 height: '100%', width: '100%',
                 videoId: 'jfKfPfyJRdk',
@@ -729,21 +920,49 @@
         }
 
         function onPlayerReady() {
-            if (isHost) {
+            if (isHost || userPermissions.changeVideo) {
                 setInterval(() => {
                     if (!player?.getCurrentTime || ignoreUpdates) return;
-                    db.ref(`rooms/${currentRoom}/currentVideo`).update({
-                        time: player.getCurrentTime(),
-                        isPlaying: player.getPlayerState() === YT.PlayerState.PLAYING,
-                        timestamp: firebase.database.ServerValue.TIMESTAMP
-                    });
+                    if (isHost) {
+                        db.ref(`rooms/${currentRoom}/currentVideo`).update({
+                            time: player.getCurrentTime(),
+                            isPlaying: player.getPlayerState() === YT.PlayerState.PLAYING,
+                            timestamp: firebase.database.ServerValue.TIMESTAMP
+                        });
+                    }
                 }, 2000);
             }
+            
+            syncVideo();
+        }
+
+        function syncVideo() {
+            db.ref(`rooms/${currentRoom}/currentVideo`).on('value', (snap) => {
+                if (!player?.loadVideoById || ignoreUpdates) return;
+                const video = snap.val();
+                if (!video) return;
+                
+                if (currentVideoId !== video.id) {
+                    currentVideoId = video.id;
+                    player.loadVideoById(video.id);
+                    showNotification('Yeni video', video.title?.substring(0, 40) + '...');
+                }
+                
+                if (!isHost && !userPermissions.changeVideo) {
+                    const timeDiff = Math.abs(player.getCurrentTime() - video.time);
+                    if (timeDiff > 2) player.seekTo(video.time, true);
+                    
+                    const isPlaying = player.getPlayerState() === YT.PlayerState.PLAYING;
+                    if (video.isPlaying && !isPlaying) player.playVideo();
+                    else if (!video.isPlaying && isPlaying) player.pauseVideo();
+                }
+            });
         }
 
         function onPlayerStateChange(e) {
             updatePlayIcon(e.data === YT.PlayerState.PLAYING);
-            if (!isHost || ignoreUpdates) return;
+            if ((!isHost && !userPermissions.changeVideo) || ignoreUpdates) return;
+            
             db.ref(`rooms/${currentRoom}/currentVideo`).update({
                 isPlaying: e.data === YT.PlayerState.PLAYING,
                 time: player.getCurrentTime(),
@@ -756,7 +975,15 @@
             document.getElementById('pauseIcon').classList.toggle('hidden', !playing);
         }
 
-        function toggleSearch() { document.getElementById('searchContainer').classList.toggle('hidden'); }
+        function toggleSearch() { 
+            const canChange = isHost || userPermissions.changeVideo;
+            if (!canChange) {
+                showNotification('İcazə yoxdur', 'Video dəyişmək üçün moderatordan icazə istəyin');
+                return;
+            }
+            document.getElementById('searchContainer').classList.toggle('hidden'); 
+        }
+        
         function closeSearch() { document.getElementById('searchContainer').classList.add('hidden'); document.getElementById('searchResults').classList.add('hidden'); }
 
         async function searchYouTube() {
@@ -789,15 +1016,18 @@
                     resultsDiv.appendChild(card);
                 });
             } catch (err) {
-                resultsDiv.innerHTML = `<div class="text-red-400 text-xs text-center p-2">${err.message}</div>`;
+                resultsDiv.innerHTML = `<div class="text-red-400 text-xs text-center p-2">Xəta baş verdi</div>`;
             }
         }
 
         function selectVideo(id, title) {
-            if (!isHost) return;
+            const canChange = isHost || userPermissions.changeVideo;
+            if (!canChange) return;
+            
             currentVideoId = id;
             player.loadVideoById(id);
             closeSearch();
+            
             db.ref(`rooms/${currentRoom}/currentVideo`).set({
                 id: id, title: title, time: 0, isPlaying: true,
                 timestamp: firebase.database.ServerValue.TIMESTAMP
@@ -806,7 +1036,7 @@
         }
 
         function playerControl(action, val) {
-            if (!isHost || !player) return;
+            if ((!isHost && !userPermissions.changeVideo) || !player) return;
             ignoreUpdates = true;
             setTimeout(() => ignoreUpdates = false, 500);
             if (action === 'toggle') {
@@ -817,7 +1047,7 @@
             }
         }
 
-        // MODERATOR FUNKSİYALARI
+        // MODERATOR FUNCTIONS
         function openUserModal(uid, userData) {
             if (!isHost || uid === userId) return;
             selectedUserId = uid;
@@ -826,15 +1056,19 @@
             document.getElementById('modalUserStatus').textContent = userData.isHost ? 'Moderator' : 'İzləyici';
             
             db.ref(`rooms/${currentRoom}/permissions/${uid}`).once('value').then(snap => {
-                const perms = snap.val() || { chat: true, video: true };
+                const perms = snap.val() || { chat: true, video: true, changeVideo: false };
                 updateToggleUI(document.getElementById('permChat'), perms.chat !== false);
                 updateToggleUI(document.getElementById('permVideo'), perms.video !== false);
+                updateToggleUI(document.getElementById('permChangeVideo'), perms.changeVideo === true);
             });
             
             document.getElementById('userModal').classList.remove('hidden');
         }
         
-        function closeUserModal() { document.getElementById('userModal').classList.add('hidden'); selectedUserId = null; }
+        function closeUserModal() { 
+            document.getElementById('userModal').classList.add('hidden'); 
+            selectedUserId = null;
+        }
         
         function updateToggleUI(el, active) {
             if (active) el.classList.add('active');
@@ -843,153 +1077,271 @@
         
         function togglePermission(type) {
             if (!selectedUserId) return;
-            const el = document.getElementById(type === 'chat' ? 'permChat' : 'permVideo');
-            const isActive = el.classList.contains('active');
-            const newValue = !isActive;
-            updateToggleUI(el, newValue);
-            db.ref(`rooms/${currentRoom}/permissions/${selectedUserId}/${type}`).set(newValue);
-            showNotification('İcaza dəyişdirildi', `${type}: ${newValue ? 'Aktiv' : 'Deaktiv'}`);
+            const el = document.getElementById('perm' + type.charAt(0).toUpperCase() + type.slice(1));
+            const newState = !el.classList.contains('active');
+            updateToggleUI(el, newState);
+            
+            db.ref(`rooms/${currentRoom}/permissions/${selectedUserId}/${type}`).set(newState);
         }
         
         function kickUser() {
-            if (!selectedUserId || !confirm('Bu istifadəçini otaqdan atmaq istəyirsiniz?')) return;
-            db.ref(`rooms/${currentRoom}/users/${selectedUserId}`).remove();
-            db.ref(`rooms/${currentRoom}/permissions/${selectedUserId}`).remove();
-            closeUserModal();
-            showNotification('Tamamlandı', 'İstifadəçi otaqdan atıldı');
+            if (!selectedUserId) return;
+            if (confirm('İstifadəçini otaqdan atmaq istədiyinizə əminsiniz?')) {
+                db.ref(`rooms/${currentRoom}/users/${selectedUserId}`).remove();
+                db.ref(`rooms/${currentRoom}/permissions/${selectedUserId}`).remove();
+                closeUserModal();
+                showNotification('İstifadəçi atıldı', 'İstifadəçi otaqdan çıxarıldı');
+            }
         }
 
+        // CHAT FUNCTIONS
         function setupListeners() {
-            if (!isHost) {
-                db.ref(`rooms/${currentRoom}/currentVideo`).on('value', (snap) => {
-                    const data = snap.val();
-                    if (!data || !player) return;
-                    if (data.id !== currentVideoId) {
-                        currentVideoId = data.id;
-                        player.loadVideoById(data.id);
-                    }
-                    const serverTime = getServerTime();
-                    const latency = (serverTime - data.timestamp) / 1000;
-                    const targetTime = data.time + (data.isPlaying ? latency : 0);
-                    if (Math.abs(player.getCurrentTime() - targetTime) > 1.5) player.seekTo(targetTime, true);
-                    const isPlaying = player.getPlayerState() === YT.PlayerState.PLAYING;
-                    if (data.isPlaying && !isPlaying) player.playVideo();
-                    else if (!data.isPlaying && isPlaying) player.pauseVideo();
-                });
-                
-                db.ref(`rooms/${currentRoom}/permissions/${userId}`).on('value', (snap) => {
-                    userPermissions = snap.val() || { chat: true, video: true };
-                    const input = document.getElementById('messageInput');
-                    if (userPermissions.chat === false) {
-                        input.disabled = true;
-                        input.placeholder = 'Yazı yazmağınız qadağandır';
-                        input.classList.add('opacity-50');
-                    } else {
-                        input.disabled = false;
-                        input.placeholder = 'Mesaj yaz...';
-                        input.classList.remove('opacity-50');
-                    }
-                });
-            }
-            
+            // Users listener
             db.ref(`rooms/${currentRoom}/users`).on('value', (snap) => {
                 const users = snap.val() || {};
                 const list = document.getElementById('usersList');
                 list.innerHTML = '';
                 let count = 0;
                 
-                Object.entries(users).forEach(([uid, u]) => {
+                Object.entries(users).forEach(([uid, data]) => {
+                    if (data.status !== 'active') return;
                     count++;
-                    const div = document.createElement('div');
-                    div.className = `user-chip ${u.isHost ? 'host' : ''}`;
-                    if (isHost && uid !== userId) div.onclick = () => openUserModal(uid, u);
-                    
-                    div.innerHTML = `
-                        <img src="${u.avatar || 'https://via.placeholder.com/32'}" class="w-5 h-5 rounded-full object-cover border border-red-900/50">
-                        <span class="text-xs font-bold ${u.isHost ? 'text-amber-400' : 'text-neutral-200'}">${u.name}</span>
-                        ${isHost && uid !== userId ? '<i class="fas fa-cog text-[10px] text-neutral-600"></i>' : ''}
+                    const chip = document.createElement('div');
+                    chip.className = `user-chip ${data.isHost ? 'host' : ''}`;
+                    chip.onclick = () => openUserModal(uid, data);
+                    chip.innerHTML = `
+                        <img src="${data.avatar}" class="w-6 h-6 rounded-full object-cover border border-red-500/30">
+                        <span class="text-xs font-medium text-neutral-200">${data.name}</span>
+                        ${data.isHost ? '<i class="fas fa-crown text-amber-400 text-[10px]"></i>' : ''}
                     `;
-                    list.appendChild(div);
-                    
-                    if (isHost && u.status === 'background' && uid !== userId) {
-                        showNotification('Diqqət', `${u.name} saytı arxa plana aldı`);
+                    list.appendChild(chip);
+                });
+                
+                document.getElementById('onlineCount').textContent = count + ' onlayn';
+                document.getElementById('usersCountText').textContent = count;
+            });
+
+            // Messages listener
+            db.ref(`rooms/${currentRoom}/messages`).limitToLast(50).on('child_added', (snap) => {
+                const msg = snap.val();
+                displayMessage(snap.key, msg);
+            });
+
+            // Typing listener
+            db.ref(`rooms/${currentRoom}/typing`).on('value', (snap) => {
+                const typing = snap.val() || {};
+                const typingUsers = Object.entries(typing)
+                    .filter(([uid, data]) => uid !== userId && data.timestamp > Date.now() - 3000)
+                    .map(([uid, data]) => data.name);
+                
+                const indicator = document.getElementById('typingIndicator');
+                if (typingUsers.length > 0) {
+                    indicator.classList.remove('hidden');
+                    document.getElementById('typingText').textContent = typingUsers.join(', ') + ' yazır...';
+                } else {
+                    indicator.classList.add('hidden');
+                }
+            });
+            
+            // Permission updates for current user
+            if (!isHost) {
+                db.ref(`rooms/${currentRoom}/permissions/${userId}`).on('value', (snap) => {
+                    const perms = snap.val();
+                    if (perms) {
+                        userPermissions = { ...userPermissions, ...perms };
+                        if (perms.changeVideo) {
+                            document.getElementById('changeVideoBtn').classList.remove('hidden');
+                            showNotification('İcazə verildi', 'Sizə video seçmə icazəsi verildi');
+                        } else {
+                            document.getElementById('changeVideoBtn').classList.add('hidden');
+                        }
+                        
+                        if (perms.chat === false) {
+                            document.getElementById('messageInput').disabled = true;
+                            document.getElementById('messageInput').placeholder = 'Yazı yazmaq qadağandır';
+                        } else {
+                            document.getElementById('messageInput').disabled = false;
+                            document.getElementById('messageInput').placeholder = 'Mesaj yaz...';
+                        }
                     }
                 });
                 
-                document.getElementById('usersCountText').textContent = count;
-                document.getElementById('onlineCount').textContent = count + ' onlayn';
-            });
-            
-            db.ref(`rooms/${currentRoom}/chat`).on('child_added', (snap) => {
-                const msg = snap.val();
-                if (msg.userId !== userId && (document.hidden || !document.hasFocus())) {
-                    if ('vibrate' in navigator) navigator.vibrate([80, 40, 80]);
-                }
-                appendMessage(msg, snap.key);
-            });
+                // Check if kicked
+                db.ref(`rooms/${currentRoom}/users/${userId}`).on('value', (snap) => {
+                    if (!snap.exists() && currentRoom) {
+                        alert('Siz otaqdan atıldınız!');
+                        location.reload();
+                    }
+                });
+            }
         }
 
-        function appendMessage(msg, msgId) {
+        function handleTyping() {
+            if (!currentRoom) return;
+            
+            db.ref(`rooms/${currentRoom}/typing/${userId}`).set({
+                name: userName,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            });
+            
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => {
+                db.ref(`rooms/${currentRoom}/typing/${userId}`).remove();
+            }, 3000);
+        }
+
+        function displayMessage(msgId, msg) {
             const container = document.getElementById('chatMessages');
-            const isSelf = msg.userId === userId;
-            const isHostMsg = msg.isHost;
+            const isOwn = msg.userId === userId;
             
             const wrapper = document.createElement('div');
             wrapper.className = 'msg-wrapper';
+            wrapper.id = 'msg-' + msgId;
             
-            let html = '';
-            
-            if (!isSelf) {
-                html += `<img src="${msg.avatar || 'https://via.placeholder.com/32'}" class="msg-avatar">`;
-                html += `<div class="flex flex-col items-start max-w-[75%]">
-                    <span class="msg-sender ${isHostMsg ? 'text-amber-400' : 'text-red-400'}">${escapeHtml(msg.name)}</span>`;
-            } else {
-                html += `<div class="flex flex-col items-end max-w-[75%] ml-auto">`;
-            }
-            
+            let replyHtml = '';
             if (msg.replyTo) {
-                html += `<div class="msg-reply mb-1">
-                    <div class="text-[10px] opacity-70 font-semibold">${escapeHtml(msg.replyTo.name)}</div>
-                    <div class="truncate">${escapeHtml(msg.replyTo.text)}</div>
-                </div>`;
+                replyHtml = `<div class="msg-reply"><i class="fas fa-reply text-[10px] mr-1"></i>${msg.replyTo.text}</div>`;
             }
             
-            html += `<div class="msg-bubble ${isSelf ? 'msg-own' : 'msg-other'}" id="msg-${msgId}">
-                <div class="leading-relaxed">${escapeHtml(msg.text)}</div>
-                <div class="msg-meta ${isSelf ? 'text-red-100' : ''}">
-                    ${new Date(msg.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                    ${isSelf ? '<i class="fas fa-check-double text-[10px] opacity-70"></i>' : ''}
+            let reactionsHtml = '<div class="reaction-bar" id="reactions-' + msgId + '"></div>';
+            
+            const html = `
+                ${!isOwn ? `<img src="${msg.avatar}" class="msg-avatar" onclick="setReply('${msgId}', '${msg.name}', '${msg.text}')">` : ''}
+                <div class="flex flex-col ${isOwn ? 'items-end' : 'items-start'} flex-1">
+                    ${!isOwn ? `<div class="msg-sender">${msg.name}</div>` : ''}
+                    <div class="msg-bubble ${isOwn ? 'msg-own' : 'msg-other'}" ondblclick="showReactionPicker('${msgId}')">
+                        ${replyHtml}
+                        <div class="break-words">${escapeHtml(msg.text)}</div>
+                        <div class="msg-meta">
+                            <span>${formatTime(msg.timestamp)}</span>
+                            ${isOwn ? '<i class="fas fa-check-double text-[10px]"></i>' : ''}
+                        </div>
+                    </div>
+                    ${reactionsHtml}
+                    <div class="reaction-btn" onclick="showReactionPicker('${msgId}')">
+                        <i class="far fa-smile"></i>
+                    </div>
                 </div>
-            </div>`;
+                ${isOwn ? `<img src="${msg.avatar}" class="msg-avatar">` : ''}
+            `;
             
-            if (!isSelf) {
-                html += `<button onclick='startReply("${msgId}", "${escapeHtml(msg.name)}", "${escapeHtml(msg.text)}")' 
-                    class="mt-1 text-[10px] text-neutral-500 hover:text-red-400 opacity-0 hover:opacity-100 transition px-2 py-1">
-                    Cavab
-                </button>`;
-            }
-            
-            html += `</div>`;
             wrapper.innerHTML = html;
-            container.appendChild(wrapper);
+            container.insertBefore(wrapper, document.getElementById('typingIndicator'));
+            container.scrollTop = container.scrollHeight;
             
-            const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150;
-            if (isNearBottom) container.scrollTop = container.scrollHeight;
+            // Load reactions
+            loadReactions(msgId);
         }
 
-        function startReply(msgId, name, text) {
-            replyingTo = { msgId, name, text };
-            document.getElementById('replyText').textContent = text.length > 40 ? text.substring(0, 40) + '...' : text;
-            const indicator = document.getElementById('replyIndicator');
-            indicator.classList.remove('hidden');
-            indicator.style.display = 'flex';
+        function loadReactions(msgId) {
+            db.ref(`rooms/${currentRoom}/messages/${msgId}/reactions`).on('value', (snap) => {
+                const reactions = snap.val() || {};
+                const bar = document.getElementById('reactions-' + msgId);
+                if (!bar) return;
+                
+                bar.innerHTML = '';
+                const counts = {};
+                const userReacted = {};
+                
+                Object.entries(reactions).forEach(([uid, emoji]) => {
+                    counts[emoji] = (counts[emoji] || 0) + 1;
+                    if (uid === userId) userReacted[emoji] = true;
+                });
+                
+                Object.entries(counts).forEach(([emoji, count]) => {
+                    const btn = document.createElement('div');
+                    btn.className = 'reaction-item ' + (userReacted[emoji] ? 'user-reacted' : '');
+                    btn.innerHTML = `<span>${emoji}</span><span class="font-bold">${count}</span>`;
+                    btn.onclick = () => toggleReaction(msgId, emoji);
+                    bar.appendChild(btn);
+                });
+            });
+        }
+
+        function showReactionPicker(msgId) {
+            event.stopPropagation();
+            currentReactionMessageId = msgId;
+            
+            // Remove existing pickers
+            document.querySelectorAll('.emoji-picker').forEach(el => el.remove());
+            
+            const picker = document.getElementById('emojiPickerTemplate').cloneNode(true);
+            picker.id = 'activePicker';
+            picker.classList.add('show');
+            
+            const msgEl = document.getElementById('msg-' + msgId);
+            const bubble = msgEl.querySelector('.msg-bubble');
+            bubble.appendChild(picker);
+            
+            // Close on outside click
+            setTimeout(() => {
+                document.addEventListener('click', function closePicker(e) {
+                    if (!e.target.closest('.emoji-picker')) {
+                        picker.remove();
+                        document.removeEventListener('click', closePicker);
+                    }
+                }, { once: true });
+            }, 100);
+        }
+
+        function addReaction(emoji) {
+            if (!currentReactionMessageId) return;
+            toggleReaction(currentReactionMessageId, emoji);
+            document.getElementById('activePicker')?.remove();
+        }
+
+        function toggleReaction(msgId, emoji) {
+            const ref = db.ref(`rooms/${currentRoom}/messages/${msgId}/reactions/${userId}`);
+            ref.once('value').then(snap => {
+                if (snap.val() === emoji) {
+                    ref.remove();
+                } else {
+                    ref.set(emoji);
+                }
+            });
+        }
+
+        function setReply(msgId, name, text) {
+            replyingTo = { id: msgId, name, text: text.substring(0, 50) };
+            document.getElementById('replyIndicator').classList.remove('hidden');
+            document.getElementById('replyText').textContent = name + ': ' + text;
             document.getElementById('messageInput').focus();
         }
 
         function cancelReply() {
             replyingTo = null;
             document.getElementById('replyIndicator').classList.add('hidden');
-            document.getElementById('replyIndicator').style.display = 'none';
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const text = input.value.trim();
+            if (!text || !currentRoom) return;
+            
+            if (!isHost && userPermissions.chat === false) {
+                showNotification('Xəta', 'Sizə yazı yazmaq qadağan edilib');
+                return;
+            }
+            
+            const msg = {
+                text: text,
+                userId: userId,
+                name: userName,
+                avatar: userAvatar,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            };
+            
+            if (replyingTo) {
+                msg.replyTo = replyingTo;
+                cancelReply();
+            }
+            
+            db.ref(`rooms/${currentRoom}/messages`).push(msg);
+            input.value = '';
+            input.style.height = 'auto';
+            
+            // Stop typing
+            db.ref(`rooms/${currentRoom}/typing/${userId}`).remove();
         }
 
         function handleKeyPress(e) {
@@ -999,77 +1351,58 @@
             }
         }
 
-        function autoResize(textarea) {
-            textarea.style.height = 'auto';
-            textarea.style.height = Math.min(textarea.scrollHeight, 100) + 'px';
-        }
-
-        // DÜZƏLİŞ: Moderator üçün mesaj göndərmə funksiyası
-        function sendMessage() {
-            const input = document.getElementById('messageInput');
-            const text = input.value.trim();
-            
-            // Əvvəlcə text yoxlaması
-            if (!text) return;
-            
-            // Sonra icaza yoxlaması (yalnız izləyicilər üçün)
-            if (!isHost && userPermissions.chat === false) {
-                showNotification('Xəta', 'Yazı yazmağınız qadağandır');
-                return;
-            }
-            
-            const msgData = {
-                userId: userId, 
-                name: userName, 
-                avatar: userAvatar, 
-                text: text, 
-                isHost: isHost,
-                time: firebase.database.ServerValue.TIMESTAMP
-            };
-            
-            if (replyingTo) {
-                msgData.replyTo = replyingTo;
-                cancelReply();
-            }
-            
-            db.ref(`rooms/${currentRoom}/chat`).push(msgData);
-            input.value = '';
-            input.style.height = 'auto';
-        }
-
-        function showNotification(title, text) {
-            const toast = document.getElementById('notificationToast');
-            document.getElementById('notifTitle').textContent = title;
-            document.getElementById('notifText').textContent = text;
-            toast.style.transform = 'translateX(0)';
-            setTimeout(() => toast.style.transform = 'translateX(150%)', 3000);
+        function autoResize(el) {
+            el.style.height = 'auto';
+            el.style.height = Math.min(el.scrollHeight, 100) + 'px';
         }
 
         function escapeHtml(text) {
-            if (!text) return '';
-            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatTime(timestamp) {
+            if (!timestamp) return '';
+            const date = new Date(timestamp);
+            return date.toLocaleTimeString('az-AZ', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function showNotification(title, text) {
+            const notif = document.getElementById('notificationToast');
+            document.getElementById('notifTitle').textContent = title;
+            document.getElementById('notifText').textContent = text;
+            notif.style.transform = 'translateX(0)';
+            setTimeout(() => {
+                notif.style.transform = 'translateX(150%)';
+            }, 3000);
         }
 
         function copyCode() {
-            navigator.clipboard.writeText(currentRoom).then(() => showNotification('Kopyalandı', currentRoom));
+            navigator.clipboard.writeText(currentRoom);
+            showNotification('Kopyalandı', 'Otaq kodu kopyalandı');
         }
 
         function shareCode() {
             if (navigator.share) {
-                navigator.share({ title: 'SyncRoom', text: `Otaq kodu: ${currentRoom}`, url: window.location.href });
-            } else copyCode();
+                navigator.share({
+                    title: 'KinoZal',
+                    text: 'KinoZal otağına qoşul: ' + currentRoom
+                });
+            } else {
+                copyCode();
+            }
         }
 
         function leaveRoom() {
-            if (currentRoom) {
+            if (confirm('Otaqdan çıxmaq istədiyinizə əminsiniz?')) {
                 db.ref(`rooms/${currentRoom}/users/${userId}`).remove();
-                if (isHost) setTimeout(() => db.ref(`rooms/${currentRoom}`).remove(), 3000);
+                db.ref(`rooms/${currentRoom}/typing/${userId}`).remove();
+                location.reload();
             }
-            location.reload();
         }
 
-        window.onbeforeunload = () => { if (currentRoom) leaveRoom(); };
-        
+        // Load saved avatar
         const savedAvatar = localStorage.getItem('userAvatar');
         if (savedAvatar) {
             userAvatar = savedAvatar;
