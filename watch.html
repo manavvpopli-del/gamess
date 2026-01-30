@@ -18,7 +18,7 @@
         
         body { background: #0a0000; color: white; overflow: hidden; touch-action: manipulation; }
         
-        /* NEON BACKGROUND EFFECT - ARTIRILMIŞ */
+        /* NEON BACKGROUND EFFECT */
         .neon-bg {
             position: fixed;
             top: 0;
@@ -80,11 +80,6 @@
             height: 100vh !important;
         }
         
-        body.cinema-mode #virtualSeats {
-            opacity: 0;
-            pointer-events: none;
-        }
-        
         .cinema-toggle {
             position: fixed;
             top: 20px;
@@ -101,97 +96,6 @@
             cursor: pointer;
             transition: all 0.3s;
             box-shadow: 0 0 20px rgba(220, 38, 38, 0.6);
-        }
-        
-        /* VIRTUAL SEATS - DÜZƏLİLMİŞ */
-        #virtualSeats {
-            position: absolute;
-            bottom: 80px;
-            left: 0;
-            right: 0;
-            z-index: 40;
-            pointer-events: none;
-            padding: 0 20px;
-        }
-        
-        .theater-seats {
-            perspective: 800px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 15px;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        
-        .seat-row {
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-            transform-style: preserve-3d;
-            width: 100%;
-        }
-        
-        .seat-row.back { transform: scale(0.85) translateZ(-30px); opacity: 0.7; }
-        .seat-row.middle { transform: scale(0.95) translateZ(-15px); opacity: 0.9; }
-        .seat-row.front { transform: scale(1.1) translateZ(0); }
-        
-        .seat {
-            width: 50px;
-            height: 50px;
-            border-radius: 16px 16px 6px 6px;
-            background: linear-gradient(180deg, #2d1c1c 0%, #0f0505 100%);
-            border: 2px solid rgba(220, 38, 38, 0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.6);
-            pointer-events: auto;
-        }
-        
-        .seat.occupied {
-            background: linear-gradient(180deg, #dc2626 0%, #7f1d1d 100%);
-            border-color: rgba(255, 255, 255, 0.3);
-            box-shadow: 0 0 25px rgba(220, 38, 38, 0.6);
-            animation: seatPulse 2s infinite;
-        }
-        
-        @keyframes seatPulse {
-            0%, 100% { box-shadow: 0 0 20px rgba(220, 38, 38, 0.4); transform: scale(1); }
-            50% { box-shadow: 0 0 30px rgba(220, 38, 38, 0.8); transform: scale(1.05); }
-        }
-        
-        .seat img {
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid rgba(255,255,255,0.8);
-        }
-        
-        .seat-tooltip {
-            position: absolute;
-            bottom: 110%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0,0,0,0.9);
-            padding: 4px 10px;
-            border-radius: 8px;
-            font-size: 11px;
-            white-space: nowrap;
-            opacity: 0;
-            transition: opacity 0.2s;
-            pointer-events: none;
-            border: 1px solid rgba(220, 38, 38, 0.5);
-            color: white;
-            font-weight: 600;
-            z-index: 50;
-        }
-        
-        .seat:hover .seat-tooltip {
-            opacity: 1;
         }
         
         .glass-red { 
@@ -457,27 +361,6 @@
             box-shadow: 0 6px 16px rgba(220, 38, 38, 0.5);
         }
         
-        .gif-btn {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: transparent;
-            color: #dc2626;
-            border: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 12px;
-            transition: all 0.2s;
-        }
-        
-        .gif-btn:hover {
-            color: #ff6b6b;
-            background: rgba(220, 38, 38, 0.1);
-        }
-        
         .reply-bar {
             background: rgba(40, 10, 10, 0.95);
             border-left: 3px solid #dc2626;
@@ -696,65 +579,6 @@
             background: transparent;
             z-index: 5;
         }
-        
-        /* GIF MODAL DÜZƏLİLMİŞ */
-        .gif-modal {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.98);
-            z-index: 200;
-            display: none;
-            flex-direction: column;
-            padding: 20px;
-        }
-        
-        .gif-modal.active {
-            display: flex;
-        }
-        
-        .gif-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 12px;
-            overflow-y: auto;
-            flex: 1;
-            margin-top: 20px;
-            padding-bottom: 20px;
-        }
-        
-        .gif-item {
-            aspect-ratio: 16/9;
-            background: #1a0505;
-            border-radius: 12px;
-            overflow: hidden;
-            cursor: pointer;
-            border: 2px solid rgba(220, 38, 38, 0.2);
-            transition: all 0.2s;
-            position: relative;
-        }
-        
-        .gif-item:hover {
-            border-color: #dc2626;
-            transform: scale(1.05);
-            box-shadow: 0 0 20px rgba(220, 38, 38, 0.3);
-        }
-        
-        .gif-item img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        
-        .gif-item .gif-label {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
-            padding: 8px;
-            font-size: 10px;
-            text-align: center;
-        }
     </style>
 </head>
 <body class="h-screen flex flex-col bg-neutral-950">
@@ -777,9 +601,6 @@
         const db = firebase.database();
         const YOUTUBE_API_KEY = "AIzaSyBterRsxZoTvVbxlsOzESKWBDAY2B8BWc4";
         
-        // Giphy API Key (publik beta key)
-        const GIPHY_API_KEY = "hpvZycW22qCjn5cRM1xtWB8NKq4dQ2My";
-        
         let userId = localStorage.getItem('syncUserId') || 'user_' + Math.random().toString(36).substr(2, 9);
         localStorage.setItem('syncUserId', userId);
         
@@ -790,7 +611,6 @@
         let userPermissions = { chat: true, video: true, changeVideo: false };
         let typingTimeout = null;
         let currentReactionMessageId = null;
-        let cinemaMode = false;
         let neonEnabled = false;
         
         db.ref(".info/serverTimeOffset").on("value", (snap) => { serverOffset = snap.val() || 0; });
@@ -839,34 +659,6 @@
                         <i class="fas fa-sign-in-alt mr-2"></i>Qoşul
                     </button>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- GIF MODAL -->
-    <div id="gifModal" class="gif-modal">
-        <div class="flex items-center justify-between mb-4">
-            <h3 class="text-xl font-bold text-white flex items-center gap-2">
-                <i class="fas fa-image text-red-500"></i>
-                GIF Axtar
-            </h3>
-            <button onclick="closeGifModal()" class="w-10 h-10 flex items-center justify-center rounded-full bg-red-500/20 text-red-400 hover:bg-red-500/30 transition">
-                <i class="fas fa-times text-lg"></i>
-            </button>
-        </div>
-        <div class="flex gap-3 mb-4">
-            <input type="text" id="gifSearch" placeholder="Məsələn: scary, funny, love..." class="flex-1 px-4 py-3 rounded-xl bg-neutral-900 border border-red-500/30 text-white focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/20" onkeypress="if(event.key==='Enter') searchGif()">
-            <button onclick="searchGif('scary')" class="px-4 py-2 bg-red-600/20 border border-red-500/30 rounded-xl text-red-400 hover:bg-red-600/30 transition text-sm">
-                <i class="fas fa-ghost"></i>
-            </button>
-            <button onclick="searchGif()" class="px-6 py-3 bg-red-600 hover:bg-red-500 rounded-xl font-bold transition shadow-lg shadow-red-600/20">
-                Axtar
-            </button>
-        </div>
-        <div id="gifResults" class="gif-grid">
-            <div class="col-span-full flex flex-col items-center justify-center text-neutral-500 mt-10">
-                <i class="fas fa-search text-4xl mb-3 opacity-50"></i>
-                <p>Axtarış etmək üçün yuxarıdakı boşluğa yazın</p>
             </div>
         </div>
     </div>
@@ -970,7 +762,8 @@
             </div>
             
             <div class="flex items-center space-x-2">
-                <button onclick="toggleNeon()" id="neonBtn" class="hidden md:flex items-center px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-xs text-blue-300 hover:bg-blue-500/20 transition" title="Neon Işıqlar">
+                <!-- NEON BUTTON -->
+                <button onclick="toggleNeon()" id="neonBtn" class="flex items-center px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-xs text-blue-300 hover:bg-blue-500/20 transition" title="Neon Işıqlar">
                     <i class="fas fa-lightbulb mr-1.5"></i>
                     <span>Neon</span>
                 </button>
@@ -991,18 +784,6 @@
             <!-- Video Section -->
             <div id="videoSection" class="flex-1 relative bg-black flex flex-col min-h-0">
                 
-                <!-- Virtual Seats - ARTIRILMIŞ -->
-                <div id="virtualSeats" class="cinema-hide">
-                    <div class="theater-seats">
-                        <!-- Back row -->
-                        <div class="seat-row back" id="backRow"></div>
-                        <!-- Middle row -->
-                        <div class="seat-row middle" id="middleRow"></div>
-                        <!-- Front row -->
-                        <div class="seat-row front" id="frontRow"></div>
-                    </div>
-                </div>
-
                 <button id="changeVideoBtn" onclick="toggleSearch()" class="hidden absolute top-4 right-4 z-40 glass-red px-4 py-2 rounded-xl border border-red-500/30 hover:border-red-400 text-sm font-bold text-white shadow-lg shadow-red-500/20 transition hover:scale-105">
                     <i class="fas fa-film mr-2 text-red-400"></i>Video Dəyiş
                 </button>
@@ -1086,9 +867,6 @@
                 
                 <div class="chat-input-area shrink-0">
                     <div class="input-container">
-                        <button onclick="openGifModal()" class="gif-btn" title="GIF Göndər">
-                            <i class="fas fa-image"></i>
-                        </button>
                         <textarea id="messageInput" placeholder="Mesaj yaz..." rows="1" 
                             class="chat-textarea"
                             oninput="autoResize(this); handleTyping()"
@@ -1235,7 +1013,7 @@
             }
         }
 
-        // NEON LIGHTS - DÜZƏLİLMİŞ
+        // NEON LIGHTS
         function toggleNeon() {
             neonEnabled = !neonEnabled;
             const neon = document.getElementById('neonBg');
@@ -1243,141 +1021,14 @@
             
             if (neonEnabled) {
                 neon.classList.add('active');
-                btn.classList.add('bg-blue-500', 'text-white');
+                btn.classList.remove('bg-blue-500/10', 'text-blue-300');
+                btn.classList.add('bg-blue-500', 'text-white', 'border-blue-400');
                 showNotification('Neon Işıqlar', 'Ambient işıqlandırma aktiv edildi ✨');
             } else {
                 neon.classList.remove('active');
-                btn.classList.remove('bg-blue-500', 'text-white');
+                btn.classList.add('bg-blue-500/10', 'text-blue-300');
+                btn.classList.remove('bg-blue-500', 'text-white', 'border-blue-400');
             }
-        }
-
-        // VIRTUAL SEATS - DÜZƏLİLMİŞ VƏ AKTİV
-        function updateVirtualSeats(users) {
-            const backRow = document.getElementById('backRow');
-            const middleRow = document.getElementById('middleRow');
-            const frontRow = document.getElementById('frontRow');
-            
-            if (!backRow || !middleRow || !frontRow) return;
-            
-            backRow.innerHTML = '';
-            middleRow.innerHTML = '';
-            frontRow.innerHTML = '';
-            
-            const activeUsers = Object.entries(users).filter(([uid, data]) => data.status === 'active');
-            
-            activeUsers.forEach(([uid, data], index) => {
-                const seat = document.createElement('div');
-                seat.className = 'seat occupied';
-                seat.innerHTML = `
-                    <img src="${data.avatar}" alt="${data.name}">
-                    <div class="seat-tooltip">${data.name} ${data.isHost ? '👑' : ''}</div>
-                `;
-                
-                if (index < 5) backRow.appendChild(seat);
-                else if (index < 10) middleRow.appendChild(seat);
-                else frontRow.appendChild(seat);
-            });
-            
-            const fillEmpty = (row, count) => {
-                while (row.children.length < count) {
-                    const empty = document.createElement('div');
-                    empty.className = 'seat';
-                    empty.innerHTML = `<div class="w-full h-full opacity-20 bg-gradient-to-t from-red-900/20 to-transparent"></div>`;
-                    row.appendChild(empty);
-                }
-            };
-            
-            fillEmpty(backRow, 5);
-            fillEmpty(middleRow, 5);
-            fillEmpty(frontRow, 4);
-        }
-
-        // GIF FUNCTIONS - GIPHY API İLƏ DÜZƏLİLMİŞ
-        function openGifModal() {
-            document.getElementById('gifModal').classList.add('active');
-            // Default olaraq populyar GIF-ləri göstər
-            searchGifTrending();
-        }
-        
-        function closeGifModal() {
-            document.getElementById('gifModal').classList.remove('active');
-        }
-        
-        async function searchGifTrending() {
-            const resultsDiv = document.getElementById('gifResults');
-            resultsDiv.innerHTML = '<div class="col-span-full flex justify-center p-8"><div class="spinner"></div></div>';
-            
-            try {
-                const res = await fetch(`https://api.giphy.com/v1/gifs/trending?api_key=${GIPHY_API_KEY}&limit=20&rating=pg-13`);
-                const data = await res.json();
-                displayGifs(data.data);
-            } catch (err) {
-                resultsDiv.innerHTML = '<div class="col-span-full text-center text-red-400 p-8">GIF-lər yüklənə bilmədi. İnternet bağlantınızı yoxlayın.</div>';
-            }
-        }
-        
-        async function searchGif(query) {
-            const searchTerm = query || document.getElementById('gifSearch').value;
-            const resultsDiv = document.getElementById('gifResults');
-            
-            if (!searchTerm) return;
-            
-            resultsDiv.innerHTML = '<div class="col-span-full flex justify-center p-8"><div class="spinner"></div></div>';
-            
-            try {
-                const res = await fetch(`https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_API_KEY}&q=${encodeURIComponent(searchTerm)}&limit=20&rating=pg-13&lang=tr`);
-                const data = await res.json();
-                displayGifs(data.data);
-            } catch (err) {
-                resultsDiv.innerHTML = '<div class="col-span-full text-center text-red-400 p-8">Axtarış zamanı xəta baş verdi.</div>';
-            }
-        }
-        
-        function displayGifs(gifs) {
-            const resultsDiv = document.getElementById('gifResults');
-            resultsDiv.innerHTML = '';
-            
-            if (gifs.length === 0) {
-                resultsDiv.innerHTML = '<div class="col-span-full text-center text-neutral-500 p-8">Nəticə tapılmadı</div>';
-                return;
-            }
-            
-            gifs.forEach(gif => {
-                const item = document.createElement('div');
-                item.className = 'gif-item';
-                item.onclick = () => sendGif(gif.images.fixed_height.url);
-                item.innerHTML = `
-                    <img src="${gif.images.fixed_height_still.url}" alt="${gif.title}" loading="lazy">
-                    <div class="gif-label">Seçmək üçün kliklə</div>
-                `;
-                
-                // Hover-da animate et
-                item.onmouseenter = () => {
-                    item.querySelector('img').src = gif.images.fixed_height.url;
-                };
-                item.onmouseleave = () => {
-                    item.querySelector('img').src = gif.images.fixed_height_still.url;
-                };
-                
-                resultsDiv.appendChild(item);
-            });
-        }
-        
-        function sendGif(url) {
-            if (!currentRoom) return;
-            
-            const msg = {
-                type: 'gif',
-                text: url,
-                userId: userId,
-                name: userName,
-                avatar: userAvatar,
-                timestamp: firebase.database.ServerValue.TIMESTAMP
-            };
-            
-            db.ref(`rooms/${currentRoom}/messages`).push(msg);
-            closeGifModal();
-            showNotification('GIF göndərildi', 'Animasiya chat-ə əlavə edildi');
         }
 
         function initPlayer() {
@@ -1594,9 +1245,6 @@
                 
                 document.getElementById('onlineCount').textContent = count + ' onlayn';
                 document.getElementById('usersCountText').textContent = count;
-                
-                // Virtual seats update
-                updateVirtualSeats(users);
             });
 
             // Messages listener
@@ -1680,13 +1328,6 @@
                 replyHtml = `<div class="msg-reply"><i class="fas fa-reply text-[10px] mr-1"></i>${msg.replyTo.text}</div>`;
             }
             
-            let contentHtml = '';
-            if (msg.type === 'gif') {
-                contentHtml = `<img src="${msg.text}" class="rounded-lg max-w-full max-h-[200px] object-cover cursor-pointer hover:opacity-90 transition" onclick="window.open('${msg.text}', '_blank')" alt="GIF" loading="lazy">`;
-            } else {
-                contentHtml = `<div class="break-words">${escapeHtml(msg.text)}</div>`;
-            }
-            
             let reactionsHtml = '<div class="reaction-bar" id="reactions-' + msgId + '"></div>';
             
             const html = `
@@ -1695,7 +1336,7 @@
                     ${!isOwn ? `<div class="msg-sender">${msg.name}</div>` : ''}
                     <div class="msg-bubble ${isOwn ? 'msg-own' : 'msg-other'}" ondblclick="showReactionPicker('${msgId}')">
                         ${replyHtml}
-                        ${contentHtml}
+                        <div class="break-words">${escapeHtml(msg.text)}</div>
                         <div class="msg-meta">
                             <span>${formatTime(msg.timestamp)}</span>
                             ${isOwn ? '<i class="fas fa-check-double text-[10px]"></i>' : ''}
