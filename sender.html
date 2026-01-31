@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Kamera Göndərən (A)</title>
+  <style>
+    body { margin:0; background:#000; font-family:monospace; color:#0f3; }
+    #video {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      transform: scaleX(-1);
+    }
+    #status {
+      position: fixed;
+      top: 12px; left: 12px;
+      background: rgba(0,0,0,0.6);
+      padding: 8px 14px;
+      border-radius: 4px;
+      z-index: 10;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="status">Kamera açılır...</div>
+<video id="video" autoplay playsinline muted></video>
+<canvas id="canvas" style="display:none"></canvas>
+
+<script>
+// ────────────────────────────────────────────────
+const video   = document.getElementById('video');
+const canvas  = document.getElementById('canvas');
+const ctx     = canvas.getContext('2d');
+const status  = document.getElementById('status');
+
+let stream = null;
+const TARGET_URL = "receiver.html";   // ← eyni qovluqda olmalıdır
+
+async function start() {
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "user" }
+    });
+
+    video.srcObject = stream;
+    status.textContent = "Kamera aktiv • hər 0.5 saniyədə göndərirəm";
+    status.style.color = "#0f3";
+
+    video.onloadedmetadata = () => {
+      canvas.width  = video.videoWidth;
+      canvas.height = video.videoHeight;
+      startSending();
+    };
+
+  } catch (err) {
+    status.textContent = "Xəta: " + err.message;
+    status.style.color = "#f44";
+    console.error(err);
+  }
+}
+
+function startSending() {
+  setInterval(() => {
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const base64 = canvas.toDataURL('image/jpeg', 0.65);  // 0.65 → daha kiçik ölçü
+
+    // receiver.html-ə postMessage ilə göndəririk
+    try {
+      const receiverWindow = window.open("", "receiverWindow");
+      if (receiverWindow && !receiverWindow.closed) {
+        receiverWindow.postMessage({ type: "new-image", data: base64 }, "*");
+      } else {
+        // əgər pəncərə bağlıdırsa yenidən açırıq
+        window.open(TARGET_URL, "receiverWindow", "width=820,height=680");
+      }
+    } catch (e) {
+      console.warn("postMessage xətası", e);
+    }
+
+  }, 500);   // ← 0.5 saniyə = 500 ms
+}
+
+// Səhifə yüklənəndə başla
+window.addEventListener('load', start);
+
+// Bağlananda kameranı söndür
+window.addEventListener('beforeunload', () => {
+  if (stream) stream.getTracks().forEach(t => t.stop());
+});
+</script>
+</body>
+</html>
