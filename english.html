@@ -3,14 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LinguaMaster - İngilis Dili Öyrən</title>
+    <title>LinguaPro - API Powered Learning</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         :root {
             --primary: #58cc02;
             --primary-dark: #58a700;
@@ -19,539 +15,89 @@
             --danger: #ff4b4b;
             --purple: #ce82ff;
             --bg: #f7f7f7;
+            --card: #ffffff;
             --text: #3c3c3c;
             --border: #e5e5e5;
+            --shadow: 0 4px 20px rgba(0,0,0,0.08);
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             background: var(--bg);
             color: var(--text);
-            overflow-x: hidden;
-        }
-
-        /* Header */
-        .header {
-            background: white;
-            border-bottom: 2px solid var(--border);
-            padding: 1rem 2rem;
-            position: fixed;
-            width: 100%;
-            top: 0;
-            z-index: 1000;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-
-        .header-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: var(--primary);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .stats {
-            display: flex;
-            gap: 2rem;
-            align-items: center;
-        }
-
-        .stat-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-weight: bold;
-            font-size: 0.95rem;
-        }
-
-        .fire { color: var(--accent); }
-        .gem { color: var(--secondary); }
-        .heart { color: var(--danger); }
-
-        /* Main Layout */
-        .container {
-            max-width: 1200px;
-            margin: 80px auto 0;
-            display: grid;
-            grid-template-columns: 300px 1fr;
-            gap: 2rem;
-            padding: 2rem;
-        }
-
-        /* Sidebar */
-        .sidebar {
-            background: white;
-            border-radius: 16px;
-            padding: 1.5rem;
-            height: fit-content;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-            border: 2px solid var(--border);
-        }
-
-        .user-profile {
-            text-align: center;
-            padding-bottom: 1.5rem;
-            border-bottom: 2px solid var(--border);
-            margin-bottom: 1.5rem;
-        }
-
-        .avatar {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            border-radius: 50%;
-            margin: 0 auto 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            color: white;
-            border: 4px solid white;
-            box-shadow: 0 4px 15px rgba(88, 204, 2, 0.3);
-        }
-
-        .level-badge {
-            background: var(--accent);
-            color: #8a6d00;
-            padding: 0.25rem 1rem;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: bold;
-            display: inline-block;
-            margin-top: 0.5rem;
-        }
-
-        .progress-section {
-            margin-bottom: 1.5rem;
-        }
-
-        .progress-label {
-            font-size: 0.9rem;
-            color: #666;
-            margin-bottom: 0.5rem;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .progress-bar {
-            height: 12px;
-            background: #eee;
-            border-radius: 20px;
-            overflow: hidden;
-            border: 2px solid #ddd;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--primary), var(--secondary));
-            border-radius: 20px;
-            transition: width 0.5s ease;
-        }
-
-        .nav-menu {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .nav-item {
-            padding: 1rem;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            font-weight: 600;
-            border: 2px solid transparent;
-        }
-
-        .nav-item:hover {
-            background: #f0f0f0;
-            transform: translateX(5px);
-        }
-
-        .nav-item.active {
-            background: #e8f5e9;
-            border-color: var(--primary);
-            color: var(--primary-dark);
-        }
-
-        /* Learning Path */
-        .learning-area {
-            background: white;
-            border-radius: 16px;
-            padding: 2rem;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-            border: 2px solid var(--border);
-        }
-
-        .section-title {
-            font-size: 1.5rem;
-            margin-bottom: 2rem;
-            color: var(--text);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .lessons-path {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .lesson-node {
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
-            padding: 1.5rem;
-            border-radius: 16px;
-            border: 3px solid #ddd;
-            cursor: pointer;
-            transition: all 0.3s;
-            position: relative;
-            background: white;
-        }
-
-        .lesson-node:hover:not(.locked) {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-        }
-
-        .lesson-node.completed {
-            border-color: var(--primary);
-            background: #f1f8e9;
-        }
-
-        .lesson-node.active {
-            border-color: var(--secondary);
-            background: #e3f2fd;
-            animation: pulse 2s infinite;
-        }
-
-        .lesson-node.locked {
-            opacity: 0.6;
-            cursor: not-allowed;
-            background: #f5f5f5;
-        }
-
-        @keyframes pulse {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(28, 176, 246, 0.4); }
-            50% { box-shadow: 0 0 0 15px rgba(28, 176, 246, 0); }
-        }
-
-        .node-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            background: #eee;
-            border: 3px solid #ccc;
-        }
-
-        .completed .node-icon {
-            background: var(--primary);
-            border-color: var(--primary-dark);
-            color: white;
-        }
-
-        .active .node-icon {
-            background: var(--secondary);
-            border-color: #0d8ecf;
-            color: white;
-        }
-
-        .locked .node-icon {
-            background: #ddd;
-            color: #999;
-        }
-
-        .node-info h3 {
-            margin-bottom: 0.25rem;
-            font-size: 1.1rem;
-        }
-
-        .node-info p {
-            font-size: 0.9rem;
-            color: #666;
-        }
-
-        .stars {
-            margin-left: auto;
-            display: flex;
-            gap: 0.25rem;
-            font-size: 1.2rem;
-        }
-
-        .star.filled { color: var(--accent); }
-        .star.empty { color: #ddd; }
-
-        /* Exercise Modal */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 2000;
-            padding: 2rem;
-        }
-
-        .modal-overlay.active {
-            display: flex;
-        }
-
-        .exercise-container {
-            background: white;
-            border-radius: 20px;
-            width: 100%;
-            max-width: 700px;
-            max-height: 90vh;
-            overflow-y: auto;
-            position: relative;
-            animation: slideUp 0.3s ease;
-        }
-
-        @keyframes slideUp {
-            from { transform: translateY(50px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        .exercise-header {
-            padding: 1.5rem;
-            border-bottom: 2px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            background: white;
-            z-index: 10;
-        }
-
-        .close-btn {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            padding: 0.5rem;
-            border-radius: 50%;
-            transition: background 0.2s;
-        }
-
-        .close-btn:hover {
-            background: #f0f0f0;
-        }
-
-        .exercise-progress {
-            flex: 1;
-            margin: 0 2rem;
-            height: 16px;
-            background: #eee;
-            border-radius: 20px;
-            overflow: hidden;
-            border: 2px solid #ddd;
-        }
-
-        .exercise-progress-bar {
-            height: 100%;
-            background: var(--secondary);
-            border-radius: 20px;
-            transition: width 0.3s ease;
-            width: 0%;
-        }
-
-        .exercise-content {
-            padding: 2rem;
-        }
-
-        .question-type {
-            display: inline-block;
-            background: #e3f2fd;
-            color: #1565c0;
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: bold;
-            margin-bottom: 1rem;
-            border: 2px solid #bbdefb;
-        }
-
-        .question-text {
-            font-size: 1.3rem;
-            margin-bottom: 2rem;
             line-height: 1.6;
         }
 
-        .audio-btn {
-            width: 100%;
-            padding: 1.5rem;
-            border: 3px dashed var(--border);
-            border-radius: 16px;
-            background: #f9f9f9;
-            cursor: pointer;
+        /* Login Screen */
+        .login-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 1rem;
-            font-size: 1.1rem;
-            color: var(--secondary);
-            font-weight: bold;
-            transition: all 0.2s;
-            margin-bottom: 2rem;
+            z-index: 5000;
+            transition: opacity 0.5s;
         }
 
-        .audio-btn:hover {
-            background: #e3f2fd;
-            border-color: var(--secondary);
-            transform: scale(1.02);
-        }
-
-        .options-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        .option-btn {
-            padding: 1.2rem;
-            border: 3px solid #ddd;
-            border-radius: 16px;
+        .login-container {
             background: white;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: all 0.2s;
+            padding: 3rem;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 90%;
+            max-width: 450px;
             text-align: center;
+        }
+
+        .login-logo {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .login-container h1 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            font-size: 2rem;
+        }
+
+        .login-container p {
+            color: #666;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
             font-weight: 600;
-        }
-
-        .option-btn:hover:not(.disabled) {
-            background: #f5f5f5;
-            border-color: #bbb;
-            transform: translateY(-2px);
-        }
-
-        .option-btn.selected {
-            background: #e3f2fd;
-            border-color: var(--secondary);
-            color: #1565c0;
-        }
-
-        .option-btn.correct {
-            background: #e8f5e9;
-            border-color: var(--primary);
-            color: #2e7d32;
-            animation: correct 0.5s ease;
-        }
-
-        .option-btn.wrong {
-            background: #ffebee;
-            border-color: var(--danger);
-            color: #c62828;
-            animation: shake 0.5s ease;
-        }
-
-        .option-btn.disabled {
-            cursor: not-allowed;
-            opacity: 0.7;
-        }
-
-        @keyframes correct {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-10px); }
-            75% { transform: translateX(10px); }
-        }
-
-        .speak-section {
-            text-align: center;
-            padding: 3rem 2rem;
-        }
-
-        .mic-btn {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            border: 4px solid var(--secondary);
-            background: white;
-            font-size: 3rem;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin: 2rem auto;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 8px 30px rgba(28, 176, 246, 0.3);
-        }
-
-        .mic-btn:hover {
-            transform: scale(1.1);
-            background: #e3f2fd;
-        }
-
-        .mic-btn.recording {
-            background: var(--danger);
-            border-color: #d32f2f;
-            color: white;
-            animation: pulse-recording 1.5s infinite;
-        }
-
-        @keyframes pulse-recording {
-            0% { box-shadow: 0 0 0 0 rgba(255, 75, 75, 0.7); }
-            70% { box-shadow: 0 0 0 30px rgba(255, 75, 75, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(255, 75, 75, 0); }
-        }
-
-        .recognized-text {
-            margin-top: 1.5rem;
-            font-size: 1.3rem;
             color: var(--text);
-            min-height: 2rem;
-            font-weight: 600;
         }
 
-        .hint-text {
-            color: #999;
-            font-size: 0.9rem;
-            margin-top: 0.5rem;
+        .form-group input {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s;
         }
 
-        .exercise-footer {
-            padding: 1.5rem 2rem;
-            border-top: 2px solid var(--border);
-            display: flex;
-            justify-content: flex-end;
-            gap: 1rem;
-            background: #f9f9f9;
-            border-radius: 0 0 20px 20px;
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(88, 204, 2, 0.1);
         }
 
         .btn {
-            padding: 0.8rem 2rem;
-            border-radius: 12px;
+            width: 100%;
+            padding: 1rem;
             border: none;
+            border-radius: 12px;
             font-size: 1rem;
             font-weight: bold;
             cursor: pointer;
@@ -576,74 +122,574 @@
             box-shadow: 0 2px 0 var(--primary-dark);
         }
 
-        .btn-primary:disabled {
-            background: #ccc;
-            box-shadow: none;
+        .btn:disabled {
+            opacity: 0.6;
             cursor: not-allowed;
-            transform: none;
+            transform: none !important;
         }
 
-        .btn-secondary {
-            background: transparent;
-            color: var(--secondary);
-            border: 2px solid var(--border);
+        /* Header */
+        .header {
+            background: white;
+            border-bottom: 2px solid var(--border);
+            padding: 1rem 2rem;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: var(--shadow);
         }
 
-        .btn-secondary:hover {
-            background: #f0f0f0;
+        .header-content {
+            max-width: 1300px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        /* Results Screen */
-        .results-screen {
-            text-align: center;
-            padding: 3rem;
-        }
-
-        .trophy {
-            font-size: 5rem;
-            margin-bottom: 1rem;
-            animation: bounce 1s infinite;
-        }
-
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-20px); }
-        }
-
-        .xp-gained {
-            font-size: 2rem;
-            color: var(--accent);
+        .logo {
+            font-size: 1.5rem;
             font-weight: bold;
-            margin: 1rem 0;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
         }
 
-        .stats-summary {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1rem;
-            margin: 2rem 0;
+        .stats {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
         }
 
-        .stat-box {
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: bold;
+            font-size: 0.95rem;
+            padding: 0.5rem 1rem;
             background: #f5f5f5;
-            padding: 1rem;
-            border-radius: 12px;
+            border-radius: 20px;
             border: 2px solid var(--border);
         }
 
-        .stat-value {
+        .fire { color: var(--accent); }
+        .gem { color: var(--secondary); }
+        .heart { color: var(--danger); }
+
+        /* Layout */
+        .container {
+            max-width: 1300px;
+            margin: 90px auto 2rem;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 2rem;
+            padding: 0 2rem;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .profile-card {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+            border: 2px solid var(--border);
+            box-shadow: var(--shadow);
+        }
+
+        .avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            margin: 0 auto 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: white;
+            border: 4px solid white;
+            box-shadow: 0 4px 15px rgba(88, 204, 2, 0.3);
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .avatar:hover {
+            transform: scale(1.05);
+        }
+
+        .username {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--text);
+        }
+
+        .user-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 2px solid var(--border);
+        }
+
+        .user-stat {
+            text-align: center;
+        }
+
+        .user-stat-value {
             font-size: 1.5rem;
             font-weight: bold;
             color: var(--primary);
         }
 
-        .stat-label {
-            font-size: 0.85rem;
+        .user-stat-label {
+            font-size: 0.8rem;
             color: #666;
             margin-top: 0.25rem;
         }
 
-        /* Word Bank */
+        .nav-menu {
+            background: white;
+            border-radius: 16px;
+            padding: 1rem;
+            border: 2px solid var(--border);
+            box-shadow: var(--shadow);
+        }
+
+        .nav-item {
+            padding: 1rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            border: 2px solid transparent;
+        }
+
+        .nav-item:hover {
+            background: #f5f5f5;
+            transform: translateX(5px);
+        }
+
+        .nav-item.active {
+            background: #e8f5e9;
+            border-color: var(--primary);
+            color: var(--primary-dark);
+        }
+
+        .nav-item:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Main Content */
+        .main-content {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            border: 2px solid var(--border);
+            box-shadow: var(--shadow);
+            min-height: 600px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        /* Learning Path */
+        .path-container {
+            position: relative;
+            padding: 2rem 0;
+        }
+
+        .path-line {
+            position: absolute;
+            left: 40px;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(to bottom, var(--primary), var(--secondary));
+            border-radius: 2px;
+            z-index: 0;
+        }
+
+        .lesson-node {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: white;
+            border-radius: 16px;
+            border: 3px solid #ddd;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .lesson-node:hover:not(.locked) {
+            transform: translateX(10px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            border-color: var(--secondary);
+        }
+
+        .lesson-node.completed {
+            border-color: var(--primary);
+            background: linear-gradient(to right, #f1f8e9, white);
+        }
+
+        .lesson-node.active {
+            border-color: var(--secondary);
+            background: linear-gradient(to right, #e3f2fd, white);
+            animation: pulse-border 2s infinite;
+        }
+
+        .lesson-node.locked {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background: #fafafa;
+        }
+
+        @keyframes pulse-border {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(28, 176, 246, 0.4); }
+            50% { box-shadow: 0 0 0 15px rgba(28, 176, 246, 0); }
+        }
+
+        .node-circle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            background: #f5f5f5;
+            border: 4px solid #ddd;
+            flex-shrink: 0;
+            transition: all 0.3s;
+        }
+
+        .completed .node-circle {
+            background: var(--primary);
+            border-color: var(--primary-dark);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .active .node-circle {
+            background: var(--secondary);
+            border-color: #0d8ecf;
+            color: white;
+            animation: bounce 2s infinite;
+        }
+
+        .locked .node-circle {
+            background: #eee;
+            color: #999;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .node-content h3 {
+            font-size: 1.2rem;
+            margin-bottom: 0.25rem;
+            color: var(--text);
+        }
+
+        .node-content p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .node-meta {
+            margin-left: auto;
+            text-align: center;
+        }
+
+        .level-badge {
+            background: var(--accent);
+            color: #856404;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            display: inline-block;
+        }
+
+        .stars {
+            display: flex;
+            gap: 0.25rem;
+            font-size: 1.2rem;
+        }
+
+        .star.filled { color: var(--accent); }
+        .star.empty { color: #e0e0e0; }
+
+        /* Exercise Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 1rem;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-overlay.active { display: flex; }
+
+        .exercise-container {
+            background: white;
+            border-radius: 24px;
+            width: 100%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            animation: slideUp 0.4s ease;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px) scale(0.95); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
+        }
+
+        .exercise-header {
+            padding: 1.5rem 2rem;
+            border-bottom: 2px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fafafa;
+        }
+
+        .progress-container {
+            flex: 1;
+            margin: 0 2rem;
+            height: 16px;
+            background: #e0e0e0;
+            border-radius: 20px;
+            overflow: hidden;
+            border: 2px solid #d0d0d0;
+            position: relative;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 20px;
+            transition: width 0.4s ease;
+            width: 0%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .close-btn {
+            background: white;
+            border: 2px solid var(--border);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-btn:hover {
+            background: #ffebee;
+            border-color: var(--danger);
+            color: var(--danger);
+            transform: rotate(90deg);
+        }
+
+        .exercise-body {
+            padding: 3rem;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .question-type-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #e3f2fd;
+            color: #1565c0;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            margin-bottom: 1.5rem;
+            border: 2px solid #bbdefb;
+        }
+
+        .question-text {
+            font-size: 1.5rem;
+            margin-bottom: 2.5rem;
+            line-height: 1.5;
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .audio-player {
+            background: linear-gradient(135deg, #f5f5f5, #ffffff);
+            border: 3px dashed var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .audio-player:hover {
+            background: #e3f2fd;
+            border-color: var(--secondary);
+            transform: translateY(-2px);
+        }
+
+        .audio-icon {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .option-card {
+            padding: 1.5rem;
+            border: 3px solid #e0e0e0;
+            border-radius: 16px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 600;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option-card:hover:not(.disabled) {
+            border-color: var(--secondary);
+            background: #f5f5f5;
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .option-card.selected {
+            border-color: var(--secondary);
+            background: #e3f2fd;
+            color: #1565c0;
+            box-shadow: 0 0 0 4px rgba(28, 176, 246, 0.2);
+        }
+
+        .option-card.correct {
+            border-color: var(--primary);
+            background: #e8f5e9;
+            color: #2e7d32;
+            animation: correct-pulse 0.6s ease;
+        }
+
+        .option-card.wrong {
+            border-color: var(--danger);
+            background: #ffebee;
+            color: #c62828;
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes correct-pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-10px); }
+            40%, 80% { transform: translateX(10px); }
+        }
+
+        .text-input {
+            width: 100%;
+            padding: 1.2rem;
+            font-size: 1.2rem;
+            border: 3px solid #e0e0e0;
+            border-radius: 16px;
+            margin-bottom: 2rem;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .text-input:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 4px rgba(28, 176, 246, 0.15);
+        }
+
+        .text-input.correct {
+            border-color: var(--primary);
+            background: #e8f5e9;
+        }
+
+        .text-input.wrong {
+            border-color: var(--danger);
+            background: #ffebee;
+        }
+
         .word-bank {
             display: flex;
             flex-wrap: wrap;
@@ -659,43 +705,406 @@
         .word-chip {
             background: white;
             border: 2px solid #ddd;
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
+            padding: 0.6rem 1.2rem;
+            border-radius: 12px;
             cursor: pointer;
             font-weight: 600;
             transition: all 0.2s;
             user-select: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
         .word-chip:hover {
-            background: #e3f2fd;
-            border-color: var(--secondary);
             transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            border-color: var(--secondary);
         }
 
-        .word-chip.selected {
-            background: var(--secondary);
-            color: white;
-            border-color: #0d8ecf;
+        .word-chip.used {
+            opacity: 0.4;
+            pointer-events: none;
+            background: #eee;
         }
 
-        .answer-slots {
+        .answer-area {
+            min-height: 80px;
+            padding: 1.5rem;
+            background: white;
+            border: 3px solid #e0e0e0;
+            border-radius: 16px;
+            margin-bottom: 2rem;
             display: flex;
             flex-wrap: wrap;
             gap: 0.75rem;
-            margin-bottom: 2rem;
-            min-height: 60px;
-            padding: 1rem;
+            align-items: center;
+        }
+
+        .answer-word {
+            background: var(--secondary);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            animation: popIn 0.3s ease;
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .answer-word:hover {
+            background: var(--danger);
+            transform: scale(1.1);
+        }
+
+        .speak-container {
+            text-align: center;
+            padding: 3rem;
+        }
+
+        .mic-button {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            border: 4px solid var(--secondary);
             background: white;
-            border: 3px solid #ddd;
+            font-size: 4rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 2rem auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 30px rgba(28, 176, 246, 0.3);
+            position: relative;
+        }
+
+        .mic-button:hover {
+            transform: scale(1.1);
+            background: #e3f2fd;
+        }
+
+        .mic-button.recording {
+            background: var(--danger);
+            border-color: #d32f2f;
+            color: white;
+            animation: recording-pulse 1.5s infinite;
+        }
+
+        @keyframes recording-pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 75, 75, 0.7); }
+            70% { box-shadow: 0 0 0 40px rgba(255, 75, 75, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 75, 75, 0); }
+        }
+
+        .recognized-text {
+            font-size: 1.5rem;
+            color: var(--text);
+            min-height: 3rem;
+            font-weight: 600;
+            margin-top: 1rem;
+        }
+
+        .hint-box {
+            background: #fff3cd;
+            border-left: 5px solid var(--accent);
+            padding: 1rem 1.5rem;
+            margin-bottom: 2rem;
+            border-radius: 0 12px 12px 0;
+            color: #856404;
+        }
+
+        .exercise-footer {
+            padding: 1.5rem 2rem;
+            border-top: 2px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fafafa;
+        }
+
+        .skip-btn {
+            background: transparent;
+            border: 2px solid #ddd;
+            color: #666;
+            padding: 0.8rem 2rem;
             border-radius: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .skip-btn:hover {
+            background: #f5f5f5;
+            border-color: #999;
+        }
+
+        .check-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.8rem 3rem;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 4px 0 var(--primary-dark);
+            transition: all 0.2s;
+            text-transform: uppercase;
+        }
+
+        .check-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 var(--primary-dark);
+        }
+
+        .check-btn:active:not(:disabled) {
+            transform: translateY(0);
+            box-shadow: 0 2px 0 var(--primary-dark);
+        }
+
+        .check-btn:disabled {
+            background: #ccc;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+
+        /* Results Screen */
+        .results-container {
+            text-align: center;
+            padding: 3rem;
+        }
+
+        .trophy {
+            font-size: 6rem;
+            margin-bottom: 1rem;
+            animation: trophy-bounce 1s ease infinite;
+            display: inline-block;
+        }
+
+        @keyframes trophy-bounce {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            25% { transform: translateY(-20px) rotate(-5deg); }
+            75% { transform: translateY(-20px) rotate(5deg); }
+        }
+
+        .xp-earned {
+            font-size: 3rem;
+            color: var(--accent);
+            font-weight: bold;
+            margin: 1rem 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin: 3rem 0;
+        }
+
+        .stat-card {
+            background: #f5f5f5;
+            padding: 1.5rem;
+            border-radius: 16px;
+            border: 3px solid var(--border);
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--secondary);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            color: #666;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        /* Vocabulary Section */
+        .vocab-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .vocab-card {
+            background: white;
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .vocab-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border-color: var(--secondary);
+        }
+
+        .vocab-word {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+        }
+
+        .vocab-translation {
+            color: #666;
+            font-size: 0.95rem;
+        }
+
+        .vocab-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+            font-size: 0.85rem;
+            color: #999;
+        }
+
+        .strength-bar {
+            width: 100%;
+            height: 6px;
+            background: #eee;
+            border-radius: 3px;
+            margin-top: 0.5rem;
+            overflow: hidden;
+        }
+
+        .strength-fill {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+
+        /* Profile Section */
+        .profile-header {
+            text-align: center;
+            padding: 3rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border-radius: 16px;
+            margin-bottom: 2rem;
+        }
+
+        .profile-avatar-large {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: white;
+            margin: 0 auto 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            border: 6px solid rgba(255,255,255,0.3);
+        }
+
+        .achievements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .achievement-card {
+            background: white;
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .achievement-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--accent);
+        }
+
+        .achievement-icon {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .achievement-name {
+            font-weight: bold;
+            margin-bottom: 0.25rem;
+        }
+
+        .achievement-desc {
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        /* Course Selector */
+        .course-selector {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .course-chip {
+            padding: 0.75rem 1.5rem;
+            border: 2px solid var(--border);
+            border-radius: 50px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .course-chip:hover {
+            border-color: var(--secondary);
+            background: #f0f8ff;
+        }
+
+        .course-chip.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* Confetti */
+        .confetti {
+            position: fixed;
+            width: 12px;
+            height: 12px;
+            position: absolute;
+            z-index: 3000;
+            pointer-events: none;
+        }
+
+        @keyframes confetti-fall {
+            0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
         }
 
         /* Responsive */
-        @media (max-width: 768px) {
+        @media (max-width: 900px) {
             .container {
                 grid-template-columns: 1fr;
-                padding: 1rem;
+                padding: 0 1rem;
             }
             
             .sidebar {
@@ -706,182 +1115,167 @@
                 grid-template-columns: 1fr;
             }
             
-            .header {
-                padding: 1rem;
+            .stats-grid {
+                grid-template-columns: 1fr;
             }
             
-            .stats {
-                gap: 1rem;
-                font-size: 0.85rem;
+            .exercise-body {
+                padding: 1.5rem;
             }
         }
 
-        /* Celebration Animation */
-        .confetti {
+        /* Loading Spinner */
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 2rem auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Error message */
+        .error-toast {
             position: fixed;
-            width: 10px;
-            height: 10px;
-            background: var(--primary);
-            position: absolute;
-            animation: confetti-fall 3s linear forwards;
-            z-index: 3000;
-        }
-
-        @keyframes confetti-fall {
-            0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
-            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
-        }
-
-        /* Daily Challenge Badge */
-        .daily-challenge {
-            background: linear-gradient(135deg, #ff6b6b, #feca57);
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--danger);
             color: white;
-            padding: 1rem;
+            padding: 1rem 2rem;
             border-radius: 12px;
-            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            display: none;
+            z-index: 4000;
+            animation: slideInRight 0.3s ease;
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(400px); }
+            to { transform: translateX(0); }
+        }
+
+        /* Empty State */
+        .empty-state {
             text-align: center;
-            border: 3px solid rgba(255,255,255,0.3);
-            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+            padding: 4rem 2rem;
+            color: #999;
         }
 
-        .daily-challenge h4 {
-            margin-bottom: 0.5rem;
-            font-size: 1.1rem;
-        }
-
-        .streak-flame {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-weight: bold;
-            margin-top: 0.5rem;
-        }
-
-        /* Type Answer Input */
-        .type-input {
-            width: 100%;
-            padding: 1rem 1.5rem;
-            font-size: 1.2rem;
-            border: 3px solid #ddd;
-            border-radius: 12px;
-            margin-bottom: 2rem;
-            transition: all 0.3s;
-            font-family: inherit;
-        }
-
-        .type-input:focus {
-            outline: none;
-            border-color: var(--secondary);
-            box-shadow: 0 0 0 4px rgba(28, 176, 246, 0.1);
-        }
-
-        .type-input.correct {
-            border-color: var(--primary);
-            background: #e8f5e9;
-        }
-
-        .type-input.wrong {
-            border-color: var(--danger);
-            background: #ffebee;
-        }
-
-        .translate-hint {
-            background: #fff3cd;
-            border-left: 4px solid var(--accent);
-            padding: 1rem;
-            margin-bottom: 1.5rem;
-            border-radius: 0 8px 8px 0;
-            font-size: 0.95rem;
-            color: #856404;
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
         }
     </style>
 </head>
 <body>
 
-    <!-- Header -->
-    <header class="header">
-        <div class="header-content">
-            <div class="logo">
-                <span>🦉</span>
-                <span>LinguaMaster</span>
+    <!-- Login Screen -->
+    <div class="login-overlay" id="login-screen">
+        <div class="login-container">
+            <div class="login-logo">🦉</div>
+            <h1>LinguaPro</h1>
+            <p>İngilis dilini professional səviyyədə öyrənin</p>
+            
+            <div class="form-group">
+                <label>İstifadəçi adı (API Simulation)</label>
+                <input type="text" id="login-username" placeholder="username" value="demo_user">
             </div>
+            
+            <div class="form-group">
+                <label>Şifrə</label>
+                <input type="password" id="login-password" placeholder="••••••" value="password">
+            </div>
+            
+            <button class="btn btn-primary" onclick="login()">
+                Daxil ol →
+            </button>
+            
+            <p style="margin-top: 1rem; font-size: 0.85rem; color: #666;">
+                Demo: istənilən məlumat daxil edin
+            </p>
+        </div>
+    </div>
+
+    <!-- Error Toast -->
+    <div class="error-toast" id="error-toast"></div>
+
+    <!-- Header -->
+    <header class="header" id="main-header" style="display: none;">
+        <div class="header-content">
+            <div class="logo" onclick="showSection('learn')">
+                <span>🦉</span>
+                <span>LinguaPro</span>
+            </div>
+            
             <div class="stats">
                 <div class="stat-item fire">
                     <span>🔥</span>
-                    <span id="streak-count">12</span>
+                    <span id="header-streak">0</span>
                 </div>
                 <div class="stat-item gem">
                     <span>💎</span>
-                    <span id="xp-count">450</span>
+                    <span id="header-xp">0</span>
                 </div>
                 <div class="stat-item heart">
                     <span>❤️</span>
-                    <span id="heart-count">5</span>
+                    <span id="header-hearts">5</span>
                 </div>
             </div>
         </div>
     </header>
 
     <!-- Main Container -->
-    <div class="container">
+    <div class="container" id="main-container" style="display: none;">
+        
         <!-- Sidebar -->
         <aside class="sidebar">
-            <div class="user-profile">
-                <div class="avatar">👨‍🎓</div>
-                <h3>İstifadəçi</h3>
-                <span class="level-badge">Səviyyə 3</span>
-            </div>
-
-            <div class="daily-challenge">
-                <h4>🔥 Gündəlik Seriya</h4>
-                <div class="streak-flame">
-                    <span>12 gün ardıcıl!</span>
-                </div>
-                <p style="font-size: 0.85rem; margin-top: 0.5rem; opacity: 0.9;">
-                    Sabah 15 XP qazanarsan, 2x bonus!
-                </p>
-            </div>
-
-            <div class="progress-section">
-                <div class="progress-label">
-                    <span>Növbəti səviyyəyə:</span>
-                    <span>75%</span>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: 75%"></div>
+            <div class="profile-card">
+                <div class="avatar" id="user-avatar">👤</div>
+                <div class="username" id="sidebar-username">İstifadəçi</div>
+                <div style="color: #666; font-size: 0.9rem; margin-top: 0.25rem;" id="sidebar-email">user@example.com</div>
+                
+                <div class="user-stats">
+                    <div class="user-stat">
+                        <div class="user-stat-value" id="sidebar-total-xp">0</div>
+                        <div class="user-stat-label">Ümumi XP</div>
+                    </div>
+                    <div class="user-stat">
+                        <div class="user-stat-value" id="sidebar-level">1</div>
+                        <div class="user-stat-label">Səviyyə</div>
+                    </div>
                 </div>
             </div>
 
             <nav class="nav-menu">
-                <div class="nav-item active" onclick="showSection('lessons')">
+                <div class="nav-item active" onclick="showSection('learn')" id="nav-learn">
                     <span>📚</span>
-                    <span>Dərslər</span>
+                    <span>Öyrən</span>
                 </div>
-                <div class="nav-item" onclick="showSection('practice')">
-                    <span>⚔️</span>
-                    <span>Təkrar</span>
-                </div>
-                <div class="nav-item" onclick="showSection('dictionary')">
+                <div class="nav-item" onclick="showSection('vocabulary')" id="nav-vocab">
                     <span>📖</span>
                     <span>Lüğət</span>
                 </div>
-                <div class="nav-item" onclick="showSection('profile')">
+                <div class="nav-item" onclick="showSection('profile')" id="nav-profile">
                     <span>👤</span>
                     <span>Profil</span>
+                </div>
+                <div class="nav-item" onclick="logout()" style="color: var(--danger);">
+                    <span>🚪</span>
+                    <span>Çıxış</span>
                 </div>
             </nav>
         </aside>
 
-        <!-- Main Content -->
-        <main class="learning-area" id="main-content">
-            <h2 class="section-title">
-                <span>🎯</span>
-                <span>Öyrənmə Yolu</span>
-            </h2>
-            
-            <div class="lessons-path" id="lessons-container">
-                <!-- Lessons generated by JS -->
-            </div>
+        <!-- Main Content Area -->
+        <main class="main-content" id="content-area">
+            <!-- Dynamic content loaded here -->
         </main>
     </div>
 
@@ -890,34 +1284,175 @@
         <div class="exercise-container">
             <div class="exercise-header">
                 <button class="close-btn" onclick="closeExercise()">✕</button>
-                <div class="exercise-progress">
-                    <div class="exercise-progress-bar" id="progress-bar"></div>
+                <div class="progress-container">
+                    <div class="progress-bar" id="exercise-progress"></div>
                 </div>
                 <div style="width: 40px;"></div>
             </div>
-
-            <div class="exercise-content" id="exercise-content">
-                <!-- Content generated by JS -->
+            
+            <div class="exercise-body" id="exercise-body">
+                <!-- Exercise content -->
             </div>
-
+            
             <div class="exercise-footer" id="exercise-footer">
-                <button class="btn btn-secondary" onclick="closeExercise()">Çıx</button>
-                <button class="btn btn-primary" id="check-btn" onclick="checkAnswer()" disabled>Yoxla</button>
+                <button class="skip-btn" onclick="skipExercise()">Keç</button>
+                <button class="check-btn" id="check-answer-btn" onclick="checkAnswer()" disabled>Yoxla</button>
             </div>
         </div>
     </div>
 
     <script>
-        // App Data
-        const lessons = [
+        // ==================== API SIMULATION LAYER ====================
+        // Real Duolingo API structure simulation with localStorage persistence
+        
+        const API_BASE = 'https://www.duolingo.com';
+        
+        class DuolingoAPI {
+            constructor() {
+                this.token = localStorage.getItem('duo_token') || null;
+                this.user = null;
+                this.currentCourse = null;
+            }
+
+            async login(username, password) {
+                // Simulate: POST /2017-06-30/login
+                await this.simulateNetworkDelay();
+                
+                const mockUser = {
+                    id: Math.floor(Math.random() * 10000000),
+                    username: username,
+                    email: `${username}@example.com`,
+                    name: username,
+                    totalXp: parseInt(localStorage.getItem('user_total_xp')) || 0,
+                    streak: parseInt(localStorage.getItem('user_streak')) || 0,
+                    gems: parseInt(localStorage.getItem('user_gems')) || 500,
+                    hearts: parseInt(localStorage.getItem('user_hearts')) || 5,
+                    level: parseInt(localStorage.getItem('user_level')) || 1,
+                    courses: [
+                        { id: 'DUOLINGO_EN_AZ', fromLanguage: 'az', learningLanguage: 'en', title: 'İngilis dili', xp: 0 }
+                    ],
+                    currentCourseId: 'DUOLINGO_EN_AZ'
+                };
+                
+                this.token = 'mock_jwt_token_' + Date.now();
+                this.user = mockUser;
+                this.currentCourse = mockUser.courses[0];
+                
+                localStorage.setItem('duo_token', this.token);
+                localStorage.setItem('duo_user', JSON.stringify(mockUser));
+                
+                return { token: this.token, user: mockUser };
+            }
+
+            async getUser() {
+                // Simulate: GET /2017-06-30/users/{userID}
+                await this.simulateNetworkDelay(300);
+                const saved = localStorage.getItem('duo_user');
+                if (saved) {
+                    this.user = JSON.parse(saved);
+                    // Sync with latest localStorage values
+                    this.user.totalXp = parseInt(localStorage.getItem('user_total_xp')) || 0;
+                    this.user.streak = parseInt(localStorage.getItem('user_streak')) || 0;
+                    this.user.hearts = parseInt(localStorage.getItem('user_hearts')) || 5;
+                }
+                return this.user;
+            }
+
+            async getVocabulary() {
+                // Simulate: GET /vocabulary/overview
+                await this.simulateNetworkDelay(500);
+                return this.getMockVocabulary();
+            }
+
+            async getXpSummaries() {
+                // Simulate: GET /2017-06-30/users/{userID}/xp_summaries
+                await this.simulateNetworkDelay(400);
+                return this.generateMockXpData();
+            }
+
+            async getMistakesCount() {
+                // Simulate: GET /v2/mistakes/users/{userID}/courses/{courseID}/count
+                return { numberMistakes: parseInt(localStorage.getItem('user_mistakes')) || 0 };
+            }
+
+            simulateNetworkDelay(ms = 600) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+
+            getMockVocabulary() {
+                return [
+                    { word: "hello", translation: "salam", strength: 1.0, pos: "Noun", last_practiced: new Date().toISOString() },
+                    { word: "goodbye", translation: "salamlaşma", strength: 0.8, pos: "Noun", last_practiced: new Date().toISOString() },
+                    { word: "apple", translation: "alma", strength: 0.9, pos: "Noun", last_practiced: new Date().toISOString() },
+                    { word: "water", translation: "su", strength: 0.7, pos: "Noun", last_practiced: new Date().toISOString() },
+                    { word: "eat", translation: "yemək", strength: 0.6, pos: "Verb", last_practiced: new Date().toISOString() },
+                    { word: "drink", translation: "içmək", strength: 0.5, pos: "Verb", last_practiced: new Date().toISOString() },
+                    { word: "red", translation: "qırmızı", strength: 0.9, pos: "Adjective", last_practiced: new Date().toISOString() },
+                    { word: "blue", translation: "göy", strength: 0.4, pos: "Adjective", last_practiced: new Date().toISOString() },
+                    { word: "big", translation: "böyük", strength: 0.3, pos: "Adjective", last_practiced: new Date().toISOString() },
+                    { word: "small", translation: "kiçik", strength: 0.8, pos: "Adjective", last_practiced: new Date().toISOString() }
+                ];
+            }
+
+            generateMockXpData() {
+                const data = [];
+                const today = new Date();
+                for (let i = 6; i >= 0; i--) {
+                    const date = new Date(today);
+                    date.setDate(date.getDate() - i);
+                    data.push({
+                        date: date.toISOString().split('T')[0],
+                        xp: Math.floor(Math.random() * 100) + 20,
+                        gainedXp: Math.floor(Math.random() * 50)
+                    });
+                }
+                return { summaries: data };
+            }
+
+            updateUserStats(xpEarned, heartsDelta = 0) {
+                let currentXP = parseInt(localStorage.getItem('user_total_xp')) || 0;
+                let currentHearts = parseInt(localStorage.getItem('user_hearts')) || 5;
+                let currentStreak = parseInt(localStorage.getItem('user_streak')) || 0;
+                
+                currentXP += xpEarned;
+                currentHearts = Math.max(0, Math.min(5, currentHearts + heartsDelta));
+                
+                // Check if streak continues (simplified)
+                const lastPractice = localStorage.getItem('last_practice_date');
+                const today = new Date().toDateString();
+                if (lastPractice !== today) {
+                    currentStreak++;
+                    localStorage.setItem('last_practice_date', today);
+                }
+                
+                localStorage.setItem('user_total_xp', currentXP);
+                localStorage.setItem('user_hearts', currentHearts);
+                localStorage.setItem('user_streak', currentStreak);
+                
+                // Calculate level
+                const level = Math.floor(currentXP / 100) + 1;
+                localStorage.setItem('user_level', level);
+                
+                return { xp: currentXP, hearts: currentHearts, streak: currentStreak, level };
+            }
+        }
+
+        const api = new DuolingoAPI();
+
+        // ==================== APP STATE ====================
+        
+        const courses = [
             {
                 id: 1,
                 title: "Təməllər",
                 subtitle: "Salamlaşma və Əsas İfadələr",
+                description: "İngilis dilinin əsaslarını öyrənin",
                 icon: "👋",
-                completed: true,
-                stars: 3,
+                totalLevels: 3,
+                currentLevel: 1,
+                completed: false,
                 locked: false,
+                color: "#58cc02",
                 exercises: [
                     {
                         type: 'vocabulary',
@@ -927,16 +1462,17 @@
                         audio: 'hello'
                     },
                     {
-                        type: 'listening',
-                        question: 'Dinləyin və təkrarlayın: "My name is..."',
-                        audioText: 'My name is John',
-                        answer: 'My name is John'
+                        type: 'translate',
+                        question: '"Mənim adım..." cümləsini ingilis dilində yazın',
+                        answer: 'My name is',
+                        acceptable: ['my name is', 'my names', 'i am'],
+                        audio: 'my name is'
                     },
                     {
                         type: 'speaking',
-                        question: 'Bu cümləni deyin: "Mənim adım [sizin adınız]"',
-                        targetText: 'My name is',
-                        acceptedAnswers: ['my name is', 'my names']
+                        question: 'Bu cümləni deyin: "Hello, my name is..."',
+                        target: 'hello my name is',
+                        hint: 'Hello, my name is...'
                     }
                 ]
             },
@@ -944,10 +1480,14 @@
                 id: 2,
                 title: "Rənglər",
                 subtitle: "Əsas Rəngləri Öyrən",
+                description: "Gündəlik rənglər və ifadələr",
                 icon: "🎨",
-                completed: true,
-                stars: 2,
-                locked: false,
+                totalLevels: 4,
+                currentLevel: 1,
+                completed: false,
+                locked: true,
+                color: "#ce82ff",
+                dependsOn: 1,
                 exercises: [
                     {
                         type: 'vocabulary',
@@ -957,10 +1497,22 @@
                         audio: 'blue'
                     },
                     {
-                        type: 'translate',
-                        question: 'Bu cümləni ingilis dilinə tərcümə edin: "Mənim sevdiyim rəng qırmızıdır"',
-                        answer: 'My favorite color is red',
-                        hints: ['My', 'favorite', 'color', 'is', 'red']
+                        type: 'sentence',
+                        question: 'Düzgün cümlə qurun: "Mənim sevdiyim rəng göydür"',
+                        words: ['My', 'color', 'is', 'blue', 'favorite'],
+                        correct: ['My', 'favorite', 'color', 'is', 'blue']
+                    },
+                    {
+                        type: 'listening',
+                        audioText: 'The sky is blue',
+                        question: 'Dinlədiyinizi yazın'
+                    },
+                    {
+                        type: 'vocabulary',
+                        question: '"Qırmızı" sözünün ingilis dilində qarşılığı?',
+                        options: ['Blue', 'Green', 'Red', 'Black'],
+                        correct: 2,
+                        audio: 'red'
                     }
                 ]
             },
@@ -968,520 +1520,783 @@
                 id: 3,
                 title: "Heyvanlar",
                 subtitle: "Vəhşi və Ev Heyvanları",
+                description: "Heyvan adlarını və sifətləri öyrənin",
                 icon: "🦁",
+                totalLevels: 5,
+                currentLevel: 1,
                 completed: false,
-                stars: 0,
-                locked: false,
-                active: true,
+                locked: true,
+                color: "#ffc800",
+                dependsOn: 2,
                 exercises: [
-                    {
-                        type: 'vocabulary',
-                        question: '"İt" sözünün ingilis dilində qarşılığı?',
-                        options: ['Cat', 'Dog', 'Bird', 'Fish'],
-                        correct: 1,
-                        audio: 'dog'
-                    },
-                    {
-                        type: 'sentence',
-                        question: 'Bu sözlərdən düzgün cümlə qurun: "likes / my / dog / I"',
-                        words: ['likes', 'my', 'dog', 'I'],
-                        correctOrder: ['I', 'likes', 'my', 'dog']
-                    }
+                    { type: 'vocabulary', question: '"İt" necə deyilir?', options: ['Cat', 'Dog', 'Bird', 'Fish'], correct: 1, audio: 'dog' },
+                    { type: 'translate', question: '"Böyük pişik" tərcüməsi', answer: 'big cat', acceptable: ['the big cat', 'a big cat'] },
+                    { type: 'speaking', question: '"I like dogs" deyin', target: 'i like dogs', hint: 'I like dogs' }
                 ]
             },
             {
                 id: 4,
                 title: "Ailə",
                 subtitle: "Ailə Üzvləri",
+                description: "Ailə haqqında danışmaq",
                 icon: "👨‍👩‍👧‍👦",
+                totalLevels: 4,
+                currentLevel: 1,
                 completed: false,
-                stars: 0,
                 locked: true,
-                exercises: []
+                color: "#1cb0f6",
+                dependsOn: 3,
+                exercises: [
+                    { type: 'vocabulary', question: '"Ana" ingilis dilində?', options: ['Father', 'Mother', 'Sister', 'Brother'], correct: 1, audio: 'mother' },
+                    { type: 'sentence', question: 'Cümlə qurun: "Mənim anam xoşbəxtdir"', words: ['My', 'is', 'mother', 'happy'], correct: ['My', 'mother', 'is', 'happy'] }
+                ]
             },
             {
                 id: 5,
                 title: "Qida",
                 subtitle: "Yeməklər və İçkilər",
+                description: "Restoranda sifariş vermək",
                 icon: "🍎",
+                totalLevels: 6,
+                currentLevel: 1,
                 completed: false,
-                stars: 0,
                 locked: true,
-                exercises: []
+                color: "#ff4b4b",
+                dependsOn: 4,
+                exercises: [
+                    { type: 'vocabulary', question: '"Su" necə deyilir?', options: ['Bread', 'Water', 'Milk', 'Tea'], correct: 1, audio: 'water' },
+                    { type: 'translate', question: '"Mən çay istəyirəm"', answer: 'I want tea', acceptable: ['i want tea', 'i would like tea'] }
+                ]
             }
         ];
 
-        // State
-        let currentLesson = null;
-        let currentExerciseIndex = 0;
-        let userXP = parseInt(localStorage.getItem('userXP')) || 450;
-        let userStreak = parseInt(localStorage.getItem('userStreak')) || 12;
-        let userHearts = parseInt(localStorage.getItem('userHearts')) || 5;
-        let selectedOption = null;
-        let currentAnswer = '';
-        let recognition = null;
+        let currentState = {
+            user: null,
+            currentLesson: null,
+            currentExerciseIndex: 0,
+            selectedAnswer: null,
+            constructedSentence: [],
+            recognition: null,
+            isRecording: false
+        };
 
-        // Initialize Speech Recognition
-        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            recognition = new SpeechRecognition();
-            recognition.continuous = false;
-            recognition.interimResults = false;
-            recognition.lang = 'en-US';
+        // ==================== INITIALIZATION ====================
+
+        async function init() {
+            // Check for existing session
+            const token = localStorage.getItem('duo_token');
+            if (token) {
+                await loadUserData();
+                showMainApp();
+            }
         }
 
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            renderLessons();
-            updateStats();
-        });
-
-        function updateStats() {
-            document.getElementById('xp-count').textContent = userXP;
-            document.getElementById('streak-count').textContent = userStreak;
-            document.getElementById('heart-count').textContent = userHearts;
+        async function login() {
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+            
+            if (!username || !password) {
+                showError('Zəhmət olmazsa, məlumatları daxil edin');
+                return;
+            }
+            
+            try {
+                const result = await api.login(username, password);
+                await loadUserData();
+                showMainApp();
+            } catch (err) {
+                showError('Giriş xətası: ' + err.message);
+            }
         }
 
-        function renderLessons() {
-            const container = document.getElementById('lessons-container');
-            container.innerHTML = lessons.map(lesson => `
-                <div class="lesson-node ${lesson.completed ? 'completed' : ''} ${lesson.active ? 'active' : ''} ${lesson.locked ? 'locked' : ''}" 
-                     onclick="${lesson.locked ? '' : `startLesson(${lesson.id})`}">
-                    <div class="node-icon">${lesson.locked ? '🔒' : lesson.icon}</div>
-                    <div class="node-info">
-                        <h3>${lesson.title}</h3>
-                        <p>${lesson.subtitle}</p>
-                    </div>
-                    <div class="stars">
-                        ${[1,2,3].map(i => `<span class="star ${i <= lesson.stars ? 'filled' : 'empty'}">★</span>`).join('')}
+        async function loadUserData() {
+            currentState.user = await api.getUser();
+            updateHeaderStats();
+        }
+
+        function showMainApp() {
+            document.getElementById('login-screen').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('main-header').style.display = 'block';
+                document.getElementById('main-container').style.display = 'grid';
+                showSection('learn');
+            }, 500);
+        }
+
+        function logout() {
+            localStorage.removeItem('duo_token');
+            localStorage.removeItem('duo_user');
+            location.reload();
+        }
+
+        // ==================== NAVIGATION & VIEWS ====================
+
+        function showSection(section) {
+            // Update nav active state
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            
+            const content = document.getElementById('content-area');
+            
+            switch(section) {
+                case 'learn':
+                    document.getElementById('nav-learn').classList.add('active');
+                    renderLearningPath(content);
+                    break;
+                case 'vocabulary':
+                    document.getElementById('nav-vocab').classList.add('active');
+                    renderVocabulary(content);
+                    break;
+                case 'profile':
+                    document.getElementById('nav-profile').classList.add('active');
+                    renderProfile(content);
+                    break;
+            }
+        }
+
+        function renderLearningPath(container) {
+            // Update lesson lock states based on completed status
+            updateLessonLocks();
+            
+            let html = `
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <span>🎯</span>
+                        <span>Öyrənmə Yolu</span>
+                    </h2>
+                    <div class="course-selector">
+                        <div class="course-chip active">
+                            <span>🇬🇧</span>
+                            <span>İngilis dili</span>
+                        </div>
                     </div>
                 </div>
-            `).join('');
+                <div class="path-container">
+                    <div class="path-line"></div>
+            `;
+            
+            courses.forEach(course => {
+                const statusClass = course.completed ? 'completed' : (course.locked ? 'locked' : 'active');
+                const stars = course.completed ? 3 : (course.locked ? 0 : (course.currentLevel > 1 ? 2 : 0));
+                
+                html += `
+                    <div class="lesson-node ${statusClass}" onclick="${course.locked ? '' : `startLesson(${course.id})`}">
+                        <div class="node-circle">${course.locked ? '🔒' : course.icon}</div>
+                        <div class="node-content">
+                            <h3>${course.title}</h3>
+                            <p>${course.subtitle}</p>
+                            <small style="color: #999; display: block; margin-top: 0.5rem;">
+                                ${course.exercises.length} tapşırıq • Səviyyə ${course.currentLevel}/${course.totalLevels}
+                            </small>
+                        </div>
+                        <div class="node-meta">
+                            ${!course.locked ? `
+                                <div class="level-badge">${course.currentLevel}-ci səviyyə</div>
+                                <div class="stars">
+                                    ${[1,2,3].map(i => `<span class="star ${i <= stars ? 'filled' : 'empty'}">★</span>`).join('')}
+                                </div>
+                            ` : '<span style="color: #999; font-size: 0.85rem;">Kilitli</span>'}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
         }
 
-        function startLesson(lessonId) {
-            currentLesson = lessons.find(l => l.id === lessonId);
-            currentExerciseIndex = 0;
-            if (currentLesson && currentLesson.exercises.length > 0) {
-                document.getElementById('exercise-modal').classList.add('active');
-                renderExercise();
-            } else {
-                alert('Bu dərs hələ aktiv deyil. Tezliklə əlavə ediləcək!');
+        function updateLessonLocks() {
+            // First course always unlocked
+            if (courses.length > 0) courses[0].locked = false;
+            
+            // Check dependencies
+            for (let i = 1; i < courses.length; i++) {
+                const prevCourse = courses.find(c => c.id === courses[i].dependsOn);
+                if (prevCourse && prevCourse.completed) {
+                    courses[i].locked = false;
+                }
             }
+            
+            // Update active status (first unlocked incomplete course)
+            let foundActive = false;
+            courses.forEach(course => {
+                if (!course.completed && !course.locked && !foundActive) {
+                    course.active = true;
+                    foundActive = true;
+                } else {
+                    course.active = false;
+                }
+            });
+        }
+
+        async function renderVocabulary(container) {
+            container.innerHTML = `
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <span>📖</span>
+                        <span>Mənim Lüğətim</span>
+                    </h2>
+                </div>
+                <div class="spinner"></div>
+            `;
+            
+            const vocab = await api.getVocabulary();
+            
+            let html = `
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <span>📖</span>
+                        <span>Mənim Lüğətim (${vocab.length} söz)</span>
+                    </h2>
+                </div>
+                <div class="vocab-grid">
+            `;
+            
+            vocab.forEach(item => {
+                const strengthPercent = Math.round(item.strength * 100);
+                html += `
+                    <div class="vocab-card" onclick="speak('${item.word}')">
+                        <div class="vocab-word">${item.word}</div>
+                        <div class="vocab-translation">${item.translation}</div>
+                        <div class="vocab-meta">
+                            <span>${item.pos}</span>
+                            <span>Güc: ${strengthPercent}%</span>
+                        </div>
+                        <div class="strength-bar">
+                            <div class="strength-fill" style="width: ${strengthPercent}%"></div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        async function renderProfile(container) {
+            const xpData = await api.getXpSummaries();
+            const mistakes = await api.getMistakesCount();
+            
+            container.innerHTML = `
+                <div class="profile-header">
+                    <div class="profile-avatar-large">👨‍🎓</div>
+                    <h2>${currentState.user.name}</h2>
+                    <p>${currentState.user.email}</p>
+                    <div style="margin-top: 1rem; opacity: 0.9;">
+                        ${currentState.user.streak} gün seriya • Səviyyə ${currentState.user.level}
+                    </div>
+                </div>
+                
+                <h3 style="margin-bottom: 1rem;">📊 Statistika</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number">${currentState.user.totalXp}</div>
+                        <div class="stat-label">Ümumi XP</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${currentState.user.streak}</div>
+                        <div class="stat-label">Günlük Seriya</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${mistakes.numberMistakes}</div>
+                        <div class="stat-label">Düzəldilən Xətalar</div>
+                    </div>
+                </div>
+                
+                <h3 style="margin: 2rem 0 1rem;">🏆 Nailiyyətlər</h3>
+                <div class="achievements-grid">
+                    <div class="achievement-card">
+                        <div class="achievement-icon">🔥</div>
+                        <div class="achievement-name">Seriya Ustası</div>
+                        <div class="achievement-desc">7 gün ardıcıl öyrən</div>
+                    </div>
+                    <div class="achievement-card">
+                        <div class="achievement-icon">💎</div>
+                        <div class="achievement-name">XP Toplayıcı</div>
+                        <div class="achievement-desc">1000 XP qazan</div>
+                    </div>
+                    <div class="achievement-card">
+                        <div class="achievement-icon">🎯</div>
+                        <div class="achievement-name">Dəqiq Zərbə</div>
+                        <div class="achievement-desc">10 dərs səvsiz tamamla</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ==================== EXERCISE ENGINE ====================
+
+        function startLesson(lessonId) {
+            const lesson = courses.find(c => c.id === lessonId);
+            if (!lesson || lesson.locked) return;
+            
+            currentState.currentLesson = lesson;
+            currentState.currentExerciseIndex = 0;
+            
+            document.getElementById('exercise-modal').classList.add('active');
+            renderExercise();
         }
 
         function renderExercise() {
-            const exercise = currentLesson.exercises[currentExerciseIndex];
-            const progress = ((currentExerciseIndex) / currentLesson.exercises.length) * 100;
-            document.getElementById('progress-bar').style.width = progress + '%';
+            const lesson = currentState.currentLesson;
+            const exercise = lesson.exercises[currentState.currentExerciseIndex];
+            const progress = ((currentState.currentExerciseIndex) / lesson.exercises.length) * 100;
             
-            const content = document.getElementById('exercise-content');
-            const checkBtn = document.getElementById('check-btn');
+            document.getElementById('exercise-progress').style.width = progress + '%';
+            
+            const body = document.getElementById('exercise-body');
+            const checkBtn = document.getElementById('check-answer-btn');
+            
             checkBtn.disabled = true;
             checkBtn.textContent = 'Yoxla';
             checkBtn.onclick = checkAnswer;
-            selectedOption = null;
-            currentAnswer = '';
-
+            
+            currentState.selectedAnswer = null;
+            currentState.constructedSentence = [];
+            
             if (exercise.type === 'vocabulary') {
-                content.innerHTML = `
-                    <span class="question-type">📝 Söz Ehtiyatı</span>
-                    <h3 class="question-text">${exercise.question}</h3>
-                    <button class="audio-btn" onclick="speak('${exercise.audio}')">
-                        <span>🔊</span>
-                        <span>Dinləmək üçün klikləyin</span>
-                    </button>
-                    <div class="options-grid">
-                        ${exercise.options.map((opt, idx) => `
-                            <button class="option-btn" onclick="selectOption(${idx}, this)">${opt}</button>
-                        `).join('')}
-                    </div>
-                `;
-            } else if (exercise.type === 'listening') {
-                content.innerHTML = `
-                    <span class="question-type">👂 Dinləmə</span>
-                    <h3 class="question-text">${exercise.question}</h3>
-                    <button class="audio-btn" onclick="speak('${exercise.audioText}')">
-                        <span>🔊</span>
-                        <span>Səsi Dinlə</span>
-                    </button>
-                    <div class="translate-hint">
-                        💡 İpucu: Diqqətlə dinləyin və eşitdiklərinizi yazın
-                    </div>
-                    <input type="text" class="type-input" placeholder="Cavabınızı yazın..." 
-                           oninput="updateTextAnswer(this.value)" spellcheck="false">
-                `;
-                setTimeout(() => speak(exercise.audioText), 500);
-                checkBtn.disabled = false;
-            } else if (exercise.type === 'speaking') {
-                content.innerHTML = `
-                    <span class="question-type">🎤 Danışıq</span>
-                    <h3 class="question-text">${exercise.question}</h3>
-                    <div class="speak-section">
-                        <button class="mic-btn" id="mic-btn" onclick="toggleSpeech()">🎤</button>
-                        <div class="recognized-text" id="recognized-text">...</div>
-                        <div class="hint-text">Mikrofona klikləyin və danışın</div>
-                    </div>
-                `;
-                checkBtn.disabled = false;
+                renderVocabExercise(body, exercise);
             } else if (exercise.type === 'translate') {
-                content.innerHTML = `
-                    <span class="question-type">🔄 Tərcümə</span>
-                    <h3 class="question-text">${exercise.question}</h3>
-                    <div class="translate-hint">
-                        İpucu: ${exercise.hints.join(' / ')}
-                    </div>
-                    <input type="text" class="type-input" placeholder="İngilis dilində yazın..." 
-                           oninput="updateTextAnswer(this.value)" spellcheck="false">
-                `;
-                checkBtn.disabled = false;
+                renderTranslateExercise(body, exercise);
             } else if (exercise.type === 'sentence') {
-                content.innerHTML = `
-                    <span class="question-type">🧩 Cümlə Qurma</span>
-                    <h3 class="question-text">${exercise.question}</h3>
-                    <div class="answer-slots" id="answer-slots" onclick="clearSlots()">
-                        <span style="color: #999; font-size: 0.9rem;">Sözləri buraya yerləşdirin...</span>
-                    </div>
-                    <div class="word-bank" id="word-bank">
-                        ${exercise.words.map((word, idx) => `
-                            <span class="word-chip" onclick="selectWord('${word}', this)">${word}</span>
-                        `).join('')}
-                    </div>
-                `;
-            }
-
-            // Enable check button for types that need it
-            if (exercise.type === 'vocabulary' || exercise.type === 'sentence') {
-                checkBtn.disabled = false;
+                renderSentenceExercise(body, exercise);
+            } else if (exercise.type === 'speaking') {
+                renderSpeakingExercise(body, exercise);
+            } else if (exercise.type === 'listening') {
+                renderListeningExercise(body, exercise);
             }
         }
 
-        function selectOption(index, btn) {
-            document.querySelectorAll('.option-btn').forEach(b => {
-                b.classList.remove('selected');
-                b.style.transform = '';
+        function renderVocabExercise(container, exercise) {
+            container.innerHTML = `
+                <div class="question-type-badge">📝 Söz Bilgisi</div>
+                <h3 class="question-text">${exercise.question}</h3>
+                <button class="audio-player" onclick="speak('${exercise.audio}')">
+                    <div class="audio-icon">🔊</div>
+                    <div>Dinləmək üçün klikləyin</div>
+                </button>
+                <div class="options-grid">
+                    ${exercise.options.map((opt, idx) => `
+                        <div class="option-card" onclick="selectOption(${idx}, this)">${opt}</div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function renderTranslateExercise(container, exercise) {
+            container.innerHTML = `
+                <div class="question-type-badge">🔄 Tərcümə</div>
+                <h3 class="question-text">${exercise.question}</h3>
+                ${exercise.hint ? `
+                    <div class="hint-box">
+                        💡 İpucu: ${exercise.hint}
+                    </div>
+                ` : ''}
+                <button class="audio-player" onclick="speak('${exercise.audio || exercise.answer}')">
+                    <div class="audio-icon">🎧</div>
+                    <div>Səsləndir</div>
+                </button>
+                <input type="text" class="text-input" placeholder="Cavabınızı yazın..." 
+                       oninput="updateTextAnswer(this.value)" spellcheck="false">
+            `;
+            document.getElementById('check-answer-btn').disabled = false;
+        }
+
+        function renderSentenceExercise(container, exercise) {
+            container.innerHTML = `
+                <div class="question-type-badge">🧩 Cümlə Qurma</div>
+                <h3 class="question-text">${exercise.question}</h3>
+                <div class="answer-area" id="answer-area">
+                    <span style="color: #ccc; font-style: italic;">Sözləri bura yerləşdirin...</span>
+                </div>
+                <div class="word-bank" id="word-bank">
+                    ${exercise.words.map(word => `
+                        <span class="word-chip" onclick="addWordToSentence('${word}', this)">${word}</span>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function renderSpeakingExercise(container, exercise) {
+            container.innerHTML = `
+                <div class="question-type-badge">🎤 Danışıq</div>
+                <h3 class="question-text">${exercise.question}</h3>
+                <div class="hint-box">💡 ${exercise.hint}</div>
+                <div class="speak-container">
+                    <button class="mic-button" id="mic-btn" onclick="toggleSpeech()">🎤</button>
+                    <div class="recognized-text" id="recognized-text">...</div>
+                    <div style="color: #999; margin-top: 1rem; font-size: 0.9rem;">
+                        Mikrofona klikləyin və danışın
+                    </div>
+                </div>
+            `;
+            initSpeechRecognition();
+            document.getElementById('check-answer-btn').disabled = false;
+        }
+
+        function renderListeningExercise(container, exercise) {
+            container.innerHTML = `
+                <div class="question-type-badge">👂 Dinləmə</div>
+                <h3 class="question-text">${exercise.question}</h3>
+                <button class="audio-player" onclick="speak('${exercise.audioText}')" style="margin-bottom: 2rem;">
+                    <div class="audio-icon">🔊</div>
+                    <div>Dinlə (birdən çox eşitmək üçün klikləyin)</div>
+                </button>
+                <input type="text" class="text-input" placeholder="Eşitdiklərinizi yazın..." 
+                       oninput="updateTextAnswer(this.value)" spellcheck="false">
+            `;
+            setTimeout(() => speak(exercise.audioText), 500);
+            document.getElementById('check-answer-btn').disabled = false;
+        }
+
+        // ==================== INTERACTION HANDLERS ====================
+
+        function selectOption(index, element) {
+            document.querySelectorAll('.option-card').forEach(card => {
+                card.classList.remove('selected');
             });
-            btn.classList.add('selected');
-            selectedOption = index;
-            document.getElementById('check-btn').disabled = false;
+            element.classList.add('selected');
+            currentState.selectedAnswer = index;
+            document.getElementById('check-answer-btn').disabled = false;
         }
 
         function updateTextAnswer(value) {
-            currentAnswer = value.trim();
-            document.getElementById('check-btn').disabled = currentAnswer.length === 0;
+            currentState.selectedAnswer = value.trim();
+            document.getElementById('check-answer-btn').disabled = value.trim().length === 0;
         }
 
-        function selectWord(word, chip) {
-            const slots = document.getElementById('answer-slots');
-            if (slots.querySelector('span[style*="color: #999"]')) {
-                slots.innerHTML = '';
+        function addWordToSentence(word, chip) {
+            const answerArea = document.getElementById('answer-area');
+            const placeholder = answerArea.querySelector('span');
+            if (placeholder) placeholder.remove();
+            
+            chip.classList.add('used');
+            
+            const wordSpan = document.createElement('span');
+            wordSpan.className = 'answer-word';
+            wordSpan.textContent = word;
+            wordSpan.onclick = () => {
+                wordSpan.remove();
+                chip.classList.remove('used');
+                if (answerArea.children.length === 0) {
+                    answerArea.innerHTML = '<span style="color: #ccc; font-style: italic;">Sözləri bura yerləşdirin...</span>';
+                }
+                updateConstructedSentence();
+            };
+            
+            answerArea.appendChild(wordSpan);
+            updateConstructedSentence();
+            document.getElementById('check-answer-btn').disabled = false;
+        }
+
+        function updateConstructedSentence() {
+            const words = Array.from(document.querySelectorAll('.answer-word')).map(w => w.textContent);
+            currentState.constructedSentence = words;
+        }
+
+        function initSpeechRecognition() {
+            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                currentState.recognition = new SpeechRecognition();
+                currentState.recognition.continuous = false;
+                currentState.recognition.interimResults = false;
+                currentState.recognition.lang = 'en-US';
+                
+                currentState.recognition.onresult = (event) => {
+                    const transcript = event.results[0][0].transcript;
+                    document.getElementById('recognized-text').textContent = transcript;
+                    currentState.selectedAnswer = transcript.toLowerCase();
+                    document.getElementById('check-answer-btn').disabled = false;
+                };
+                
+                currentState.recognition.onerror = (event) => {
+                    document.getElementById('recognized-text').textContent = 'Xəta baş verdi, yenidən cəhd edin';
+                };
+            }
+        }
+
+        function toggleSpeech() {
+            if (!currentState.recognition) {
+                alert('Brauzeriniz səs tanımanı dəstəkləmir');
+                return;
             }
             
-            if (!chip.classList.contains('selected')) {
-                chip.classList.add('selected');
-                const span = document.createElement('span');
-                span.className = 'word-chip selected';
-                span.textContent = word;
-                span.onclick = () => {
-                    span.remove();
-                    chip.classList.remove('selected');
-                    if (slots.children.length === 0) {
-                        slots.innerHTML = '<span style="color: #999; font-size: 0.9rem;">Sözləri buraya yerləşdirin...</span>';
-                    }
-                };
-                slots.appendChild(span);
-                currentAnswer = Array.from(slots.querySelectorAll('.word-chip')).map(w => w.textContent).join(' ');
+            const btn = document.getElementById('mic-btn');
+            
+            if (currentState.isRecording) {
+                currentState.recognition.stop();
+                btn.classList.remove('recording');
+                currentState.isRecording = false;
+            } else {
+                currentState.recognition.start();
+                btn.classList.add('recording');
+                currentState.isRecording = true;
+                document.getElementById('recognized-text').textContent = 'Dinlənir...';
             }
         }
 
-        function clearSlots() {
-            const slots = document.getElementById('answer-slots');
-            if (slots.children.length > 0 && !slots.querySelector('span[style*="color: #999"]')) {
-                const words = Array.from(slots.querySelectorAll('.word-chip')).map(w => w.textContent);
-                slots.innerHTML = '<span style="color: #999; font-size: 0.9rem;">Sözləri buraya yerləşdirin...</span>';
-                document.querySelectorAll('.word-bank .word-chip').forEach(chip => {
-                    chip.classList.remove('selected');
-                });
-                currentAnswer = '';
-            }
-        }
+        // ==================== ANSWER CHECKING ====================
 
         function checkAnswer() {
-            const exercise = currentLesson.exercises[currentExerciseIndex];
-            const checkBtn = document.getElementById('check-btn');
+            const lesson = currentState.currentLesson;
+            const exercise = lesson.exercises[currentState.currentExerciseIndex];
+            const checkBtn = document.getElementById('check-answer-btn');
+            
             let isCorrect = false;
-
+            let userAnswer = '';
+            
             if (exercise.type === 'vocabulary') {
-                isCorrect = selectedOption === exercise.correct;
-                const buttons = document.querySelectorAll('.option-btn');
-                buttons[exercise.correct].classList.add('correct');
-                if (!isCorrect && selectedOption !== null) {
-                    buttons[selectedOption].classList.add('wrong');
-                    userHearts = Math.max(0, userHearts - 1);
-                }
-            } else if (exercise.type === 'listening' || exercise.type === 'translate') {
-                const input = document.querySelector('.type-input');
-                const userAns = currentAnswer.toLowerCase().trim();
-                const correctAns = exercise.answer.toLowerCase().trim();
-                isCorrect = userAns === correctAns || correctAns.includes(userAns) || userAns.includes(correctAns);
+                isCorrect = currentState.selectedAnswer === exercise.correct;
+                userAnswer = exercise.options[currentState.selectedAnswer];
                 
+                // Visual feedback
+                const options = document.querySelectorAll('.option-card');
+                options[exercise.correct].classList.add('correct');
+                if (!isCorrect && currentState.selectedAnswer !== null) {
+                    options[currentState.selectedAnswer].classList.add('wrong');
+                }
+            } 
+            else if (exercise.type === 'translate' || exercise.type === 'listening') {
+                userAnswer = currentState.selectedAnswer.toLowerCase().trim();
+                const correct = exercise.answer.toLowerCase();
+                const acceptable = exercise.acceptable ? exercise.acceptable.map(a => a.toLowerCase()) : [];
+                
+                isCorrect = userAnswer === correct || acceptable.includes(userAnswer) || 
+                           (exercise.type === 'listening' && userAnswer.includes(correct));
+                
+                const input = document.querySelector('.text-input');
                 if (isCorrect) {
                     input.classList.add('correct');
                 } else {
                     input.classList.add('wrong');
-                    userHearts = Math.max(0, userHearts - 1);
-                    setTimeout(() => {
-                        alert(`Düzgün cavab: "${exercise.answer}"`);
-                    }, 300);
-                }
-            } else if (exercise.type === 'speaking') {
-                const recText = document.getElementById('recognized-text').textContent.toLowerCase();
-                isCorrect = exercise.acceptedAnswers.some(ans => recText.includes(ans.toLowerCase()));
-                if (!isCorrect) {
-                    userHearts = Math.max(0, userHearts - 1);
-                }
-            } else if (exercise.type === 'sentence') {
-                const slots = document.getElementById('answer-slots');
-                const userSentence = Array.from(slots.querySelectorAll('.word-chip')).map(w => w.textContent).join(' ');
-                const correctSentence = exercise.correctOrder.join(' ');
-                isCorrect = userSentence.toLowerCase() === correctSentence.toLowerCase();
-                
-                if (isCorrect) {
-                    slots.style.borderColor = 'var(--primary)';
-                    slots.style.background = '#e8f5e9';
-                } else {
-                    slots.style.borderColor = 'var(--danger)';
-                    slots.style.background = '#ffebee';
-                    userHearts = Math.max(0, userHearts - 1);
-                    setTimeout(() => {
-                        alert(`Düzgün cümlə: "${exercise.correctOrder.join(' ')}"`);
-                    }, 300);
                 }
             }
-
+            else if (exercise.type === 'sentence') {
+                const userSentence = currentState.constructedSentence.join(' ').toLowerCase();
+                const correctSentence = exercise.correct.join(' ').toLowerCase();
+                isCorrect = userSentence === correctSentence;
+                userAnswer = userSentence;
+                
+                const answerArea = document.getElementById('answer-area');
+                if (isCorrect) {
+                    answerArea.style.borderColor = 'var(--primary)';
+                    answerArea.style.background = '#e8f5e9';
+                } else {
+                    answerArea.style.borderColor = 'var(--danger)';
+                    answerArea.style.background = '#ffebee';
+                }
+            }
+            else if (exercise.type === 'speaking') {
+                const spoken = currentState.selectedAnswer || '';
+                isCorrect = exercise.target.split(' ').every(word => spoken.includes(word));
+                userAnswer = spoken;
+            }
+            
+            // Handle result
             if (isCorrect) {
-                userXP += 10;
                 playSound('success');
                 createConfetti();
                 checkBtn.textContent = 'Davam et →';
                 checkBtn.onclick = nextExercise;
+                checkBtn.disabled = false;
+                
+                // Update XP
+                api.updateUserStats(10, 0);
             } else {
                 playSound('error');
-                updateStats();
-                if (userHearts === 0) {
+                checkBtn.textContent = 'Davam et';
+                checkBtn.onclick = nextExercise;
+                checkBtn.disabled = false;
+                
+                // Reduce hearts
+                const newStats = api.updateUserStats(0, -1);
+                if (newStats.hearts === 0) {
                     setTimeout(() => {
-                        alert('❤️ Canınız qurtardı! 4 saat sonra yenilənəcək və ya dərsələ yenidən başlayın.');
+                        alert('❤️ Canınız qurtardı! 4 saat sonra yenilənəcək.');
                         closeExercise();
-                        userHearts = 5;
-                        updateStats();
                     }, 500);
-                } else {
-                    checkBtn.textContent = 'Davam et';
-                    checkBtn.onclick = nextExercise;
                 }
+                
+                // Track mistake
+                let mistakes = parseInt(localStorage.getItem('user_mistakes')) || 0;
+                localStorage.setItem('user_mistakes', mistakes + 1);
             }
-
-            updateStats();
-            localStorage.setItem('userXP', userXP);
-            localStorage.setItem('userHearts', userHearts);
-            localStorage.setItem('userStreak', userStreak);
+            
+            updateHeaderStats();
         }
 
         function nextExercise() {
-            currentExerciseIndex++;
-            if (currentExerciseIndex < currentLesson.exercises.length) {
-                renderExercise();
+            currentState.currentExerciseIndex++;
+            const lesson = currentState.currentLesson;
+            
+            if (currentState.currentExerciseIndex >= lesson.exercises.length) {
+                completeLesson();
             } else {
-                showResults();
+                renderExercise();
             }
         }
 
-        function showResults() {
-            const content = document.getElementById('exercise-content');
-            const footer = document.getElementById('exercise-footer');
-            const oldStars = currentLesson.stars;
-            const accuracy = userHearts > 3 ? 3 : userHearts > 1 ? 2 : 1;
+        function completeLesson() {
+            const lesson = currentState.currentLesson;
             
-            currentLesson.completed = true;
-            currentLesson.stars = Math.max(currentLesson.stars, accuracy);
+            // Mark as completed
+            lesson.completed = true;
+            lesson.currentLevel++;
             
             // Unlock next lesson
-            const nextLesson = lessons.find(l => l.id === currentLesson.id + 1);
+            const nextLesson = courses.find(c => c.id === lesson.id + 1);
             if (nextLesson) {
                 nextLesson.locked = false;
-                nextLesson.active = true;
             }
-
-            content.innerHTML = `
-                <div class="results-screen">
+            
+            // Award bonus XP
+            api.updateUserStats(50, 0);
+            
+            // Show results
+            const body = document.getElementById('exercise-body');
+            body.innerHTML = `
+                <div class="results-container">
                     <div class="trophy">🏆</div>
-                    <h2>Təbriklər!</h2>
-                    <p style="color: #666; margin: 1rem 0;">Dərsi tamamladınız!</p>
-                    
-                    <div class="xp-gained">+${30} XP</div>
-                    
-                    <div class="stats-summary">
-                        <div class="stat-box">
-                            <div class="stat-value">${accuracy}/3</div>
+                    <h2>Dərs Tamamlandı!</h2>
+                    <div class="xp-earned">+60 XP</div>
+                    <p style="color: #666; margin-bottom: 2rem;">
+                        ${lesson.title} dərsini uğurla bitirdiniz!
+                    </p>
+                    <div class="stats-grid" style="max-width: 400px; margin: 0 auto;">
+                        <div class="stat-card">
+                            <div class="stat-number">3/3</div>
                             <div class="stat-label">Ulduz</div>
                         </div>
-                        <div class="stat-box">
-                            <div class="stat-value">${currentLesson.exercises.length}</div>
+                        <div class="stat-card">
+                            <div class="stat-number">${lesson.exercises.length}</div>
                             <div class="stat-label">Tapşırıq</div>
                         </div>
-                        <div class="stat-box">
-                            <div class="stat-value">100%</div>
+                        <div class="stat-card">
+                            <div class="stat-number">100%</div>
                             <div class="stat-label">Dəqiqlik</div>
                         </div>
                     </div>
                 </div>
             `;
             
-            footer.innerHTML = `
-                <button class="btn btn-primary" onclick="closeExercise(); renderLessons();" style="width: 100%;">
+            document.getElementById('exercise-footer').innerHTML = `
+                <button class="check-btn" onclick="closeExercise(); showSection('learn');" style="width: 100%;">
                     Bağla
                 </button>
             `;
             
-            userXP += 30;
-            updateStats();
             createConfetti();
+            updateHeaderStats();
+        }
+
+        function skipExercise() {
+            nextExercise();
         }
 
         function closeExercise() {
             document.getElementById('exercise-modal').classList.remove('active');
-            currentLesson = null;
-            currentExerciseIndex = 0;
-            if (recognition) {
-                recognition.stop();
+            document.getElementById('exercise-footer').innerHTML = `
+                <button class="skip-btn" onclick="skipExercise()">Keç</button>
+                <button class="check-btn" id="check-answer-btn" onclick="checkAnswer()" disabled>Yoxla</button>
+            `;
+            
+            if (currentState.recognition) {
+                currentState.recognition.stop();
             }
         }
 
-        // Text to Speech
+        // ==================== UTILITIES ====================
+
+        function updateHeaderStats() {
+            const user = currentState.user;
+            if (!user) return;
+            
+            // Re-fetch from localStorage to get updates
+            const xp = localStorage.getItem('user_total_xp') || 0;
+            const streak = localStorage.getItem('user_streak') || 0;
+            const hearts = localStorage.getItem('user_hearts') || 5;
+            const level = localStorage.getItem('user_level') || 1;
+            
+            document.getElementById('header-xp').textContent = xp;
+            document.getElementById('header-streak').textContent = streak;
+            document.getElementById('header-hearts').textContent = hearts;
+            
+            // Sidebar updates
+            document.getElementById('sidebar-username').textContent = user.username;
+            document.getElementById('sidebar-total-xp').textContent = xp;
+            document.getElementById('sidebar-level').textContent = level;
+        }
+
         function speak(text) {
             if ('speechSynthesis' in window) {
+                // Cancel previous speech
+                window.speechSynthesis.cancel();
+                
                 const utterance = new SpeechSynthesisUtterance(text);
                 utterance.lang = 'en-US';
                 utterance.rate = 0.9;
+                utterance.pitch = 1;
                 window.speechSynthesis.speak(utterance);
-                
-                // Visual feedback
-                const btn = event.target.closest('.audio-btn');
-                if (btn) {
-                    btn.style.transform = 'scale(0.95)';
-                    setTimeout(() => btn.style.transform = '', 200);
-                }
             }
         }
 
-        // Speech Recognition
-        let isRecording = false;
-
-        function toggleSpeech() {
-            const micBtn = document.getElementById('mic-btn');
-            const recognizedText = document.getElementById('recognized-text');
-            
-            if (!recognition) {
-                alert('Brauzeriniz səs tanımanı dəstəkləmir. Chrome və ya Edge istifadə edin.');
-                return;
-            }
-
-            if (isRecording) {
-                recognition.stop();
-                micBtn.classList.remove('recording');
-                isRecording = false;
-            } else {
-                recognition.start();
-                micBtn.classList.add('recording');
-                isRecording = true;
-                recognizedText.textContent = 'Dinlenir...';
-                
-                recognition.onresult = (event) => {
-                    const transcript = event.results[0][0].transcript;
-                    recognizedText.textContent = transcript;
-                    currentAnswer = transcript;
-                    document.getElementById('check-btn').disabled = false;
-                };
-                
-                recognition.onerror = (event) => {
-                    recognizedText.textContent = 'Xəta baş verdi, yenidən cəhd edin';
-                    micBtn.classList.remove('recording');
-                    isRecording = false;
-                };
-                
-                recognition.onend = () => {
-                    micBtn.classList.remove('recording');
-                    isRecording = false;
-                };
-            }
-        }
-
-        // Sound Effects
         function playSound(type) {
-            // Simple beep sounds using Web Audio API
-            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
             
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
+            const ctx = new AudioContext();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            
+            osc.connect(gain);
+            gain.connect(ctx.destination);
             
             if (type === 'success') {
-                oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime); // C5
-                oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.1); // E5
-                oscillator.frequency.setValueAtTime(783.99, audioContext.currentTime + 0.2); // G5
-                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-                oscillator.start(audioContext.currentTime);
-                oscillator.stop(audioContext.currentTime + 0.5);
+                // Major chord arpeggio
+                const now = ctx.currentTime;
+                [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+                    const o = ctx.createOscillator();
+                    const g = ctx.createGain();
+                    o.connect(g);
+                    g.connect(ctx.destination);
+                    o.frequency.value = freq;
+                    g.gain.setValueAtTime(0.1, now + i * 0.05);
+                    g.gain.exponentialRampToValueAtTime(0.01, now + i * 0.05 + 0.3);
+                    o.start(now + i * 0.05);
+                    o.stop(now + i * 0.05 + 0.3);
+                });
             } else {
-                oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
-                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-                oscillator.start(audioContext.currentTime);
-                oscillator.stop(audioContext.currentTime + 0.3);
+                // Low buzz for error
+                osc.frequency.setValueAtTime(150, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.3);
+                gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+                osc.start(ctx.currentTime);
+                osc.stop(ctx.currentTime + 0.3);
             }
         }
 
-        // Confetti Animation
         function createConfetti() {
             const colors = ['#58cc02', '#1cb0f6', '#ffc800', '#ff4b4b', '#ce82ff'];
-            for (let i = 0; i < 50; i++) {
+            for (let i = 0; i < 60; i++) {
                 setTimeout(() => {
                     const confetti = document.createElement('div');
                     confetti.className = 'confetti';
                     confetti.style.left = Math.random() * 100 + 'vw';
                     confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
-                    confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                    confetti.style.animation = `confetti-fall ${Math.random() * 3 + 2}s linear forwards`;
+                    confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
                     document.body.appendChild(confetti);
-                    setTimeout(() => confetti.remove(), 4000);
+                    setTimeout(() => confetti.remove(), 5000);
                 }, i * 30);
             }
         }
 
-        function showSection(section) {
-            // Simple section switcher
-            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-            event.currentTarget.classList.add('active');
-            
-            if (section === 'lessons') {
-                document.getElementById('main-content').innerHTML = `
-                    <h2 class="section-title"><span>🎯</span><span>Öyrənmə Yolu</span></h2>
-                    <div class="lessons-path" id="lessons-container"></div>
-                `;
-                renderLessons();
-            } else {
-                document.getElementById('main-content').innerHTML = `
-                    <div style="text-align: center; padding: 4rem 2rem;">
-                        <div style="font-size: 4rem; margin-bottom: 1rem;">🚧</div>
-                        <h2>Tezliklə!</h2>
-                        <p style="color: #666; margin-top: 1rem;">Bu bölmə hələ inkişaf mərhələsindədir.</p>
-                        <button class="btn btn-primary" onclick="location.reload()" style="margin-top: 2rem;">
-                            Dərsə Qayıt
-                        </button>
-                    </div>
-                `;
-            }
+        function showError(msg) {
+            const toast = document.getElementById('error-toast');
+            toast.textContent = msg;
+            toast.style.display = 'block';
+            setTimeout(() => toast.style.display = 'none', 3000);
         }
 
         // Keyboard shortcuts
@@ -1489,11 +2304,10 @@
             if (e.key === 'Escape' && document.getElementById('exercise-modal').classList.contains('active')) {
                 closeExercise();
             }
-            if (e.key === 'Enter' && document.getElementById('exercise-modal').classList.contains('active')) {
-                const checkBtn = document.getElementById('check-btn');
-                if (!checkBtn.disabled) checkBtn.click();
-            }
         });
+
+        // Initialize
+        init();
     </script>
 </body>
 </html>
