@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>KinoZal - Boss Edition</title>
+    <title>KinoZal - Test Versiyası</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -374,7 +374,7 @@
         <div class="boss-entry-content">
             <img src="boss.png" class="boss-entry-icon" alt="BOSS" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
             <div style="display:none; width:150px; height:150px; background:linear-gradient(135deg, #f59e0b, #d97706); border-radius:50%; align-items:center; justify-content:center; font-size:80px; margin-bottom:20px;">👑</div>
-            <div class="boss-entry-text">BOSS DAXİL OLDU</div>
+            <div class="boss-entry-text">QURUCU DAXİL OLDU</div>
             <div class="boss-entry-subtext" id="bossEntryName">Qurucu otağa qoşuldu</div>
         </div>
     </div>
@@ -382,7 +382,7 @@
     <!-- YENİ: Ekran Mesajı Overlay -->
     <div id="screenMessageOverlay" class="screen-message-overlay" onclick="closeScreenMessage()">
         <div class="screen-message-text" id="screenMessageText">MESAJ</div>
-        <div class="screen-message-sender" id="screenMessageSender">BOSS</div>
+        <div class="screen-message-sender" id="screenMessageSender">QURUCU</div>
     </div>
 
     <!-- YENİ: Animasiya Göndərmə Modalı -->
@@ -444,7 +444,7 @@
         <div class="max-w-md w-full space-y-6 pb-8">
             <div class="text-center space-y-2">
                 <h1 class="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-rose-600 mb-2 tracking-tighter">📽️ KinoZal</h1>
-                <p class="text-red-200/60 text-sm font-bold tracking-widest uppercase">Boss Edition v3.0</p>
+                <p class="text-red-200/60 text-sm font-bold tracking-widest uppercase">Demo</p>
             </div>
 
             <div class="glass-red rounded-3xl p-8 space-y-6 shadow-2xl border border-red-900/50">
@@ -489,7 +489,7 @@
 
                 <div class="relative flex items-center py-2">
                     <div class="flex-grow border-t border-amber-600/30"></div>
-                    <span class="px-3 text-xs text-amber-500 font-black tracking-[0.2em]">★ BOSS GİRİŞİ ★</span>
+                    <span class="px-3 text-xs text-amber-500 font-black tracking-[0.2em]">★ QURUCU GİRİŞİ ★</span>
                     <div class="flex-grow border-t border-amber-600/30"></div>
                 </div>
 
@@ -497,11 +497,11 @@
                     <input type="text" id="creatorRoomId" placeholder="Otaq Kodu" 
                         class="w-full px-4 py-3 rounded-xl bg-amber-950/30 border border-amber-600/50 text-white uppercase text-center font-black tracking-[0.2em] focus:outline-none transition placeholder:text-white/30 focus:border-amber-500 focus:bg-amber-950/50" 
                         style="font-size: 16px;">
-                    <input type="password" id="creatorPassword" placeholder="BOSS Şifrəsi" 
+                    <input type="password" id="creatorPassword" placeholder="Qurucu Şifrəsi" 
                         class="w-full px-4 py-3 rounded-xl bg-amber-950/30 border border-amber-600/50 text-white text-center font-black tracking-widest focus:outline-none transition placeholder:text-white/30 focus:border-amber-500 focus:bg-amber-950/50" 
                         style="font-size: 16px;">
                     <button onclick="enterAsCreator()" class="w-full py-3.5 rounded-xl font-black transition shadow-lg text-white active:scale-95 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 border border-amber-500/50 uppercase tracking-wider" style="box-shadow: 0 10px 30px rgba(245, 158, 11, 0.3);">
-                        <i class="fas fa-crown mr-2 text-amber-200"></i>BOSS olaraq daxil ol
+                        <i class="fas fa-crown mr-2 text-amber-200"></i>QURUCU olaraq daxil ol
                     </button>
                 </div>
             </div>
@@ -927,7 +927,7 @@
         function playerControl(action, val) {
             // Only Master can control
             if (!isRoomMaster() || !playerReady) {
-                showNotification('İcazə yoxdur', 'Videonu yalnız BOSS/Moderator idarə edə bilər');
+                showNotification('İcazə yoxdur', 'Videonu yalnız Qurucu/Moderator idarə edə bilər');
                 return;
             }
             
@@ -942,7 +942,7 @@
         
         function selectVideo(id, title) {
             if (!isRoomMaster()) {
-                showNotification('İcazə yoxdur', 'Videonu yalnız BOSS dəyişə bilər');
+                showNotification('İcazə yoxdur', 'Videonu yalnız Qurucu dəyişə bilər');
                 return;
             }
             
@@ -1011,7 +1011,7 @@
             const password = document.getElementById('creatorPassword')?.value.trim();
             
             if (!code) { showNotification('Xəta', 'Otaq kodunu daxil edin!'); return; }
-            if (password !== 'mod123') { showNotification('Xəta', 'Yanlış BOSS şifrəsi!'); return; }
+            if (password !== 'mod123') { showNotification('Xəta', 'Yanlış Qurucu şifrəsi!'); return; }
             
             userName = document.getElementById('hostName')?.value.trim() || 'BOSS';
             const roomSnap = await db.ref(`rooms/${code}`).once('value');
@@ -1482,7 +1482,7 @@
         
         function openThemePicker() {
             if (!isCreator && !userPermissions.changeVideo) {
-                showNotification('İcazə yoxdur', 'Temanı yalnız BOSS dəyişə bilər');
+                showNotification('İcazə yoxdur', 'Temanı yalnız Qurucu dəyişə bilər');
                 return;
             }
             document.getElementById('themePicker')?.classList.add('active');
@@ -1555,7 +1555,7 @@
         
         function toggleSearch() { 
             if (!isRoomMaster()) {
-                showNotification('İcazə yoxdur', 'Videonu yalnız BOSS dəyişə bilər');
+                showNotification('İcazə yoxdur', 'Videonu yalnız Qurucu dəyişə bilər');
                 return;
             }
             document.getElementById('searchContainer')?.classList.toggle('hidden'); 
