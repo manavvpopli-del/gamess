@@ -1,332 +1,462 @@
 <!DOCTYPE html>
 <html lang="az">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>KinoZal • Stabil Versiya</title>
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <script src="https://www.youtube.com/iframe_api"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        
-        * { font-family: 'Inter', sans-serif; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        
-        :root {
-            --primary-color: #dc2626;
-            --primary-dark: #991b1b;
-            --primary-light: #fca5a5;
-            --bg-color: #0a0000;
-            --glass-bg: rgba(20, 0, 0, 0.92);
-            --border-color: rgba(220, 38, 38, 0.28);
-            --shadow-color: rgba(220, 38, 38, 0.14);
-        }
-        
-        body { 
-            background: var(--bg-color); 
-            color: white; 
-            overflow: hidden; 
-            touch-action: manipulation;
-            -webkit-touch-callout: none;
-            user-select: none;
-            margin: 0;
-            padding: 0;
-            height: 100vh;
-        }
-        
-        body.cinema-mode { background: #000 !important; }
-        body.cinema-mode header, body.cinema-mode .chat-container, body.cinema-mode #hostControls { opacity: 0; pointer-events: none; }
-        
-        .glass { 
-            background: var(--glass-bg); 
-            backdrop-filter: blur(12px); 
-            -webkit-backdrop-filter: blur(12px); 
-            border: 1px solid var(--border-color); 
-            box-shadow: 0 8px 32px var(--shadow-color); 
-        }
-        
-        .cinema-toggle, .cinema-exit { z-index: 100; }
-        .screen-message-overlay { z-index: 9999; }
-        
-        .chat-textarea { 
-            background: transparent; 
-            border: none; 
-            outline: none; 
-            resize: none; 
-            color: white; 
-            font-size: 15px; 
-            padding: 10px 14px; 
-            max-height: 90px; 
-            min-height: 38px; 
-            line-height: 1.4; 
-        }
-        
-        .chat-textarea:focus { outline: none; }
-        
-        .msg-bubble { 
-            padding: 8px 14px; 
-            border-radius: 18px; 
-            font-size: 13.5px; 
-            line-height: 1.38; 
-            word-break: break-word; 
-            hyphens: auto; 
-        }
-        
-        .msg-own { 
-            margin-left: auto; 
-            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); 
-            border-bottom-right-radius: 4px; 
-        }
-        
-        .msg-other { 
-            margin-right: auto; 
-            background: rgba(255,255,255,0.06); 
-            border: 1px solid var(--border-color); 
-            border-bottom-left-radius: 4px; 
-        }
-        
-        .typing-dots span { animation: bounce 1.4s infinite ease-in-out both; }
-        @keyframes bounce { 0%,80%,100% { transform: scale(0); } 40% { transform: scale(1); } }
-        
-        .screen-message-content { 
-            font-size: clamp(2.5rem, 12vw, 5.5rem); 
-            font-weight: 900; 
-            text-align: center; 
-            background: linear-gradient(135deg, #fbbf24, #f59e0b, #ef4444, #ec4899); 
-            -webkit-background-clip: text; 
-            background-clip: text; 
-            -webkit-text-fill-color: transparent; 
-            animation: gradientShift 4s ease infinite; 
-        }
-        
-        @keyframes gradientShift { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
-        
-        .shake { animation: shake 0.6s cubic-bezier(.36,.07,.19,.97) both; }
-        @keyframes shake { 10%,90% { transform: translate3d(-1px,0,0) } 20%,80% { transform: translate3d(2px,0,0) } 30%,50%,70% { transform: translate3d(-3px,0,0) } 40%,60% { transform: translate3d(3px,0,0) } }
-        
-        .pulse { animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.06); } 100% { transform: scale(1); } }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>KinoZal • Stabil Versiya</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+    * {
+      font-family: 'Inter', sans-serif;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    :root {
+      --primary: #dc2626;
+      --primary-dark: #991b1b;
+      --primary-light: #fca5a5;
+      --bg: #0a0000;
+      --glass: rgba(20,0,0,0.92);
+      --border: rgba(220,38,38,0.28);
+      --shadow: rgba(220,38,38,0.14);
+    }
+
+    body {
+      background: var(--bg);
+      color: white;
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      overflow: hidden;
+      touch-action: manipulation;
+      user-select: none;
+    }
+
+    .glass {
+      background: var(--glass);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      box-shadow: 0 8px 32px var(--shadow);
+    }
+
+    .msg-bubble {
+      padding: 8px 14px;
+      border-radius: 18px;
+      font-size: 13.5px;
+      line-height: 1.38;
+      word-break: break-word;
+      hyphens: auto;
+    }
+
+    .msg-own {
+      margin-left: auto;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      border-bottom-right-radius: 4px;
+    }
+
+    .msg-other {
+      margin-right: auto;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border);
+      border-bottom-left-radius: 4px;
+    }
+
+    .chat-textarea {
+      background: transparent;
+      border: none;
+      outline: none;
+      resize: none;
+      color: white;
+      font-size: 15px;
+      padding: 10px 14px;
+      max-height: 90px;
+      min-height: 38px;
+      line-height: 1.4;
+    }
+
+    .chat-textarea:focus { outline: none; }
+
+    .screen-message-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.94);
+      z-index: 9999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .screen-message-content {
+      font-size: clamp(2.8rem, 14vw, 6rem);
+      font-weight: 900;
+      text-align: center;
+      background: linear-gradient(135deg, #fbbf24, #f59e0b, #ef4444, #ec4899);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      padding: 0 20px;
+      max-width: 95%;
+    }
+
+    .shake { animation: shake 0.6s cubic-bezier(0.36,0.07,0.19,0.97) both; }
+    @keyframes shake {
+      10%,90% { transform: translate3d(-1px,0,0) }
+      20%,80% { transform: translate3d(2px,0,0) }
+      30%,50%,70% { transform: translate3d(-4px,0,0) }
+      40%,60% { transform: translate3d(4px,0,0) }
+    }
+  </style>
 </head>
 <body class="theme-red">
 
-    <!-- Ekran mesajı overlay -->
-    <div id="screenMessageOverlay" class="screen-message-overlay fixed inset-0 bg-black/95 flex items-center justify-center pointer-events-none opacity-0 transition-opacity duration-400">
-        <div class="text-center px-6 max-w-[90%]">
-            <div id="screenMessageText" class="screen-message-content"></div>
-            <div id="screenMessageSender" class="mt-6 text-lg opacity-70 tracking-wide"></div>
+  <!-- Ekran mesajı overlay -->
+  <div id="screenMessageOverlay" class="screen-message-overlay hidden">
+    <div class="text-center px-5">
+      <div id="screenMessageText" class="screen-message-content"></div>
+      <div id="screenMessageSender" class="mt-5 text-lg opacity-70"></div>
+    </div>
+  </div>
+
+  <!-- Landing / Giriş səhifəsi -->
+  <div id="landing" class="flex flex-col h-screen items-center justify-center p-6">
+    <h1 class="text-5xl font-bold mb-2 bg-gradient-to-r from-red-500 to-rose-600 bg-clip-text text-transparent">KinoZal</h1>
+    <p class="text-red-200/70 mb-10">SinXron video izləmə otağı</p>
+
+    <div class="w-full max-w-md glass rounded-2xl p-8 space-y-6">
+      <div class="space-y-4">
+        <input id="hostName" type="text" placeholder="Adınız" class="w-full p-4 rounded-xl bg-black/40 border border-red-800/50 focus:border-red-500 outline-none text-center" />
+        <button onclick="createRoom()" class="w-full py-4 rounded-xl font-bold bg-gradient-to-r from-red-600 to-red-800 hover:from-red-500 hover:to-red-700 transition active:scale-95">
+          Otaq Yarat
+        </button>
+      </div>
+
+      <div class="relative py-2">
+        <div class="absolute inset-0 flex items-center">
+          <div class="w-full border-t border-red-800/30"></div>
         </div>
-    </div>
-
-    <!-- Qurucu giriş animasiyası (yalnız bir dəfə) -->
-    <div id="creatorSplash" class="fixed inset-0 bg-black/95 flex flex-col items-center justify-center z-[10000] opacity-0 pointer-events-none transition-opacity duration-600">
-        <div class="text-6xl md:text-8xl font-black tracking-widest bg-gradient-to-r from-amber-400 via-amber-500 to-orange-600 bg-clip-text text-transparent animate-pulse">
-            QURUCU
+        <div class="relative flex justify-center text-xs uppercase">
+          <span class="bg-[var(--bg)] px-4 text-red-300/70">və ya</span>
         </div>
-        <div class="mt-4 text-xl md:text-2xl text-amber-300/80">Xüsusi səlahiyyətlər aktivləşdirildi</div>
+      </div>
+
+      <div class="space-y-4">
+        <input id="joinRoomId" type="text" placeholder="Otaq Kodu" class="w-full p-4 rounded-xl bg-black/40 border border-red-800/50 focus:border-red-500 outline-none text-center uppercase tracking-widest" />
+        <button onclick="joinRoom()" class="w-full py-4 rounded-xl font-bold bg-neutral-900 hover:bg-neutral-800 border border-red-800/50 transition active:scale-95">
+          Qoşul
+        </button>
+      </div>
+
+      <div class="pt-4 border-t border-amber-800/30">
+        <p class="text-xs text-amber-400/80 text-center mb-3">★ Qurucu Girişi ★</p>
+        <input id="creatorRoomId" type="text" placeholder="Otaq Kodu" class="w-full p-3 mb-3 rounded-xl bg-amber-950/20 border border-amber-700/50 text-center uppercase" />
+        <input id="creatorPass" type="password" placeholder="Şifrə" class="w-full p-3 rounded-xl bg-amber-950/20 border border-amber-700/50 text-center" />
+        <button onclick="enterAsCreator()" class="w-full py-4 mt-2 rounded-xl font-bold bg-gradient-to-r from-amber-600 to-orange-700 hover:from-amber-500 hover:to-orange-600 transition active:scale-95">
+          Qurucu olaraq daxil ol
+        </button>
+      </div>
     </div>
+  </div>
 
-    <!-- Əsas məzmun -->
-    <div id="landing" class="flex flex-col h-screen items-center justify-center p-5 bg-gradient-to-b from-black via-red-950/30 to-black">
-        <!-- ... əvvəlki landing səhifəsi kodunu buraya qoy (avatar, ad, otaq yarat/qoşul, creator girişi) ... -->
-        <!-- Mən tam kodu qısaltmaq üçün buranı atladım, amma struktur eynidir -->
-    </div>
-
-    <div id="room" class="hidden flex flex-col h-screen">
-        <header class="glass h-14 flex items-center justify-between px-4 border-b border-[var(--border-color)] shrink-0">
-            <!-- header məzmunu (otaq kodu, tema seç, çıxış düyməsi və s.) -->
-        </header>
-
-        <div class="flex flex-1 overflow-hidden">
-            <!-- Video bölməsi -->
-            <div id="videoSection" class="relative flex-1 bg-black">
-                <div id="player"></div>
-                <div id="playerLoader" class="absolute inset-0 flex items-center justify-center">
-                    <div class="w-10 h-10 border-4 border-t-[var(--primary-color)] border-gray-600 rounded-full animate-spin"></div>
-                </div>
-            </div>
-
-            <!-- Chat bölməsi -->
-            <div class="chat-container w-full lg:w-96 border-l border-[var(--border-color)] flex flex-col bg-[var(--bg-color)]">
-                <!-- Users bar, messages, input -->
-            </div>
+  <!-- Otaq interfeysi -->
+  <div id="room" class="hidden flex flex-col h-screen">
+    <header class="h-14 glass border-b flex items-center justify-between px-4 shrink-0">
+      <div class="flex items-center gap-3">
+        <h1 class="text-xl font-bold">Kino<span class="text-[var(--primary)]">Zal</span></h1>
+        <div class="px-3 py-1 rounded-full bg-black/40 text-xs font-mono tracking-wider border border-red-800/40">
+          Kod: <span id="roomCode" class="text-red-400 font-bold">--</span>
         </div>
+      </div>
+      <button onclick="leaveRoom()" class="w-9 h-9 flex items-center justify-center rounded-full hover:bg-white/10">
+        <i class="fas fa-sign-out-alt text-red-400"></i>
+      </button>
+    </header>
+
+    <div class="flex flex-1 overflow-hidden">
+      <!-- Video -->
+      <div class="flex-1 bg-black relative">
+        <div id="player"></div>
+        <div id="playerLoader" class="absolute inset-0 flex items-center justify-center bg-black/80">
+          <div class="w-12 h-12 border-4 border-t-red-500 rounded-full animate-spin"></div>
+        </div>
+      </div>
+
+      <!-- Chat -->
+      <div class="w-full lg:w-96 border-l border-red-900/40 flex flex-col bg-black/60">
+        <div class="p-3 border-b border-red-900/30 text-sm font-semibold text-red-400">Söhbət</div>
+        <div id="chatMessages" class="flex-1 overflow-y-auto p-3 space-y-2"></div>
+        <div class="p-3 border-t border-red-900/30">
+          <div class="flex gap-2">
+            <textarea id="messageInput" rows="1" placeholder="Mesaj..." class="chat-textarea flex-1 bg-black/40 rounded-xl px-4 py-3 focus:border-red-500 border border-red-800/50 resize-none max-h-24" oninput="autoResize(this)"></textarea>
+            <button onclick="sendMessage()" class="w-12 h-12 rounded-full bg-red-600 hover:bg-red-500 flex items-center justify-center transition active:scale-95">
+              <i class="fas fa-paper-plane"></i>
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
+  </div>
 
-    <script>
-        // ────────────────────────────────────────────────
-        //  CONFIG
-        // ────────────────────────────────────────────────
-        const firebaseConfig = {
-            // sənin config-in
-        };
+  <script>
+    // ────────────────────────────────────────────────
+    // CONFIG
+    // ────────────────────────────────────────────────
+    const firebaseConfig = {
+      apiKey: "AIzaSyCM5WdZNSj9oFipNI-J3csHpOIvK8PfyJRdk",
+      authDomain: "sevgili-testi.firebaseapp.com",
+      databaseURL: "https://sevgili-testi-default-rtdb.firebaseio.com",
+      projectId: "sevgili-testi",
+      storageBucket: "sevgili-testi.firebasestorage.app",
+      messagingSenderId: "399260477557",
+      appId: "1:399260477557:web:584204a698d7bf145bb03c"
+    };
 
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-        const YOUTUBE_API_KEY = "AIzaSyBterRsxZoTvVbxlsOzESKWBDAY2B8BWc4";
+    // ────────────────────────────────────────────────
+    // DƏYİŞƏNLƏR
+    // ────────────────────────────────────────────────
+    let userId = localStorage.getItem('kzUserId') || 'u_' + Math.random().toString(36).slice(2,10);
+    localStorage.setItem('kzUserId', userId);
 
-        // ────────────────────────────────────────────────
-        //  GLOBAL DƏYİŞƏNLƏR
-        // ────────────────────────────────────────────────
-        let userId        = localStorage.getItem('syncUserId') || 'u_' + Math.random().toString(36).slice(2,10);
-        let currentRoom   = null;
-        let isHost        = false;
-        let isCreator     = false;
-        let player        = null;
-        let playerReady   = false;
-        let userName      = '';
-        let userAvatar    = localStorage.getItem('userAvatar') || '';
-        let lastVideoSync = { time: 0, state: -1, ts: 0 };
-        let typingTimer   = null;
-        let sendLock      = false;
+    let currentRoom = null;
+    let isHost = false;
+    let isCreator = false;
+    let player = null;
+    let playerReady = false;
+    let userName = '';
+    let lastVideoSync = { time: 0, ts: 0 };
+    let sendLock = false;
 
-        // ────────────────────────────────────────────────
-        //  SERVER TIME OFFSET
-        // ────────────────────────────────────────────────
-        let serverOffset = 0;
-        db.ref(".info/serverTimeOffset").on("value", snap => {
-            serverOffset = snap.val() || 0;
-        });
-        const serverTime = () => Date.now() + serverOffset;
+    const serverTime = () => Date.now() + (window.serverOffset || 0);
 
-        // ────────────────────────────────────────────────
-        //  VIDEO SYNC – ƏN KRİTİK HISSƏ (yenilənmiş)
-        // ────────────────────────────────────────────────
-        function initPlayer() {
-            player = new YT.Player('player', {
-                height: '100%',
-                width: '100%',
-                videoId: 'dQw4w9WgXcQ', // placeholder
-                playerVars: {
-                    autoplay: 0,
-                    controls: isHost || isCreator ? 1 : 0,
-                    disablekb: isHost || isCreator ? 0 : 1,
-                    rel: 0,
-                    playsinline: 1,
-                    enablejsapi: 1
-                },
-                events: {
-                    onReady: () => {
-                        playerReady = true;
-                        document.getElementById('playerLoader')?.remove();
-                        loadInitialVideo();
-                        if (isHost || isCreator) startHostHeartbeat();
-                    },
-                    onStateChange: onPlayerStateChange
-                }
-            });
-        }
+    db.ref(".info/serverTimeOffset").on("value", snap => {
+      window.serverOffset = snap.val() || 0;
+    });
 
-        function loadInitialVideo() {
-            db.ref(`rooms/${currentRoom}/currentVideo`).once('value').then(snap => {
-                const v = snap.val();
-                if (v?.id) {
-                    player.loadVideoById({ videoId: v.id, startSeconds: v.time || 0 });
-                    if (!v.isPlaying) setTimeout(() => player.pauseVideo(), 800);
-                }
-            });
-        }
-
-        function startHostHeartbeat() {
-            setInterval(() => {
-                if (!playerReady || !currentRoom) return;
-                const state = player.getPlayerState();
-                if (state !== YT.PlayerState.PLAYING) return;
-
-                const now = Date.now();
-                if (now - lastVideoSync.ts < 4500) return; // ~4.5 saniyə
-
-                const t = player.getCurrentTime();
-                if (Math.abs(t - lastVideoSync.time) < 0.7) return;
-
-                db.ref(`rooms/${currentRoom}/currentVideo`).update({
-                    time: t,
-                    isPlaying: true,
-                    updatedAt: firebase.database.ServerValue.TIMESTAMP,
-                    updatedBy: userId
-                });
-
-                lastVideoSync = { time: t, ts: now };
-            }, 4500);
-        }
-
-        function setupVideoSyncForViewers() {
-            db.ref(`rooms/${currentRoom}/currentVideo`).on('value', snap => {
-                if (isHost || isCreator || !playerReady) return;
-                const v = snap.val();
-                if (!v?.id) return;
-
-                if (v.id !== player.getVideoData()?.video_id) {
-                    player.loadVideoById({ videoId: v.id, startSeconds: v.time || 0 });
-                    return;
-                }
-
-                const localTime = player.getCurrentTime() || 0;
-                const diff = Math.abs(localTime - v.time);
-
-                // 2 saniyədən artıq fərq → seek
-                if (diff > 2) {
-                    player.seekTo(v.time, true);
-                }
-
-                // Play/pause
-                const shouldPlay = v.isPlaying;
-                const isPlayingNow = player.getPlayerState() === 1;
-
-                if (shouldPlay && !isPlayingNow && player.getPlayerState() !== 3) {
-                    setTimeout(() => player.playVideo(), 300);
-                } else if (!shouldPlay && isPlayingNow) {
-                    player.pauseVideo();
-                }
-            });
-        }
-
-        function onPlayerStateChange(e) {
+    // ────────────────────────────────────────────────
+    // PLAYER & SYNC (ƏN KRİTİK HISSƏ)
+    // ────────────────────────────────────────────────
+    function initPlayer() {
+      player = new YT.Player('player', {
+        height: '100%',
+        width: '100%',
+        videoId: 'dQw4w9WgXcQ',
+        playerVars: {
+          autoplay: 0,
+          controls: isHost || isCreator ? 1 : 0,
+          disablekb: isHost || isCreator ? 0 : 1,
+          rel: 0,
+          playsinline: 1,
+          enablejsapi: 1
+        },
+        events: {
+          onReady: () => {
+            playerReady = true;
+            document.getElementById('playerLoader')?.remove();
+            loadInitialVideo();
+            if (isHost || isCreator) startHostHeartbeat();
+          },
+          onStateChange: (e) => {
             if (!isHost && !isCreator) return;
-
-            const state = e.data;
-            const t = player.getCurrentTime();
-
-            // Yalnız əhəmiyyətli dəyişikliklərdə göndər
-            if (state === YT.PlayerState.PLAYING || state === YT.PlayerState.PAUSED || state === YT.PlayerState.ENDED) {
-                db.ref(`rooms/${currentRoom}/currentVideo`).update({
-                    time: t,
-                    isPlaying: state === YT.PlayerState.PLAYING,
-                    updatedAt: firebase.database.ServerValue.TIMESTAMP,
-                    updatedBy: userId
-                });
+            if ([1,2,0].includes(e.data)) { // playing, paused, ended
+              const t = player.getCurrentTime();
+              db.ref(`rooms/${currentRoom}/currentVideo`).update({
+                time: t,
+                isPlaying: e.data === 1,
+                updatedAt: firebase.database.ServerValue.TIMESTAMP,
+                updatedBy: userId
+              });
             }
+          }
         }
+      });
+    }
 
-        // ────────────────────────────────────────────────
-        //  MESAJ / TYPING / DIGƏR FUNKSIYALAR
-        // ────────────────────────────────────────────────
-        // (burada əvvəlki funksiyaları saxla, sadəcə double-send qarşısını al)
+    function loadInitialVideo() {
+      db.ref(`rooms/${currentRoom}/currentVideo`).once('value').then(snap => {
+        const v = snap.val();
+        if (v?.id) player.loadVideoById({ videoId: v.id, startSeconds: v.time || 0 });
+      });
+    }
 
-        function sendMessage() {
-            if (sendLock) return;
-            sendLock = true;
+    function startHostHeartbeat() {
+      setInterval(() => {
+        if (!playerReady || !currentRoom) return;
+        if (player.getPlayerState() !== 1) return; // yalnız oynayanda
 
-            // ... mesaj göndərmə kodu ...
+        const now = Date.now();
+        if (now - lastVideoSync.ts < 5000) return; // 5 saniyə
 
-            setTimeout(() => { sendLock = false; }, 600); // anti-spam
-        }
+        const t = player.getCurrentTime();
+        if (Math.abs(t - lastVideoSync.time) < 1) return;
 
-        // ────────────────────────────────────────────────
-        //  INIT
-        // ────────────────────────────────────────────────
-        document.addEventListener('DOMContentLoaded', () => {
-            localStorage.setItem('syncUserId', userId);
-            if (userAvatar) {
-                // avatar preview yenilə
-            }
+        db.ref(`rooms/${currentRoom}/currentVideo`).update({
+          time: t,
+          updatedAt: firebase.database.ServerValue.TIMESTAMP,
+          updatedBy: userId
         });
 
-    </script>
+        lastVideoSync = { time: t, ts: now };
+      }, 5000);
+    }
+
+    function setupVideoSync() {
+      db.ref(`rooms/${currentRoom}/currentVideo`).on('value', snap => {
+        if (isHost || isCreator || !playerReady) return;
+        const v = snap.val();
+        if (!v?.id) return;
+
+        const localT = player.getCurrentTime() || 0;
+        const diff = Math.abs(localT - v.time);
+
+        if (v.id !== player.getVideoData()?.video_id) {
+          player.loadVideoById({ videoId: v.id, startSeconds: v.time || 0 });
+          return;
+        }
+
+        if (diff > 2.2) { // 2.2 saniyə tolerance
+          player.seekTo(v.time + 0.3, true); // kiçik offset buffer üçün
+        }
+
+        const shouldPlay = v.isPlaying;
+        const isPlaying = player.getPlayerState() === 1;
+
+        if (shouldPlay && !isPlaying && player.getPlayerState() !== 3) {
+          setTimeout(() => player.playVideo(), 350);
+        } else if (!shouldPlay && isPlaying) {
+          player.pauseVideo();
+        }
+      });
+    }
+
+    // ────────────────────────────────────────────────
+    // Otaq yarad / Qoşul / Creator
+    // ────────────────────────────────────────────────
+    function generateCode() {
+      return Math.random().toString(36).substring(2,8).toUpperCase();
+    }
+
+    async function createRoom() {
+      userName = document.getElementById('hostName')?.value.trim();
+      if (!userName) return alert('Ad daxil edin');
+
+      const code = generateCode();
+      currentRoom = code;
+      isHost = true;
+
+      await db.ref(`rooms/${code}`).set({
+        createdAt: firebase.database.ServerValue.TIMESTAMP,
+        hostId: userId,
+        currentVideo: { id: 'dQw4w9WgXcQ', time: 0, isPlaying: false },
+        users: { [userId]: { name: userName, joinedAt: firebase.database.ServerValue.TIMESTAMP } }
+      });
+
+      enterRoom(code);
+    }
+
+    async function joinRoom() {
+      const code = document.getElementById('joinRoomId')?.value.trim().toUpperCase();
+      if (!code) return alert('Kod daxil edin');
+
+      userName = document.getElementById('hostName')?.value.trim();
+      if (!userName) return alert('Ad daxil edin');
+
+      currentRoom = code;
+
+      await db.ref(`rooms/\( {code}/users/ \){userId}`).set({
+        name: userName,
+        joinedAt: firebase.database.ServerValue.TIMESTAMP
+      });
+
+      enterRoom(code);
+    }
+
+    async function enterAsCreator() {
+      const code = document.getElementById('creatorRoomId')?.value.trim().toUpperCase();
+      const pass = document.getElementById('creatorPass')?.value.trim();
+
+      if (pass !== 'mod123') return alert('Yanlış şifrə'); // ← REALDA BURANI SERVERƏ KÖÇÜR
+
+      userName = 'BOSS';
+      currentRoom = code;
+      isCreator = true;
+      isHost = true;
+
+      document.getElementById('creatorSplash')?.classList.remove('opacity-0', 'pointer-events-none');
+      setTimeout(() => document.getElementById('creatorSplash')?.classList.add('opacity-0', 'pointer-events-none'), 3000);
+
+      enterRoom(code);
+    }
+
+    function enterRoom(code) {
+      document.getElementById('landing').classList.add('hidden');
+      document.getElementById('room').classList.remove('hidden');
+      document.getElementById('roomCode').textContent = code;
+
+      initPlayer();
+      setupVideoSync();
+
+      // Mesajları dinlə
+      db.ref(`rooms/${code}/messages`).limitToLast(60).on('child_added', snap => {
+        const msg = snap.val();
+        const div = document.createElement('div');
+        div.className = `msg-bubble ${msg.userId === userId ? 'msg-own' : 'msg-other'}`;
+        div.innerHTML = `<strong>${msg.name}:</strong> ${msg.text}`;
+        document.getElementById('chatMessages').appendChild(div);
+        div.scrollIntoView({ behavior: 'smooth' });
+      });
+    }
+
+    // ────────────────────────────────────────────────
+    // MESAJ GÖNDƏR
+    // ────────────────────────────────────────────────
+    function sendMessage() {
+      if (sendLock) return;
+      sendLock = true;
+
+      const input = document.getElementById('messageInput');
+      const text = input.value.trim();
+      if (!text || !currentRoom) return;
+
+      db.ref(`rooms/${currentRoom}/messages`).push({
+        userId,
+        name: userName,
+        text,
+        timestamp: firebase.database.ServerValue.TIMESTAMP
+      });
+
+      input.value = '';
+      autoResize(input);
+
+      setTimeout(() => sendLock = false, 400);
+    }
+
+    function autoResize(el) {
+      el.style.height = 'auto';
+      el.style.height = Math.min(el.scrollHeight, 90) + 'px';
+    }
+
+    // Enter ilə göndər
+    document.getElementById('messageInput')?.addEventListener('keypress', e => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    function leaveRoom() {
+      if (confirm('Çıxmaq istəyirsən?')) location.reload();
+    }
+  </script>
 </body>
 </html>
