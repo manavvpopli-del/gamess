@@ -372,9 +372,144 @@
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.1); }
         }
+
+        /* YENI: Ekran Mesaj/Animasiya Overlay */
+        .screen-message-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 10000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            animation: screenMessageIn 0.5s ease;
+        }
+        .screen-message-overlay.active {
+            display: flex;
+        }
+        @keyframes screenMessageIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        @keyframes screenMessageOut {
+            from { opacity: 1; transform: scale(1); }
+            to { opacity: 0; transform: scale(1.1); }
+        }
+        .screen-message-content {
+            font-size: 72px;
+            font-weight: 900;
+            text-align: center;
+            padding: 40px;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b, #ef4444, #ec4899);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 3s ease infinite, shake 0.5s ease infinite;
+            text-shadow: 0 0 60px rgba(245, 158, 11, 0.5);
+            max-width: 90%;
+            word-break: break-word;
+            line-height: 1.2;
+        }
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px) rotate(-2deg); }
+            75% { transform: translateX(10px) rotate(2deg); }
+        }
+        .screen-message-sender {
+            position: absolute;
+            bottom: 40px;
+            font-size: 18px;
+            color: rgba(255,255,255,0.6);
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+        }
+        
+        /* Animasiya Modal */
+        .animation-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            background: var(--glass-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 24px;
+            padding: 24px;
+            z-index: 201;
+            display: none;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.9);
+        }
+        .animation-modal.active {
+            display: block;
+            animation: modalIn 0.3s ease forwards;
+        }
+        @keyframes modalIn {
+            to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
     </style>
 </head>
 <body class="h-screen flex flex-col theme-red">
+
+    <!-- YENI: Ekran Mesaji Overlay -->
+    <div id="screenMessageOverlay" class="screen-message-overlay" onclick="closeScreenMessage()">
+        <div class="screen-message-content" id="screenMessageText">MESAJ</div>
+        <div class="screen-message-sender" id="screenMessageSender">Göndərən: BOSS</div>
+    </div>
+
+    <!-- YENI: Animasiya Gönderme Modal -->
+    <div id="animationModal" class="animation-modal">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-bold flex items-center gap-2">
+                <i class="fas fa-bullhorn text-amber-500"></i>
+                Ekran Mesajı Göndər
+            </h3>
+            <button onclick="closeAnimationModal()" class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="space-y-3">
+            <div>
+                <label class="text-xs text-neutral-400 mb-1 block">Hədəf İstifadəçi</label>
+                <select id="animationTarget" class="w-full bg-black/40 border border-neutral-700 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-amber-500">
+                    <option value="">Hamısına göndər</option>
+                </select>
+            </div>
+            
+            <div>
+                <label class="text-xs text-neutral-400 mb-1 block">Mesaj</label>
+                <input type="text" id="animationText" placeholder="Məsələn: SALAM!" 
+                    class="w-full bg-black/40 border border-neutral-700 rounded-xl px-3 py-2 text-white text-center font-bold text-lg focus:outline-none focus:border-amber-500 placeholder-neutral-600">
+            </div>
+            
+            <div>
+                <label class="text-xs text-neutral-400 mb-1 block">Animasiya Tipi</label>
+                <div class="grid grid-cols-3 gap-2">
+                    <button onclick="setAnimType('shake')" class="anim-type-btn active p-2 rounded-lg bg-amber-600/20 border border-amber-500/50 text-xs text-amber-400 hover:bg-amber-600/30 transition" data-type="shake">
+                        <i class="fas fa-bolt mb-1 block"></i>Titrəmə
+                    </button>
+                    <button onclick="setAnimType('pulse')" class="anim-type-btn p-2 rounded-lg bg-neutral-800 border border-neutral-700 text-xs text-neutral-400 hover:bg-neutral-700 transition" data-type="pulse">
+                        <i class="fas fa-heart mb-1 block"></i>Puls
+                    </button>
+                    <button onclick="setAnimType('spin')" class="anim-type-btn p-2 rounded-lg bg-neutral-800 border border-neutral-700 text-xs text-neutral-400 hover:bg-neutral-700 transition" data-type="spin">
+                        <i class="fas fa-sync mb-1 block"></i>Fırlanma
+                    </button>
+                </div>
+            </div>
+            
+            <button onclick="sendScreenAnimation()" class="w-full py-3 mt-2 rounded-xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white shadow-lg shadow-amber-900/50 transition transform active:scale-95">
+                <i class="fas fa-paper-plane mr-2"></i>Göndər
+            </button>
+        </div>
+    </div>
 
     <input type="file" id="avatarInput" style="display: none;" accept="image/*" onchange="handleAvatarSelect(event)">
 
@@ -485,6 +620,12 @@
             <div class="space-y-3">
                 <h4 class="text-xs font-bold uppercase tracking-wider mb-2" style="color: var(--primary-color)">İcazələr</h4>
                 
+                <!-- YENI: Animasiya göndərmə düyməsi -->
+                <button onclick="openAnimationModal()" class="w-full py-2 mb-3 rounded-xl bg-gradient-to-r from-amber-600/20 to-orange-600/20 border border-amber-500/30 text-amber-400 hover:bg-amber-600/30 transition flex items-center justify-center gap-2">
+                    <i class="fas fa-bullhorn"></i>
+                    <span>Ekran Mesajı Göndər</span>
+                </button>
+                
                 <div class="flex items-center justify-between p-3 rounded-xl bg-neutral-900/80 border" style="border-color: var(--border-color)">
                     <div class="flex items-center gap-3">
                         <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center" style="color: var(--primary-color)">
@@ -590,7 +731,6 @@
 
         <div class="main-container overflow-hidden">
             <div id="videoSection">
-                <!-- Video dəyiş düyməsi yalnız qurucu/host üçün görünür -->
                 <button id="changeVideoBtn" onclick="toggleSearch()" class="hidden absolute top-4 right-4 z-40 glass-red px-4 py-2 rounded-xl border text-sm font-bold text-white shadow-lg transition hover:scale-105" style="border-color: var(--border-color)">
                     <i class="fas fa-film mr-2" style="color: var(--primary-color)"></i>Video Dəyiş
                 </button>
@@ -618,7 +758,6 @@
                     </div>
                 </div>
 
-                <!-- Kontrollər yalnız qurucu/host üçün -->
                 <div id="hostControls" class="hidden glass-red border-t p-3 z-30 absolute bottom-0 left-0 right-0" style="border-color: var(--border-color)">
                     <div class="flex items-center justify-center space-x-6">
                         <button onclick="playerControl('seek', -10)" class="p-2 transition" style="color: var(--primary-color)">
@@ -742,7 +881,8 @@
         let isSending = false;
         let messageIds = new Set();
         let playerReady = false;
-        let isSyncing = false; // Sinxronizasiya zamanı state change-ləri ignore etmək üçün
+        let lastVideoState = null;
+        let currentAnimType = 'shake';
         
         const themes = [
             { id: 'red', name: 'Qırmızı', color: '#dc2626' },
@@ -1175,28 +1315,52 @@
             }
         }
 
+        // DÜZƏLİŞ: Daha güclü sinxronizasiya
         function onPlayerReady() {
             playerReady = true;
             document.getElementById('playerLoader').style.display = 'none';
             
-            // İlk video məlumatını çək
+            // İlk videonu yüklə
             loadInitialVideo();
             
-            // Host/Kreator üçün: hər 2 saniyədə bir state göndər
+            // Host için: Daha tez-tez göndər (1 saniyədə bir)
             if (isHost || isCreator) {
                 setInterval(() => {
                     if (!player || !currentRoom || !playerReady) return;
-                    const state = player.getPlayerState();
                     
-                    // Yalnız playing və ya paused olduqda göndər
-                    if (state === YT.PlayerState.PLAYING || state === YT.PlayerState.PAUSED) {
-                        db.ref(`rooms/${currentRoom}/currentVideo`).update({
-                            time: player.getCurrentTime(),
-                            isPlaying: state === YT.PlayerState.PLAYING,
-                            updatedAt: firebase.database.ServerValue.TIMESTAMP
-                        });
+                    const state = player.getPlayerState();
+                    const currentTime = player.getCurrentTime();
+                    
+                    // Yalniz dəyişiklik olduqda göndər
+                    if (lastVideoState) {
+                        const timeDiff = Math.abs(currentTime - lastVideoState.time);
+                        const stateChanged = state !== lastVideoState.state;
+                        
+                        // Hər 1 saniyədə bir və ya state dəyişəndə
+                        if (timeDiff > 0.5 || stateChanged || Date.now() - lastVideoState.timestamp > 1000) {
+                            db.ref(`rooms/${currentRoom}/currentVideo`).update({
+                                time: currentTime,
+                                isPlaying: state === YT.PlayerState.PLAYING,
+                                state: state, // Yeni: State-i də saxla
+                                updatedAt: firebase.database.ServerValue.TIMESTAMP,
+                                updatedBy: userId
+                            });
+                            
+                            lastVideoState = {
+                                time: currentTime,
+                                state: state,
+                                timestamp: Date.now()
+                            };
+                        }
+                    } else {
+                        // İlk dəfə
+                        lastVideoState = {
+                            time: currentTime,
+                            state: state,
+                            timestamp: Date.now()
+                        };
                     }
-                }, 2000);
+                }, 500); // 500ms - daha tez
             }
         }
 
@@ -1208,32 +1372,91 @@
                 const video = snap.val();
                 if (video && video.id) {
                     currentVideoId = video.id;
+                    
+                    // Videonu yüklə və correct time-dan başlat
                     player.loadVideoById({
                         videoId: video.id,
                         startSeconds: video.time || 0
                     });
                     
-                    // Əgər pause olmalıdırsa, 1 saniyə gözləyib pause et
+                    // Əgər pause olmalıdırsa
                     if (!video.isPlaying) {
-                        setTimeout(() => {
-                            if (player && player.pauseVideo) player.pauseVideo();
-                        }, 1000);
+                        const checkPause = setInterval(() => {
+                            if (player.getPlayerState() === YT.PlayerState.PLAYING) {
+                                player.pauseVideo();
+                                clearInterval(checkPause);
+                            }
+                        }, 200);
+                        
+                        // 3 saniyə sonra dayandır
+                        setTimeout(() => clearInterval(checkPause), 3000);
                     }
                 }
             });
         }
 
-        // Player state dəyişəndə (Play/Pause)
-        function onPlayerStateChange(e) {
-            // Sinxronizasiya zamanı ignore et
-            if (isSyncing) return;
+        // DÜZƏLİŞ: Viewers üçün real-time dinləmə
+        function setupVideoSync() {
+            if (!currentRoom || isHost || isCreator) return;
             
+            // Video məlumatları dəyişəndə
+            db.ref(`rooms/${currentRoom}/currentVideo`).on('value', (snap) => {
+                const video = snap.val();
+                if (!video || !playerReady || !video.id) return;
+                
+                // Video ID fərqlidirsə - YENİ VIDEO
+                if (video.id !== currentVideoId) {
+                    currentVideoId = video.id;
+                    player.loadVideoById({
+                        videoId: video.id,
+                        startSeconds: video.time || 0
+                    });
+                    
+                    showNotification('Yeni video', 'Video dəyişdirildi');
+                    
+                    // Play/Pause üçün
+                    setTimeout(() => {
+                        if (!video.isPlaying && player.getPlayerState() === YT.PlayerState.PLAYING) {
+                            player.pauseVideo();
+                        } else if (video.isPlaying && player.getPlayerState() !== YT.PlayerState.PLAYING) {
+                            player.playVideo();
+                        }
+                    }, 1500);
+                    
+                    return;
+                }
+                
+                // Eyni video üçün time və state sync
+                if (video.updatedBy !== userId) { // Özünün göndərdiyinə reaksiya vermə
+                    const currentTime = player.getCurrentTime() || 0;
+                    const serverTime = video.time || 0;
+                    const timeDiff = Math.abs(currentTime - serverTime);
+                    
+                    // Time sync (2 saniyədən çox fərq varsa)
+                    if (timeDiff > 2) {
+                        player.seekTo(serverTime, true);
+                    }
+                    
+                    // State sync
+                    const playerState = player.getPlayerState();
+                    const isPlaying = playerState === YT.PlayerState.PLAYING;
+                    
+                    if (video.isPlaying && !isPlaying && playerState !== YT.PlayerState.BUFFERING) {
+                        player.playVideo();
+                    } else if (!video.isPlaying && isPlaying) {
+                        player.pauseVideo();
+                    }
+                }
+            });
+        }
+
+        function onPlayerStateChange(e) {
             updatePlayIcon(e.data === YT.PlayerState.PLAYING);
             
-            // Yalnız host/kreator Firebase-ə yazsın
+            // Yalniz host/qurucu göndərsin
             if ((!isHost && !isCreator) || !currentRoom || !playerReady) return;
             
-            // 500ms debounce
+            // Debounce - çox tez-tez göndərməmək üçün
             clearTimeout(window.stateChangeTimeout);
             window.stateChangeTimeout = setTimeout(() => {
                 if (!player || !playerReady) return;
@@ -1244,9 +1467,17 @@
                 db.ref(`rooms/${currentRoom}/currentVideo`).update({
                     isPlaying: isPlaying,
                     time: currentTime,
-                    updatedAt: firebase.database.ServerValue.TIMESTAMP
+                    state: e.data,
+                    updatedAt: firebase.database.ServerValue.TIMESTAMP,
+                    updatedBy: userId
                 });
-            }, 500);
+                
+                lastVideoState = {
+                    time: currentTime,
+                    state: e.data,
+                    timestamp: Date.now()
+                };
+            }, 300);
         }
 
         function onPlayerError(event) {
@@ -1258,70 +1489,9 @@
             document.getElementById('pauseIcon')?.classList.toggle('hidden', !playing);
         }
 
-        // REAL-TIME SINCRONIZASIYA - VIEWERS ÜÇÜN
-        function setupVideoSyncListener() {
-            if (!currentRoom || isHost || isCreator) return;
-            
-            // Video ID dəyişikliklərini dinlə
-            db.ref(`rooms/${currentRoom}/currentVideo/id`).on('value', (snap) => {
-                const newId = snap.val();
-                if (newId && newId !== currentVideoId && playerReady) {
-                    currentVideoId = newId;
-                    isSyncing = true; // Sinxronizasiya başladı
-                    
-                    player.loadVideoById(newId);
-                    showNotification('Yeni video', 'Video dəyişdirildi');
-                    
-                    setTimeout(() => { isSyncing = false; }, 1000);
-                }
-            });
-            
-            // Time və Play state dəyişikliklərini dinlə
-            db.ref(`rooms/${currentRoom}/currentVideo`).on('value', (snap) => {
-                const video = snap.val();
-                if (!video || !playerReady || !video.id) return;
-                
-                // Əgər video ID eynidirsə, time və state sync et
-                if (video.id === currentVideoId) {
-                    syncPlayerState(video);
-                }
-            });
-        }
-
-        // Player state-ini sync et (viewers üçün)
-        function syncPlayerState(video) {
-            if (!player || isSyncing) return;
-            
-            const playerState = player.getPlayerState();
-            const currentTime = player.getCurrentTime() || 0;
-            const serverTime = video.time || 0;
-            const timeDiff = Math.abs(currentTime - serverTime);
-            
-            // Time sync (3 saniyədən çox fərq varsa)
-            if (timeDiff > 2) {
-                isSyncing = true;
-                player.seekTo(serverTime, true);
-                setTimeout(() => { isSyncing = false; }, 500);
-            }
-            
-            // Play/Pause sync
-            const isPlaying = playerState === YT.PlayerState.PLAYING;
-            const shouldPlay = video.isPlaying;
-            
-            if (shouldPlay && !isPlaying && playerState !== YT.PlayerState.BUFFERING) {
-                isSyncing = true;
-                player.playVideo();
-                setTimeout(() => { isSyncing = false; }, 500);
-            } else if (!shouldPlay && isPlaying) {
-                isSyncing = true;
-                player.pauseVideo();
-                setTimeout(() => { isSyncing = false; }, 500);
-            }
-        }
-
         function toggleSearch() { 
-            if ((!isHost && !userPermissions.changeVideo && !isCreator)) {
-                showNotification('İcazə yoxdur', 'Video dəyişmək üçün yalnız qurucu icazəli dəyişə bilər');
+            if ((!isHost && !isCreator)) {
+                showNotification('İcazə yoxdur', 'Videonu yalnız qurucu dəyişə bilər');
                 return;
             }
             document.getElementById('searchContainer')?.classList.toggle('hidden'); 
@@ -1371,34 +1541,34 @@
             }
         }
 
-        // Video seçmək - yalnız qurucu/host üçün
         function selectVideo(id, title) {
             if ((!isHost && !isCreator)) {
-                showNotification('İcazə yoxdur', 'Videonu yalnız otaq qurucusu dəyişə bilər');
+                showNotification('İcazə yoxdur', 'Videonu yalnız qurucu dəyişə bilər');
                 return;
             }
             
             currentVideoId = id;
-            if (player?.loadVideoById) {
-                player.loadVideoById(id);
-            }
             
-            closeSearch();
-            
-            // Firebase-ə yeni video məlumatlarını yaz
+            // Dərhal Firebase-ə yaz
             db.ref(`rooms/${currentRoom}/currentVideo`).set({
                 id: id, 
                 title: title, 
                 time: 0, 
                 isPlaying: true,
+                state: YT.PlayerState.PLAYING,
                 updatedBy: userId,
                 updatedAt: firebase.database.ServerValue.TIMESTAMP
             });
             
+            // Local player-i dəyiş
+            if (player?.loadVideoById) {
+                player.loadVideoById(id);
+            }
+            
+            closeSearch();
             showNotification('Video dəyişdirildi', title.substring(0, 30) + (title.length > 30 ? '...' : ''));
         }
 
-        // Host/Kreator üçün kontrollar
         function playerControl(action, val) {
             if ((!isHost && !isCreator) || !player || !playerReady) return;
             
@@ -1416,15 +1586,17 @@
                 // Dərhal Firebase-ə yaz
                 db.ref(`rooms/${currentRoom}/currentVideo`).update({
                     time: newTime,
-                    updatedAt: firebase.database.ServerValue.TIMESTAMP
+                    updatedAt: firebase.database.ServerValue.TIMESTAMP,
+                    updatedBy: userId
                 });
             }
         }
 
+        // DÜZƏLİŞ: Real-time listeners
         function setupRealTimeListeners() {
             if (!currentRoom) return;
             
-            // Theme listener
+            // Theme
             db.ref(`rooms/${currentRoom}/theme`).on('value', (snap) => {
                 const themeData = snap.val();
                 if (themeData?.color) {
@@ -1432,14 +1604,20 @@
                 }
             });
             
-            // Video sincronizasiyası (viewers üçün)
-            setupVideoSyncListener();
+            // Video sync - viewers üçün
+            setupVideoSync();
             
-            // Users listener
+            // Users
             db.ref(`rooms/${currentRoom}/users`).on('value', (snap) => {
                 const users = snap.val() || {};
                 const list = document.getElementById('usersList');
                 list.innerHTML = '';
+                
+                // Animasiya modalı üçün dropdown-u da yenilə
+                const animSelect = document.getElementById('animationTarget');
+                if (animSelect) {
+                    animSelect.innerHTML = '<option value="">Hamısına göndər</option>';
+                }
                 
                 let count = 0;
                 Object.entries(users).forEach(([uid, data]) => {
@@ -1470,6 +1648,14 @@
                             ${(data.isHost && !data.isCreator) ? '<i class="fas fa-crown text-amber-400 text-[10px]"></i>' : ''}
                         `;
                         list.appendChild(chip);
+                        
+                        // Animasiya dropdown-una əlavə et
+                        if (animSelect && uid !== userId) {
+                            const option = document.createElement('option');
+                            option.value = uid;
+                            option.textContent = data.name + (data.isCreator ? ' (BOSS)' : data.isHost ? ' (Moderator)' : '');
+                            animSelect.appendChild(option);
+                        }
                     }
                 });
                 
@@ -1477,34 +1663,61 @@
                 document.getElementById('usersCountText').textContent = count;
             });
             
-            // Messages listener
+            // Messages - daha sürətli
             db.ref(`rooms/${currentRoom}/messages`).limitToLast(50).on('child_added', (snap) => {
                 const msg = snap.val();
                 const msgId = snap.key;
+                
+                // Dublikat yoxlaması
                 if (msg && !messageIds.has(msgId)) {
                     messageIds.add(msgId);
                     displayMessage(msgId, msg);
+                    
+                    // Typing-i sil - mesaj gəlibsə
+                    if (msg.userId !== userId) {
+                        removeTypingIndicator(msg.userId);
+                    }
                 }
             });
             
-            // Typing listener
+            // YENI: Ekran mesajı dinləmə
+            db.ref(`rooms/${currentRoom}/screenMessages`).on('child_added', (snap) => {
+                const msg = snap.val();
+                if (!msg) return;
+                
+                // Hədəf yoxla
+                if (msg.targetUserId === '' || msg.targetUserId === userId) {
+                    showScreenMessage(msg.text, msg.senderName, msg.animType);
+                }
+                
+                // Sil - təkrar göstərməmək üçün
+                setTimeout(() => {
+                    db.ref(`rooms/${currentRoom}/screenMessages/${snap.key}`).remove();
+                }, 1000);
+            });
+            
+            // Typing - daha sürətli və dəqiq
             db.ref(`rooms/${currentRoom}/typing`).on('value', (snap) => {
                 const typing = snap.val() || {};
                 const now = Date.now();
-                const typingUsers = Object.entries(typing)
-                    .filter(([uid, data]) => uid !== userId && data.timestamp > now - 3000)
+                
+                // 2 saniyədən köhnə olanları filtrlə
+                const activeTypers = Object.entries(typing)
+                    .filter(([uid, data]) => {
+                        return uid !== userId && (now - data.timestamp) < 2000;
+                    })
                     .map(([_, data]) => data.name);
                 
                 const indicator = document.getElementById('typingIndicator');
-                if (typingUsers.length > 0) {
+                if (activeTypers.length > 0) {
                     indicator.classList.remove('hidden');
-                    document.getElementById('typingText').textContent = typingUsers.join(', ') + ' yazır...';
+                    document.getElementById('typingText').textContent = activeTypers.join(', ') + ' yazır...';
                 } else {
                     indicator.classList.add('hidden');
                 }
             });
             
-            // Permissions (for non-hosts)
+            // İcazələr - real-time
             if (!isHost && !isCreator) {
                 db.ref(`rooms/${currentRoom}/permissions/${userId}`).on('value', (snap) => {
                     const perms = snap.val();
@@ -1529,18 +1742,35 @@
             }
         }
 
+        // Typing göstəricisini silmək üçün köməkçi
+        function removeTypingIndicator(uid) {
+            if (!currentRoom) return;
+            db.ref(`rooms/${currentRoom}/typing/${uid}`).remove();
+        }
+
         function handleTyping() {
             if (!currentRoom) return;
             
+            const input = document.getElementById('messageInput');
+            if (!input.value.trim()) {
+                // Boşdursa sil
+                db.ref(`rooms/${currentRoom}/typing/${userId}`).remove();
+                return;
+            }
+            
+            // Yazılarkən göndər
             db.ref(`rooms/${currentRoom}/typing/${userId}`).set({
                 name: userName,
                 timestamp: firebase.database.ServerValue.TIMESTAMP
             });
             
-            clearTimeout(typingTimeout);
+            // Clear previous timeout
+            if (typingTimeout) clearTimeout(typingTimeout);
+            
+            // 1.5 saniyə yazmasa sil
             typingTimeout = setTimeout(() => {
                 db.ref(`rooms/${currentRoom}/typing/${userId}`).remove();
-            }, 3000);
+            }, 1500);
         }
 
         function displayMessage(msgId, msg) {
@@ -1581,6 +1811,7 @@
             container.insertBefore(wrapper, typingIndicator);
             container.scrollTop = container.scrollHeight;
             
+            // Reactions
             db.ref(`rooms/${currentRoom}/messages/${msgId}/reactions`).on('value', (snap) => {
                 const reactions = snap.val() || {};
                 const bar = document.getElementById('reactions-' + msgId);
@@ -1672,6 +1903,9 @@
             
             isSending = true;
             
+            // Typing-i dərhal sil
+            db.ref(`rooms/${currentRoom}/typing/${userId}`).remove();
+            
             const msg = {
                 type: 'text',
                 text: text,
@@ -1687,10 +1921,11 @@
                 cancelReply();
             }
             
+            // Dərhal göndər və input-u təmizlə
+            input.value = '';
+            input.style.height = 'auto';
+            
             db.ref(`rooms/${currentRoom}/messages`).push(msg).then(() => {
-                input.value = '';
-                input.style.height = 'auto';
-                db.ref(`rooms/${currentRoom}/typing/${userId}`).remove();
                 isSending = false;
             }).catch(() => {
                 isSending = false;
@@ -1758,8 +1993,10 @@
             document.getElementById('modalUserAvatar').src = userData.avatar || 'https://via.placeholder.com/64';
             document.getElementById('modalUserStatus').textContent = userData.isCreator ? 'Qurucu (BOSS)' : (userData.isHost ? 'Moderator' : 'İzləyici');
             
+            // Mövcud icazələri göstər
             db.ref(`rooms/${currentRoom}/permissions/${uid}`).once('value').then(snap => {
                 const perms = snap.val() || {};
+                // Default true əgər təyin edilməyibsə
                 document.getElementById('permChat').classList.toggle('active', perms.chat !== false);
                 document.getElementById('permVideo').classList.toggle('active', perms.video !== false);
                 document.getElementById('permChangeVideo').classList.toggle('active', perms.changeVideo === true);
@@ -1773,14 +2010,26 @@
             selectedUserId = null;
         }
         
+        // DÜZƏLİŞ: İcazələri düzgün saxla
         function togglePermission(type) {
-            if (!selectedUserId) return;
+            if (!selectedUserId || !currentRoom) return;
             
             const el = document.getElementById('perm' + type.charAt(0).toUpperCase() + type.slice(1));
-            const newState = !el.classList.contains('active');
+            const isActive = el.classList.contains('active');
+            const newState = !isActive; // Toggle
+            
+            // UI-ı yenilə
             el.classList.toggle('active');
             
-            db.ref(`rooms/${currentRoom}/permissions/${selectedUserId}/${type}`).set(newState);
+            // Firebase-ə yaz (true/false)
+            db.ref(`rooms/${currentRoom}/permissions/${selectedUserId}/${type}`).set(newState)
+                .then(() => {
+                    showNotification('İcaza yeniləndi', type + ': ' + (newState ? 'Aktiv' : 'Deaktiv'));
+                })
+                .catch(err => {
+                    console.error('Permission error:', err);
+                    showNotification('Xəta', 'İcaza dəyişdirilmədi');
+                });
         }
         
         function kickUser() {
@@ -1806,6 +2055,91 @@
                 
                 location.reload();
             }
+        }
+        
+        // YENI: Animasiya funksiyaları
+        function openAnimationModal() {
+            if (!isCreator && !isHost) return;
+            document.getElementById('animationModal').classList.add('active');
+        }
+        
+        function closeAnimationModal() {
+            document.getElementById('animationModal').classList.remove('active');
+        }
+        
+        function setAnimType(type) {
+            currentAnimType = type;
+            document.querySelectorAll('.anim-type-btn').forEach(btn => {
+                if (btn.dataset.type === type) {
+                    btn.classList.add('active', 'bg-amber-600/20', 'border-amber-500/50', 'text-amber-400');
+                    btn.classList.remove('bg-neutral-800', 'border-neutral-700', 'text-neutral-400');
+                } else {
+                    btn.classList.remove('active', 'bg-amber-600/20', 'border-amber-500/50', 'text-amber-400');
+                    btn.classList.add('bg-neutral-800', 'border-neutral-700', 'text-neutral-400');
+                }
+            });
+        }
+        
+        function sendScreenAnimation() {
+            if (!isCreator && !isHost) return;
+            
+            const text = document.getElementById('animationText').value.trim();
+            const targetId = document.getElementById('animationTarget').value;
+            
+            if (!text) {
+                showNotification('Xəta', 'Mesaj yazın');
+                return;
+            }
+            
+            // Firebase-ə yaz
+            db.ref(`rooms/${currentRoom}/screenMessages`).push({
+                text: text,
+                senderName: userName,
+                targetUserId: targetId,
+                animType: currentAnimType,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            });
+            
+            closeAnimationModal();
+            document.getElementById('animationText').value = '';
+            showNotification('Göndərildi', 'Ekran mesajı göndərildi');
+        }
+        
+        function showScreenMessage(text, sender, animType) {
+            const overlay = document.getElementById('screenMessageOverlay');
+            const textEl = document.getElementById('screenMessageText');
+            const senderEl = document.getElementById('screenMessageSender');
+            
+            textEl.textContent = text;
+            senderEl.textContent = 'Göndərən: ' + sender;
+            
+            // Animasiya tipini tətbiq et
+            textEl.style.animation = '';
+            setTimeout(() => {
+                if (animType === 'shake') {
+                    textEl.style.animation = 'gradientShift 3s ease infinite, shake 0.5s ease infinite';
+                } else if (animType === 'pulse') {
+                    textEl.style.animation = 'gradientShift 3s ease infinite, pulse 1s ease infinite';
+                } else if (animType === 'spin') {
+                    textEl.style.animation = 'gradientShift 3s ease infinite, spin 2s linear infinite';
+                }
+            }, 10);
+            
+            overlay.classList.add('active');
+            
+            // 5 saniyə sonra bağla
+            setTimeout(() => {
+                closeScreenMessage();
+            }, 5000);
+        }
+        
+        function closeScreenMessage() {
+            const overlay = document.getElementById('screenMessageOverlay');
+            overlay.style.animation = 'screenMessageOut 0.3s ease forwards';
+            setTimeout(() => {
+                overlay.classList.remove('active');
+                overlay.style.animation = '';
+            }, 300);
         }
         
         document.addEventListener('dblclick', function(event) {
