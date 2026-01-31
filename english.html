@@ -1,0 +1,1499 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LinguaMaster - İngilis Dili Öyrən</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #58cc02;
+            --primary-dark: #58a700;
+            --secondary: #1cb0f6;
+            --accent: #ffc800;
+            --danger: #ff4b4b;
+            --purple: #ce82ff;
+            --bg: #f7f7f7;
+            --text: #3c3c3c;
+            --border: #e5e5e5;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            border-bottom: 2px solid var(--border);
+            padding: 1rem 2rem;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .stats {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: bold;
+            font-size: 0.95rem;
+        }
+
+        .fire { color: var(--accent); }
+        .gem { color: var(--secondary); }
+        .heart { color: var(--danger); }
+
+        /* Main Layout */
+        .container {
+            max-width: 1200px;
+            margin: 80px auto 0;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 2rem;
+            padding: 2rem;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            height: fit-content;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            border: 2px solid var(--border);
+        }
+
+        .user-profile {
+            text-align: center;
+            padding-bottom: 1.5rem;
+            border-bottom: 2px solid var(--border);
+            margin-bottom: 1.5rem;
+        }
+
+        .avatar {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 50%;
+            margin: 0 auto 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: white;
+            border: 4px solid white;
+            box-shadow: 0 4px 15px rgba(88, 204, 2, 0.3);
+        }
+
+        .level-badge {
+            background: var(--accent);
+            color: #8a6d00;
+            padding: 0.25rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            display: inline-block;
+            margin-top: 0.5rem;
+        }
+
+        .progress-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .progress-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .progress-bar {
+            height: 12px;
+            background: #eee;
+            border-radius: 20px;
+            overflow: hidden;
+            border: 2px solid #ddd;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 20px;
+            transition: width 0.5s ease;
+        }
+
+        .nav-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .nav-item {
+            padding: 1rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-weight: 600;
+            border: 2px solid transparent;
+        }
+
+        .nav-item:hover {
+            background: #f0f0f0;
+            transform: translateX(5px);
+        }
+
+        .nav-item.active {
+            background: #e8f5e9;
+            border-color: var(--primary);
+            color: var(--primary-dark);
+        }
+
+        /* Learning Path */
+        .learning-area {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            border: 2px solid var(--border);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .lessons-path {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .lesson-node {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            padding: 1.5rem;
+            border-radius: 16px;
+            border: 3px solid #ddd;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            background: white;
+        }
+
+        .lesson-node:hover:not(.locked) {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .lesson-node.completed {
+            border-color: var(--primary);
+            background: #f1f8e9;
+        }
+
+        .lesson-node.active {
+            border-color: var(--secondary);
+            background: #e3f2fd;
+            animation: pulse 2s infinite;
+        }
+
+        .lesson-node.locked {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background: #f5f5f5;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(28, 176, 246, 0.4); }
+            50% { box-shadow: 0 0 0 15px rgba(28, 176, 246, 0); }
+        }
+
+        .node-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            background: #eee;
+            border: 3px solid #ccc;
+        }
+
+        .completed .node-icon {
+            background: var(--primary);
+            border-color: var(--primary-dark);
+            color: white;
+        }
+
+        .active .node-icon {
+            background: var(--secondary);
+            border-color: #0d8ecf;
+            color: white;
+        }
+
+        .locked .node-icon {
+            background: #ddd;
+            color: #999;
+        }
+
+        .node-info h3 {
+            margin-bottom: 0.25rem;
+            font-size: 1.1rem;
+        }
+
+        .node-info p {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .stars {
+            margin-left: auto;
+            display: flex;
+            gap: 0.25rem;
+            font-size: 1.2rem;
+        }
+
+        .star.filled { color: var(--accent); }
+        .star.empty { color: #ddd; }
+
+        /* Exercise Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 2rem;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .exercise-container {
+            background: white;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 700px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .exercise-header {
+            padding: 1.5rem;
+            border-bottom: 2px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 10;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+
+        .close-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .exercise-progress {
+            flex: 1;
+            margin: 0 2rem;
+            height: 16px;
+            background: #eee;
+            border-radius: 20px;
+            overflow: hidden;
+            border: 2px solid #ddd;
+        }
+
+        .exercise-progress-bar {
+            height: 100%;
+            background: var(--secondary);
+            border-radius: 20px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .exercise-content {
+            padding: 2rem;
+        }
+
+        .question-type {
+            display: inline-block;
+            background: #e3f2fd;
+            color: #1565c0;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            border: 2px solid #bbdefb;
+        }
+
+        .question-text {
+            font-size: 1.3rem;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .audio-btn {
+            width: 100%;
+            padding: 1.5rem;
+            border: 3px dashed var(--border);
+            border-radius: 16px;
+            background: #f9f9f9;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            font-size: 1.1rem;
+            color: var(--secondary);
+            font-weight: bold;
+            transition: all 0.2s;
+            margin-bottom: 2rem;
+        }
+
+        .audio-btn:hover {
+            background: #e3f2fd;
+            border-color: var(--secondary);
+            transform: scale(1.02);
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .option-btn {
+            padding: 1.2rem;
+            border: 3px solid #ddd;
+            border-radius: 16px;
+            background: white;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.2s;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            background: #f5f5f5;
+            border-color: #bbb;
+            transform: translateY(-2px);
+        }
+
+        .option-btn.selected {
+            background: #e3f2fd;
+            border-color: var(--secondary);
+            color: #1565c0;
+        }
+
+        .option-btn.correct {
+            background: #e8f5e9;
+            border-color: var(--primary);
+            color: #2e7d32;
+            animation: correct 0.5s ease;
+        }
+
+        .option-btn.wrong {
+            background: #ffebee;
+            border-color: var(--danger);
+            color: #c62828;
+            animation: shake 0.5s ease;
+        }
+
+        .option-btn.disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        @keyframes correct {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .speak-section {
+            text-align: center;
+            padding: 3rem 2rem;
+        }
+
+        .mic-btn {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 4px solid var(--secondary);
+            background: white;
+            font-size: 3rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 2rem auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 30px rgba(28, 176, 246, 0.3);
+        }
+
+        .mic-btn:hover {
+            transform: scale(1.1);
+            background: #e3f2fd;
+        }
+
+        .mic-btn.recording {
+            background: var(--danger);
+            border-color: #d32f2f;
+            color: white;
+            animation: pulse-recording 1.5s infinite;
+        }
+
+        @keyframes pulse-recording {
+            0% { box-shadow: 0 0 0 0 rgba(255, 75, 75, 0.7); }
+            70% { box-shadow: 0 0 0 30px rgba(255, 75, 75, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 75, 75, 0); }
+        }
+
+        .recognized-text {
+            margin-top: 1.5rem;
+            font-size: 1.3rem;
+            color: var(--text);
+            min-height: 2rem;
+            font-weight: 600;
+        }
+
+        .hint-text {
+            color: #999;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        .exercise-footer {
+            padding: 1.5rem 2rem;
+            border-top: 2px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            background: #f9f9f9;
+            border-radius: 0 0 20px 20px;
+        }
+
+        .btn {
+            padding: 0.8rem 2rem;
+            border-radius: 12px;
+            border: none;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 0 var(--primary-dark);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 var(--primary-dark);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 0 var(--primary-dark);
+        }
+
+        .btn-primary:disabled {
+            background: #ccc;
+            box-shadow: none;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--secondary);
+            border: 2px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: #f0f0f0;
+        }
+
+        /* Results Screen */
+        .results-screen {
+            text-align: center;
+            padding: 3rem;
+        }
+
+        .trophy {
+            font-size: 5rem;
+            margin-bottom: 1rem;
+            animation: bounce 1s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .xp-gained {
+            font-size: 2rem;
+            color: var(--accent);
+            font-weight: bold;
+            margin: 1rem 0;
+        }
+
+        .stats-summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .stat-box {
+            background: #f5f5f5;
+            padding: 1rem;
+            border-radius: 12px;
+            border: 2px solid var(--border);
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 0.25rem;
+        }
+
+        /* Word Bank */
+        .word-bank {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+            min-height: 60px;
+            padding: 1rem;
+            background: #f9f9f9;
+            border-radius: 12px;
+            border: 2px dashed #ddd;
+        }
+
+        .word-chip {
+            background: white;
+            border: 2px solid #ddd;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .word-chip:hover {
+            background: #e3f2fd;
+            border-color: var(--secondary);
+            transform: translateY(-2px);
+        }
+
+        .word-chip.selected {
+            background: var(--secondary);
+            color: white;
+            border-color: #0d8ecf;
+        }
+
+        .answer-slots {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+            min-height: 60px;
+            padding: 1rem;
+            background: white;
+            border: 3px solid #ddd;
+            border-radius: 12px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+                padding: 1rem;
+            }
+            
+            .sidebar {
+                display: none;
+            }
+            
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header {
+                padding: 1rem;
+            }
+            
+            .stats {
+                gap: 1rem;
+                font-size: 0.85rem;
+            }
+        }
+
+        /* Celebration Animation */
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: var(--primary);
+            position: absolute;
+            animation: confetti-fall 3s linear forwards;
+            z-index: 3000;
+        }
+
+        @keyframes confetti-fall {
+            0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+
+        /* Daily Challenge Badge */
+        .daily-challenge {
+            background: linear-gradient(135deg, #ff6b6b, #feca57);
+            color: white;
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            border: 3px solid rgba(255,255,255,0.3);
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .daily-challenge h4 {
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .streak-flame {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: bold;
+            margin-top: 0.5rem;
+        }
+
+        /* Type Answer Input */
+        .type-input {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            font-size: 1.2rem;
+            border: 3px solid #ddd;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .type-input:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 4px rgba(28, 176, 246, 0.1);
+        }
+
+        .type-input.correct {
+            border-color: var(--primary);
+            background: #e8f5e9;
+        }
+
+        .type-input.wrong {
+            border-color: var(--danger);
+            background: #ffebee;
+        }
+
+        .translate-hint {
+            background: #fff3cd;
+            border-left: 4px solid var(--accent);
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.95rem;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <span>🦉</span>
+                <span>LinguaMaster</span>
+            </div>
+            <div class="stats">
+                <div class="stat-item fire">
+                    <span>🔥</span>
+                    <span id="streak-count">12</span>
+                </div>
+                <div class="stat-item gem">
+                    <span>💎</span>
+                    <span id="xp-count">450</span>
+                </div>
+                <div class="stat-item heart">
+                    <span>❤️</span>
+                    <span id="heart-count">5</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="user-profile">
+                <div class="avatar">👨‍🎓</div>
+                <h3>İstifadəçi</h3>
+                <span class="level-badge">Səviyyə 3</span>
+            </div>
+
+            <div class="daily-challenge">
+                <h4>🔥 Gündəlik Seriya</h4>
+                <div class="streak-flame">
+                    <span>12 gün ardıcıl!</span>
+                </div>
+                <p style="font-size: 0.85rem; margin-top: 0.5rem; opacity: 0.9;">
+                    Sabah 15 XP qazanarsan, 2x bonus!
+                </p>
+            </div>
+
+            <div class="progress-section">
+                <div class="progress-label">
+                    <span>Növbəti səviyyəyə:</span>
+                    <span>75%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 75%"></div>
+                </div>
+            </div>
+
+            <nav class="nav-menu">
+                <div class="nav-item active" onclick="showSection('lessons')">
+                    <span>📚</span>
+                    <span>Dərslər</span>
+                </div>
+                <div class="nav-item" onclick="showSection('practice')">
+                    <span>⚔️</span>
+                    <span>Təkrar</span>
+                </div>
+                <div class="nav-item" onclick="showSection('dictionary')">
+                    <span>📖</span>
+                    <span>Lüğət</span>
+                </div>
+                <div class="nav-item" onclick="showSection('profile')">
+                    <span>👤</span>
+                    <span>Profil</span>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="learning-area" id="main-content">
+            <h2 class="section-title">
+                <span>🎯</span>
+                <span>Öyrənmə Yolu</span>
+            </h2>
+            
+            <div class="lessons-path" id="lessons-container">
+                <!-- Lessons generated by JS -->
+            </div>
+        </main>
+    </div>
+
+    <!-- Exercise Modal -->
+    <div class="modal-overlay" id="exercise-modal">
+        <div class="exercise-container">
+            <div class="exercise-header">
+                <button class="close-btn" onclick="closeExercise()">✕</button>
+                <div class="exercise-progress">
+                    <div class="exercise-progress-bar" id="progress-bar"></div>
+                </div>
+                <div style="width: 40px;"></div>
+            </div>
+
+            <div class="exercise-content" id="exercise-content">
+                <!-- Content generated by JS -->
+            </div>
+
+            <div class="exercise-footer" id="exercise-footer">
+                <button class="btn btn-secondary" onclick="closeExercise()">Çıx</button>
+                <button class="btn btn-primary" id="check-btn" onclick="checkAnswer()" disabled>Yoxla</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // App Data
+        const lessons = [
+            {
+                id: 1,
+                title: "Təməllər",
+                subtitle: "Salamlaşma və Əsas İfadələr",
+                icon: "👋",
+                completed: true,
+                stars: 3,
+                locked: false,
+                exercises: [
+                    {
+                        type: 'vocabulary',
+                        question: '"Salam" sözünün ingilis dilində qarşılığı nədir?',
+                        options: ['Goodbye', 'Hello', 'Thank you', 'Please'],
+                        correct: 1,
+                        audio: 'hello'
+                    },
+                    {
+                        type: 'listening',
+                        question: 'Dinləyin və təkrarlayın: "My name is..."',
+                        audioText: 'My name is John',
+                        answer: 'My name is John'
+                    },
+                    {
+                        type: 'speaking',
+                        question: 'Bu cümləni deyin: "Mənim adım [sizin adınız]"',
+                        targetText: 'My name is',
+                        acceptedAnswers: ['my name is', 'my names']
+                    }
+                ]
+            },
+            {
+                id: 2,
+                title: "Rənglər",
+                subtitle: "Əsas Rəngləri Öyrən",
+                icon: "🎨",
+                completed: true,
+                stars: 2,
+                locked: false,
+                exercises: [
+                    {
+                        type: 'vocabulary',
+                        question: 'Göy rəng ingilis dilində necədir?',
+                        options: ['Red', 'Green', 'Blue', 'Yellow'],
+                        correct: 2,
+                        audio: 'blue'
+                    },
+                    {
+                        type: 'translate',
+                        question: 'Bu cümləni ingilis dilinə tərcümə edin: "Mənim sevdiyim rəng qırmızıdır"',
+                        answer: 'My favorite color is red',
+                        hints: ['My', 'favorite', 'color', 'is', 'red']
+                    }
+                ]
+            },
+            {
+                id: 3,
+                title: "Heyvanlar",
+                subtitle: "Vəhşi və Ev Heyvanları",
+                icon: "🦁",
+                completed: false,
+                stars: 0,
+                locked: false,
+                active: true,
+                exercises: [
+                    {
+                        type: 'vocabulary',
+                        question: '"İt" sözünün ingilis dilində qarşılığı?',
+                        options: ['Cat', 'Dog', 'Bird', 'Fish'],
+                        correct: 1,
+                        audio: 'dog'
+                    },
+                    {
+                        type: 'sentence',
+                        question: 'Bu sözlərdən düzgün cümlə qurun: "likes / my / dog / I"',
+                        words: ['likes', 'my', 'dog', 'I'],
+                        correctOrder: ['I', 'likes', 'my', 'dog']
+                    }
+                ]
+            },
+            {
+                id: 4,
+                title: "Ailə",
+                subtitle: "Ailə Üzvləri",
+                icon: "👨‍👩‍👧‍👦",
+                completed: false,
+                stars: 0,
+                locked: true,
+                exercises: []
+            },
+            {
+                id: 5,
+                title: "Qida",
+                subtitle: "Yeməklər və İçkilər",
+                icon: "🍎",
+                completed: false,
+                stars: 0,
+                locked: true,
+                exercises: []
+            }
+        ];
+
+        // State
+        let currentLesson = null;
+        let currentExerciseIndex = 0;
+        let userXP = parseInt(localStorage.getItem('userXP')) || 450;
+        let userStreak = parseInt(localStorage.getItem('userStreak')) || 12;
+        let userHearts = parseInt(localStorage.getItem('userHearts')) || 5;
+        let selectedOption = null;
+        let currentAnswer = '';
+        let recognition = null;
+
+        // Initialize Speech Recognition
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            renderLessons();
+            updateStats();
+        });
+
+        function updateStats() {
+            document.getElementById('xp-count').textContent = userXP;
+            document.getElementById('streak-count').textContent = userStreak;
+            document.getElementById('heart-count').textContent = userHearts;
+        }
+
+        function renderLessons() {
+            const container = document.getElementById('lessons-container');
+            container.innerHTML = lessons.map(lesson => `
+                <div class="lesson-node ${lesson.completed ? 'completed' : ''} ${lesson.active ? 'active' : ''} ${lesson.locked ? 'locked' : ''}" 
+                     onclick="${lesson.locked ? '' : `startLesson(${lesson.id})`}">
+                    <div class="node-icon">${lesson.locked ? '🔒' : lesson.icon}</div>
+                    <div class="node-info">
+                        <h3>${lesson.title}</h3>
+                        <p>${lesson.subtitle}</p>
+                    </div>
+                    <div class="stars">
+                        ${[1,2,3].map(i => `<span class="star ${i <= lesson.stars ? 'filled' : 'empty'}">★</span>`).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function startLesson(lessonId) {
+            currentLesson = lessons.find(l => l.id === lessonId);
+            currentExerciseIndex = 0;
+            if (currentLesson && currentLesson.exercises.length > 0) {
+                document.getElementById('exercise-modal').classList.add('active');
+                renderExercise();
+            } else {
+                alert('Bu dərs hələ aktiv deyil. Tezliklə əlavə ediləcək!');
+            }
+        }
+
+        function renderExercise() {
+            const exercise = currentLesson.exercises[currentExerciseIndex];
+            const progress = ((currentExerciseIndex) / currentLesson.exercises.length) * 100;
+            document.getElementById('progress-bar').style.width = progress + '%';
+            
+            const content = document.getElementById('exercise-content');
+            const checkBtn = document.getElementById('check-btn');
+            checkBtn.disabled = true;
+            checkBtn.textContent = 'Yoxla';
+            checkBtn.onclick = checkAnswer;
+            selectedOption = null;
+            currentAnswer = '';
+
+            if (exercise.type === 'vocabulary') {
+                content.innerHTML = `
+                    <span class="question-type">📝 Söz Ehtiyatı</span>
+                    <h3 class="question-text">${exercise.question}</h3>
+                    <button class="audio-btn" onclick="speak('${exercise.audio}')">
+                        <span>🔊</span>
+                        <span>Dinləmək üçün klikləyin</span>
+                    </button>
+                    <div class="options-grid">
+                        ${exercise.options.map((opt, idx) => `
+                            <button class="option-btn" onclick="selectOption(${idx}, this)">${opt}</button>
+                        `).join('')}
+                    </div>
+                `;
+            } else if (exercise.type === 'listening') {
+                content.innerHTML = `
+                    <span class="question-type">👂 Dinləmə</span>
+                    <h3 class="question-text">${exercise.question}</h3>
+                    <button class="audio-btn" onclick="speak('${exercise.audioText}')">
+                        <span>🔊</span>
+                        <span>Səsi Dinlə</span>
+                    </button>
+                    <div class="translate-hint">
+                        💡 İpucu: Diqqətlə dinləyin və eşitdiklərinizi yazın
+                    </div>
+                    <input type="text" class="type-input" placeholder="Cavabınızı yazın..." 
+                           oninput="updateTextAnswer(this.value)" spellcheck="false">
+                `;
+                setTimeout(() => speak(exercise.audioText), 500);
+                checkBtn.disabled = false;
+            } else if (exercise.type === 'speaking') {
+                content.innerHTML = `
+                    <span class="question-type">🎤 Danışıq</span>
+                    <h3 class="question-text">${exercise.question}</h3>
+                    <div class="speak-section">
+                        <button class="mic-btn" id="mic-btn" onclick="toggleSpeech()">🎤</button>
+                        <div class="recognized-text" id="recognized-text">...</div>
+                        <div class="hint-text">Mikrofona klikləyin və danışın</div>
+                    </div>
+                `;
+                checkBtn.disabled = false;
+            } else if (exercise.type === 'translate') {
+                content.innerHTML = `
+                    <span class="question-type">🔄 Tərcümə</span>
+                    <h3 class="question-text">${exercise.question}</h3>
+                    <div class="translate-hint">
+                        İpucu: ${exercise.hints.join(' / ')}
+                    </div>
+                    <input type="text" class="type-input" placeholder="İngilis dilində yazın..." 
+                           oninput="updateTextAnswer(this.value)" spellcheck="false">
+                `;
+                checkBtn.disabled = false;
+            } else if (exercise.type === 'sentence') {
+                content.innerHTML = `
+                    <span class="question-type">🧩 Cümlə Qurma</span>
+                    <h3 class="question-text">${exercise.question}</h3>
+                    <div class="answer-slots" id="answer-slots" onclick="clearSlots()">
+                        <span style="color: #999; font-size: 0.9rem;">Sözləri buraya yerləşdirin...</span>
+                    </div>
+                    <div class="word-bank" id="word-bank">
+                        ${exercise.words.map((word, idx) => `
+                            <span class="word-chip" onclick="selectWord('${word}', this)">${word}</span>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            // Enable check button for types that need it
+            if (exercise.type === 'vocabulary' || exercise.type === 'sentence') {
+                checkBtn.disabled = false;
+            }
+        }
+
+        function selectOption(index, btn) {
+            document.querySelectorAll('.option-btn').forEach(b => {
+                b.classList.remove('selected');
+                b.style.transform = '';
+            });
+            btn.classList.add('selected');
+            selectedOption = index;
+            document.getElementById('check-btn').disabled = false;
+        }
+
+        function updateTextAnswer(value) {
+            currentAnswer = value.trim();
+            document.getElementById('check-btn').disabled = currentAnswer.length === 0;
+        }
+
+        function selectWord(word, chip) {
+            const slots = document.getElementById('answer-slots');
+            if (slots.querySelector('span[style*="color: #999"]')) {
+                slots.innerHTML = '';
+            }
+            
+            if (!chip.classList.contains('selected')) {
+                chip.classList.add('selected');
+                const span = document.createElement('span');
+                span.className = 'word-chip selected';
+                span.textContent = word;
+                span.onclick = () => {
+                    span.remove();
+                    chip.classList.remove('selected');
+                    if (slots.children.length === 0) {
+                        slots.innerHTML = '<span style="color: #999; font-size: 0.9rem;">Sözləri buraya yerləşdirin...</span>';
+                    }
+                };
+                slots.appendChild(span);
+                currentAnswer = Array.from(slots.querySelectorAll('.word-chip')).map(w => w.textContent).join(' ');
+            }
+        }
+
+        function clearSlots() {
+            const slots = document.getElementById('answer-slots');
+            if (slots.children.length > 0 && !slots.querySelector('span[style*="color: #999"]')) {
+                const words = Array.from(slots.querySelectorAll('.word-chip')).map(w => w.textContent);
+                slots.innerHTML = '<span style="color: #999; font-size: 0.9rem;">Sözləri buraya yerləşdirin...</span>';
+                document.querySelectorAll('.word-bank .word-chip').forEach(chip => {
+                    chip.classList.remove('selected');
+                });
+                currentAnswer = '';
+            }
+        }
+
+        function checkAnswer() {
+            const exercise = currentLesson.exercises[currentExerciseIndex];
+            const checkBtn = document.getElementById('check-btn');
+            let isCorrect = false;
+
+            if (exercise.type === 'vocabulary') {
+                isCorrect = selectedOption === exercise.correct;
+                const buttons = document.querySelectorAll('.option-btn');
+                buttons[exercise.correct].classList.add('correct');
+                if (!isCorrect && selectedOption !== null) {
+                    buttons[selectedOption].classList.add('wrong');
+                    userHearts = Math.max(0, userHearts - 1);
+                }
+            } else if (exercise.type === 'listening' || exercise.type === 'translate') {
+                const input = document.querySelector('.type-input');
+                const userAns = currentAnswer.toLowerCase().trim();
+                const correctAns = exercise.answer.toLowerCase().trim();
+                isCorrect = userAns === correctAns || correctAns.includes(userAns) || userAns.includes(correctAns);
+                
+                if (isCorrect) {
+                    input.classList.add('correct');
+                } else {
+                    input.classList.add('wrong');
+                    userHearts = Math.max(0, userHearts - 1);
+                    setTimeout(() => {
+                        alert(`Düzgün cavab: "${exercise.answer}"`);
+                    }, 300);
+                }
+            } else if (exercise.type === 'speaking') {
+                const recText = document.getElementById('recognized-text').textContent.toLowerCase();
+                isCorrect = exercise.acceptedAnswers.some(ans => recText.includes(ans.toLowerCase()));
+                if (!isCorrect) {
+                    userHearts = Math.max(0, userHearts - 1);
+                }
+            } else if (exercise.type === 'sentence') {
+                const slots = document.getElementById('answer-slots');
+                const userSentence = Array.from(slots.querySelectorAll('.word-chip')).map(w => w.textContent).join(' ');
+                const correctSentence = exercise.correctOrder.join(' ');
+                isCorrect = userSentence.toLowerCase() === correctSentence.toLowerCase();
+                
+                if (isCorrect) {
+                    slots.style.borderColor = 'var(--primary)';
+                    slots.style.background = '#e8f5e9';
+                } else {
+                    slots.style.borderColor = 'var(--danger)';
+                    slots.style.background = '#ffebee';
+                    userHearts = Math.max(0, userHearts - 1);
+                    setTimeout(() => {
+                        alert(`Düzgün cümlə: "${exercise.correctOrder.join(' ')}"`);
+                    }, 300);
+                }
+            }
+
+            if (isCorrect) {
+                userXP += 10;
+                playSound('success');
+                createConfetti();
+                checkBtn.textContent = 'Davam et →';
+                checkBtn.onclick = nextExercise;
+            } else {
+                playSound('error');
+                updateStats();
+                if (userHearts === 0) {
+                    setTimeout(() => {
+                        alert('❤️ Canınız qurtardı! 4 saat sonra yenilənəcək və ya dərsələ yenidən başlayın.');
+                        closeExercise();
+                        userHearts = 5;
+                        updateStats();
+                    }, 500);
+                } else {
+                    checkBtn.textContent = 'Davam et';
+                    checkBtn.onclick = nextExercise;
+                }
+            }
+
+            updateStats();
+            localStorage.setItem('userXP', userXP);
+            localStorage.setItem('userHearts', userHearts);
+            localStorage.setItem('userStreak', userStreak);
+        }
+
+        function nextExercise() {
+            currentExerciseIndex++;
+            if (currentExerciseIndex < currentLesson.exercises.length) {
+                renderExercise();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            const content = document.getElementById('exercise-content');
+            const footer = document.getElementById('exercise-footer');
+            const oldStars = currentLesson.stars;
+            const accuracy = userHearts > 3 ? 3 : userHearts > 1 ? 2 : 1;
+            
+            currentLesson.completed = true;
+            currentLesson.stars = Math.max(currentLesson.stars, accuracy);
+            
+            // Unlock next lesson
+            const nextLesson = lessons.find(l => l.id === currentLesson.id + 1);
+            if (nextLesson) {
+                nextLesson.locked = false;
+                nextLesson.active = true;
+            }
+
+            content.innerHTML = `
+                <div class="results-screen">
+                    <div class="trophy">🏆</div>
+                    <h2>Təbriklər!</h2>
+                    <p style="color: #666; margin: 1rem 0;">Dərsi tamamladınız!</p>
+                    
+                    <div class="xp-gained">+${30} XP</div>
+                    
+                    <div class="stats-summary">
+                        <div class="stat-box">
+                            <div class="stat-value">${accuracy}/3</div>
+                            <div class="stat-label">Ulduz</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value">${currentLesson.exercises.length}</div>
+                            <div class="stat-label">Tapşırıq</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value">100%</div>
+                            <div class="stat-label">Dəqiqlik</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            footer.innerHTML = `
+                <button class="btn btn-primary" onclick="closeExercise(); renderLessons();" style="width: 100%;">
+                    Bağla
+                </button>
+            `;
+            
+            userXP += 30;
+            updateStats();
+            createConfetti();
+        }
+
+        function closeExercise() {
+            document.getElementById('exercise-modal').classList.remove('active');
+            currentLesson = null;
+            currentExerciseIndex = 0;
+            if (recognition) {
+                recognition.stop();
+            }
+        }
+
+        // Text to Speech
+        function speak(text) {
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'en-US';
+                utterance.rate = 0.9;
+                window.speechSynthesis.speak(utterance);
+                
+                // Visual feedback
+                const btn = event.target.closest('.audio-btn');
+                if (btn) {
+                    btn.style.transform = 'scale(0.95)';
+                    setTimeout(() => btn.style.transform = '', 200);
+                }
+            }
+        }
+
+        // Speech Recognition
+        let isRecording = false;
+
+        function toggleSpeech() {
+            const micBtn = document.getElementById('mic-btn');
+            const recognizedText = document.getElementById('recognized-text');
+            
+            if (!recognition) {
+                alert('Brauzeriniz səs tanımanı dəstəkləmir. Chrome və ya Edge istifadə edin.');
+                return;
+            }
+
+            if (isRecording) {
+                recognition.stop();
+                micBtn.classList.remove('recording');
+                isRecording = false;
+            } else {
+                recognition.start();
+                micBtn.classList.add('recording');
+                isRecording = true;
+                recognizedText.textContent = 'Dinlenir...';
+                
+                recognition.onresult = (event) => {
+                    const transcript = event.results[0][0].transcript;
+                    recognizedText.textContent = transcript;
+                    currentAnswer = transcript;
+                    document.getElementById('check-btn').disabled = false;
+                };
+                
+                recognition.onerror = (event) => {
+                    recognizedText.textContent = 'Xəta baş verdi, yenidən cəhd edin';
+                    micBtn.classList.remove('recording');
+                    isRecording = false;
+                };
+                
+                recognition.onend = () => {
+                    micBtn.classList.remove('recording');
+                    isRecording = false;
+                };
+            }
+        }
+
+        // Sound Effects
+        function playSound(type) {
+            // Simple beep sounds using Web Audio API
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            if (type === 'success') {
+                oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime); // C5
+                oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.1); // E5
+                oscillator.frequency.setValueAtTime(783.99, audioContext.currentTime + 0.2); // G5
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.5);
+            } else {
+                oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.3);
+            }
+        }
+
+        // Confetti Animation
+        function createConfetti() {
+            const colors = ['#58cc02', '#1cb0f6', '#ffc800', '#ff4b4b', '#ce82ff'];
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + 'vw';
+                    confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                    document.body.appendChild(confetti);
+                    setTimeout(() => confetti.remove(), 4000);
+                }, i * 30);
+            }
+        }
+
+        function showSection(section) {
+            // Simple section switcher
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            
+            if (section === 'lessons') {
+                document.getElementById('main-content').innerHTML = `
+                    <h2 class="section-title"><span>🎯</span><span>Öyrənmə Yolu</span></h2>
+                    <div class="lessons-path" id="lessons-container"></div>
+                `;
+                renderLessons();
+            } else {
+                document.getElementById('main-content').innerHTML = `
+                    <div style="text-align: center; padding: 4rem 2rem;">
+                        <div style="font-size: 4rem; margin-bottom: 1rem;">🚧</div>
+                        <h2>Tezliklə!</h2>
+                        <p style="color: #666; margin-top: 1rem;">Bu bölmə hələ inkişaf mərhələsindədir.</p>
+                        <button class="btn btn-primary" onclick="location.reload()" style="margin-top: 2rem;">
+                            Dərsə Qayıt
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && document.getElementById('exercise-modal').classList.contains('active')) {
+                closeExercise();
+            }
+            if (e.key === 'Enter' && document.getElementById('exercise-modal').classList.contains('active')) {
+                const checkBtn = document.getElementById('check-btn');
+                if (!checkBtn.disabled) checkBtn.click();
+            }
+        });
+    </script>
+</body>
+</html>
