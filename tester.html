@@ -211,8 +211,29 @@
         .msg-other { margin-right: auto; background: rgba(255,255,255,0.05); color: var(--primary-light); border: 1px solid var(--border-color); border-bottom-left-radius: 4px; }
         .msg-reply { background: rgba(0,0,0,0.2); border-left: 2px solid var(--primary-light); padding: 4px 8px; margin-bottom: 4px; border-radius: 6px; font-size: 11px; }
         .msg-meta { font-size: 10px; margin-top: 2px; opacity: 0.85; display: flex; align-items: center; gap: 4px; justify-content: flex-end; }
-        .msg-sender { font-size: 11px; font-weight: 600; color: var(--primary-color); margin-bottom: 2px; margin-left: 44px; transition: color 0.3s ease; }
+        
+        /* DÜZƏLİŞ: Qurucu adı stili */
+        .msg-sender { 
+            font-size: 11px; 
+            font-weight: 600; 
+            color: var(--primary-color); 
+            margin-bottom: 2px; 
+            margin-left: 44px; 
+            transition: color 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .msg-sender.creator {
+            color: #f59e0b;
+            text-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
+        }
+        
         .msg-avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border-color); margin-right: 8px; align-self: flex-end; margin-bottom: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.4); cursor: pointer; transition: border-color 0.3s ease; }
+        .msg-avatar.creator-avatar {
+            border-color: #f59e0b;
+            box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
+        }
         
         .reaction-bar { display: flex; gap: 4px; margin-top: 4px; flex-wrap: wrap; }
         .reaction-item { background: rgba(255,255,255,0.1); border: 1px solid var(--border-color); border-radius: 12px; padding: 2px 6px; font-size: 11px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 2px; }
@@ -281,7 +302,6 @@
         
         .hidden { display: none !important; }
         
-        /* iOS specific fixes */
         @supports (-webkit-touch-callout: none) {
             .chat-container { height: calc(60vh - 56px); }
             #videoSection { height: 40vh; }
@@ -296,10 +316,8 @@
         
         button:disabled { opacity: 0.5; cursor: not-allowed; }
         
-        /* Prevent text selection on UI elements but allow on inputs */
         input, textarea { -webkit-user-select: text; user-select: text; }
 
-        /* Creator Animation */
         @keyframes creatorPulse {
             0% { transform: scale(0.8); opacity: 0; }
             50% { transform: scale(1.1); opacity: 1; }
@@ -362,18 +380,23 @@
             letter-spacing: 0.1em;
             animation: fadeIn 0.5s ease 0.8s both;
         }
+        
+        /* Boss badge üçün stil */
         .boss-badge {
-            width: 20px;
-            height: 20px;
+            width: 16px;
+            height: 16px;
             object-fit: contain;
-            margin-left: 4px;
-            filter: drop-shadow(0 0 4px rgba(245, 158, 11, 0.6));
+            filter: drop-shadow(0 0 4px rgba(245, 158, 11, 0.8));
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
         }
     </style>
 </head>
 <body class="h-screen flex flex-col theme-red">
 
-    <!-- Hidden File Input -->
     <input type="file" id="avatarInput" style="display: none;" accept="image/*" onchange="handleAvatarSelect(event)">
 
     <!-- LANDING PAGE -->
@@ -431,7 +454,6 @@
                     </button>
                 </div>
 
-                <!-- QURUCU GİRİŞİ BÖLMƏSİ -->
                 <div class="relative flex items-center py-2">
                     <div class="flex-grow border-t border-amber-600/30"></div>
                     <span class="px-3 text-xs text-amber-500 font-bold tracking-wider">★ QURUCU GİRİŞİ ★</span>
@@ -451,7 +473,6 @@
                         <i class="fas fa-key mr-2 text-amber-200"></i>Qurucu olaraq daxil ol
                     </button>
                 </div>
-                <!-- /QURUCU GİRİŞİ BÖLMƏSİ -->
             </div>
         </div>
     </div>
@@ -696,14 +717,12 @@
     </div>
 
     <script>
-        // iOS Safari bfcache fix
         window.onpageshow = function(event) {
             if (event.persisted) {
                 window.location.reload();
             }
         };
         
-        // Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyCM5WdZNSj9oFipNI-J3csHpOIvK8PfyJRdk",
             authDomain: "sevgili-testi.firebaseapp.com",
@@ -727,7 +746,7 @@
         
         let currentRoom = null;
         let isHost = false;
-        let isCreator = false;  // Qurucu statusu
+        let isCreator = false;
         let player = null;
         let serverOffset = 0;
         let currentVideoId = null;
@@ -742,7 +761,6 @@
         let isSending = false;
         let messageIds = new Set();
         let playerReady = false;
-        let lastVideoState = null;
         
         const themes = [
             { id: 'red', name: 'Qırmızı', color: '#dc2626' },
@@ -756,7 +774,6 @@
             { id: 'orange', name: 'Narıncı', color: '#f97316' }
         ];
         
-        // Server time sync
         db.ref(".info/serverTimeOffset").on("value", (snap) => { 
             serverOffset = snap.val() || 0; 
         });
@@ -815,7 +832,7 @@
                 showNotification('Xəta', 'Adınızı daxil edin!'); 
                 return false; 
             }
-            if (!userAvatar) { 
+            if (!isCreator && !userAvatar) { 
                 document.getElementById('avatarError')?.classList.remove('hidden');
                 showNotification('Xəta', 'Profil şəkli seçilməlidir');
                 return false; 
@@ -973,7 +990,6 @@
             }
         }
 
-        // QURUCU GİRİŞİ FUNKSİYALARI
         async function enterAsCreator() {
             const code = document.getElementById('creatorRoomId')?.value.trim().toUpperCase();
             const password = document.getElementById('creatorPassword')?.value.trim();
@@ -988,9 +1004,7 @@
                 return;
             }
             
-            if (!validateInputs()) return;
-            
-            userName = document.getElementById('hostName').value.trim();
+            userName = document.getElementById('hostName')?.value.trim() || 'BOSS';
             
             try {
                 const roomSnap = await db.ref(`rooms/${code}`).once('value');
@@ -1007,16 +1021,18 @@
                 
                 isCreator = true;
                 
-                // Qurucu kimi Firebase-ə yaz
+                // Qurucu üçün avatar boss.png deyil, adi avatar və ya default
+                const creatorAvatar = userAvatar || 'https://via.placeholder.com/150/180/180?text=BOSS';
+                
                 await db.ref(`rooms/${code}/users/${userId}`).set({
                     name: userName, 
                     isHost: true, 
                     isCreator: true,
+                    avatar: creatorAvatar,
                     joinedAt: firebase.database.ServerValue.TIMESTAMP, 
                     status: 'active'
                 });
                 
-                // Xüsusi animasiyanı göstər
                 showCreatorAnimation();
                 
                 setTimeout(() => {
@@ -1073,7 +1089,6 @@
             
             setTimeout(() => window.dispatchEvent(new Event('resize')), 100);
         }
-        // /QURUCU GİRİŞİ FUNKSİYALARI
 
         function enterRoom(code, host) {
             currentRoom = code;
@@ -1183,9 +1198,12 @@
             playerReady = true;
             document.getElementById('playerLoader').style.display = 'none';
             
+            // İlk dəfə video məlumatlarını çək
+            syncInitialVideo();
+            
             if (isHost || isCreator) {
                 setInterval(() => {
-                    if (!player || !currentRoom) return;
+                    if (!player || !currentRoom || !playerReady) return;
                     const state = player.getPlayerState();
                     const time = player.getCurrentTime();
                     
@@ -1197,10 +1215,27 @@
                 }, 2000);
             } else {
                 setInterval(() => {
-                    if (!player || !currentRoom) return;
+                    if (!player || !currentRoom || !playerReady) return;
                     syncViewer();
                 }, 1000);
             }
+        }
+
+        // İlk video yükləmə üçün
+        function syncInitialVideo() {
+            if (!currentRoom) return;
+            db.ref(`rooms/${currentRoom}/currentVideo`).once('value').then(snap => {
+                const video = snap.val();
+                if (video && video.id) {
+                    currentVideoId = video.id;
+                    if (player && player.loadVideoById) {
+                        player.loadVideoById(video.id);
+                        if (!video.isPlaying) {
+                            setTimeout(() => player.pauseVideo(), 1000);
+                        }
+                    }
+                }
+            });
         }
 
         function syncViewer() {
@@ -1210,21 +1245,25 @@
                 const video = snap.val();
                 if (!video) return;
                 
+                // Yeni video yoxlanışı - ƏSAS DÜZƏLİŞ BURADA
                 if (video.id && video.id !== currentVideoId) {
-                    currentVideoId = video.id;
+                    currentVideoId = video.id; // BƏLİ, ƏVVƏL YENİLƏ
                     player.loadVideoById(video.id);
                     showNotification('Yeni video', video.title?.substring(0, 40) + (video.title?.length > 40 ? '...' : '') || 'Video dəyişdirildi');
                     return;
                 }
                 
-                if (video.time !== undefined && video.isPlaying !== undefined) {
+                // Video artıq yüklənibsə, sinxronizasiya et
+                if (video.id === currentVideoId && video.time !== undefined && video.isPlaying !== undefined) {
                     const currentTime = player.getCurrentTime() || 0;
                     const timeDiff = Math.abs(currentTime - video.time);
                     
+                    // 3 saniyədən çox fərq varsa sync et
                     if (timeDiff > 3) {
                         player.seekTo(video.time, true);
                     }
                     
+                    // Play/pause sync
                     const state = player.getPlayerState();
                     const isPlaying = state === YT.PlayerState.PLAYING;
                     
@@ -1244,6 +1283,7 @@
             
             clearTimeout(window.stateChangeTimeout);
             window.stateChangeTimeout = setTimeout(() => {
+                if (!player || !playerReady) return;
                 db.ref(`rooms/${currentRoom}/currentVideo`).update({
                     isPlaying: e.data === YT.PlayerState.PLAYING,
                     time: player.getCurrentTime(),
@@ -1336,7 +1376,7 @@
         }
 
         function playerControl(action, val) {
-            if ((!isHost && !isCreator) || !player) return;
+            if ((!isHost && !isCreator) || !player || !playerReady) return;
             
             if (action === 'toggle') {
                 const state = player.getPlayerState();
@@ -1360,12 +1400,16 @@
                 }
             });
             
-            db.ref(`rooms/${currentRoom}/currentVideo/id`).on('value', (snap) => {
-                const newId = snap.val();
-                if (newId && newId !== currentVideoId && !isHost && !isCreator) {
-                    // Viewer handles in syncViewer
-                }
-            });
+            // Video dəyişikliklərini real-time dinlə (viewers üçün)
+            if (!isHost && !isCreator) {
+                db.ref(`rooms/${currentRoom}/currentVideo/id`).on('value', (snap) => {
+                    const newId = snap.val();
+                    if (newId && newId !== currentVideoId && playerReady) {
+                        currentVideoId = newId;
+                        player.loadVideoById(newId);
+                    }
+                });
+            }
             
             db.ref(`rooms/${currentRoom}/users`).on('value', (snap) => {
                 const users = snap.val() || {};
@@ -1378,7 +1422,6 @@
                         count++;
                         const chip = document.createElement('div');
                         
-                        // Qurucu yoxlanışı
                         if (data.isCreator) {
                             chip.className = 'user-chip creator';
                         } else if (data.isHost) {
@@ -1393,8 +1436,8 @@
                             }
                         };
                         
-                        // Avatar: Qurucu üçün boss.png, digərləri üçün adi avatar
-                        const avatarSrc = data.isCreator ? 'boss.png' : (data.avatar || 'https://via.placeholder.com/24');
+                        // DÜZƏLİŞ: Hər kəs öz avatarını işlədir, qurucu da
+                        const avatarSrc = data.avatar || 'https://via.placeholder.com/24';
                         
                         chip.innerHTML = `
                             <img src="${avatarSrc}" class="w-6 h-6 rounded-full object-cover" alt="" onerror="this.src='https://via.placeholder.com/24'">
@@ -1487,19 +1530,22 @@
             
             const replyHtml = msg.replyTo ? `<div class="msg-reply">${escapeHtml(msg.replyTo.text)}</div>` : '';
             
-            // Qurucu üçün boss.png, yoxsa normal avatar
-            const avatarSrc = msg.isCreator ? 'boss.png' : (msg.avatar || 'https://via.placeholder.com/32');
+            // DÜZƏLİŞ: Qurucu da adi avatarını işlədir, profil şəkli olaraq boss.png yox
+            const isCreatorMsg = msg.isCreator;
+            const avatarSrc = msg.avatar || 'https://via.placeholder.com/32';
+            const avatarClass = isCreatorMsg ? 'msg-avatar creator-avatar' : 'msg-avatar';
             
-            const avatarHtml = !isOwn ? `<img src="${avatarSrc}" class="msg-avatar" alt="" onclick="setReply('${msgId}', '${escapeHtml(msg.name)}', '${escapeHtml(msg.text)}')">` : '';
+            const avatarHtml = !isOwn ? `<img src="${avatarSrc}" class="${avatarClass}" alt="" onclick="setReply('${msgId}', '${escapeHtml(msg.name)}', '${escapeHtml(msg.text)}')">` : '';
+            
+            // DÜZƏLİŞ: Qurucu adının yanında boss.png təi işarəsi əvəzinə
+            const senderClass = isCreatorMsg ? 'msg-sender creator' : 'msg-sender';
+            const bossBadge = isCreatorMsg ? `<img src="boss.png" class="w-4 h-4 object-contain" style="filter: drop-shadow(0 0 4px rgba(245,158,11,0.8));" alt="BOSS" onerror="this.style.display='none'">` : '';
             
             wrapper.innerHTML = `
                 ${avatarHtml}
                 <div class="flex flex-col ${isOwn ? 'items-end' : 'items-start'} flex-1">
-                    ${!isOwn ? `<div class="msg-sender flex items-center gap-1">
-                        ${escapeHtml(msg.name)}
-                        ${msg.isCreator ? '<img src="boss.png" class="w-3 h-3 object-contain" alt="BOSS" onerror="this.style.display=\'none\'">' : ''}
-                    </div>` : ''}
-                    <div class="msg-bubble ${isOwn ? 'msg-own' : 'msg-other'}" onclick="showReactionPicker('${msgId}')">
+                    ${!isOwn ? `<div class="${senderClass}">${escapeHtml(msg.name)} ${bossBadge}</div>` : ''}
+                    <div class="msg-bubble ${isOwn ? 'msg-own' : (isCreatorMsg ? 'msg-other' : 'msg-other')}" onclick="showReactionPicker('${msgId}')" style="${isCreatorMsg && !isOwn ? 'border-color: #f59e0b; background: rgba(245, 158, 11, 0.05);' : ''}">
                         ${replyHtml}
                         <div class="break-words">${escapeHtml(msg.text)}</div>
                         <div class="msg-meta">
@@ -1611,7 +1657,7 @@
                 userId: userId,
                 name: userName,
                 avatar: userAvatar,
-                isCreator: isCreator,  // Qurucu statusunu mesajda saxla
+                isCreator: isCreator,
                 timestamp: firebase.database.ServerValue.TIMESTAMP
             };
             
@@ -1688,7 +1734,7 @@
             
             selectedUserId = uid;
             document.getElementById('modalUserName').textContent = userData.name || 'Naməlum';
-            document.getElementById('modalUserAvatar').src = userData.isCreator ? 'boss.png' : (userData.avatar || 'https://via.placeholder.com/64');
+            document.getElementById('modalUserAvatar').src = userData.avatar || 'https://via.placeholder.com/64';
             document.getElementById('modalUserStatus').textContent = userData.isCreator ? 'Qurucu (BOSS)' : (userData.isHost ? 'Moderator' : 'İzləyici');
             
             db.ref(`rooms/${currentRoom}/permissions/${uid}`).once('value').then(snap => {
