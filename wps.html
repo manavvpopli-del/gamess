@@ -1,4 +1,5 @@
-<!DOCTYPE html>
+
+html_content = '''<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -8,9 +9,9 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
-
+        
         * { font-family: 'Roboto', sans-serif; }
-
+        
         .whatsapp-green { background-color: #128C7E; }
         .whatsapp-dark { background-color: #075E54; }
         .whatsapp-light { background-color: #25D366; }
@@ -18,14 +19,14 @@
             background-color: #E5DDD5; 
             background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIj48ZmlsdGVyIGlkPSJnoiPjxmZVR1cmJ1bGVuY2UgdHlwZT0iZnJhY3RhbE5vaXNlIiBiYXNlRnJlcXVlbmN5PSIwLjY1IiBudW1PY3RhdmVzPSIzIiBzdGl0Y2hUaWxlcz0ic3RpdGNoIi8+PC9maWx0ZXI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsdGVyPSJ1cmwoI2cpIiBvcGFjaXR5PSIwLjA1Ii8+PC9zdmc+');
         }
-
+        
         .hacking-text { font-family: 'Courier New', monospace; }
-
+        
         @keyframes scanline {
             0% { transform: translateY(-100%); }
             100% { transform: translateY(100%); }
         }
-
+        
         .scanline::after {
             content: "";
             position: absolute;
@@ -33,14 +34,14 @@
             background: rgba(0, 255, 0, 0.5);
             animation: scanline 2s linear infinite;
         }
-
+        
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
         }
-
+        
         .pulse { animation: pulse 1.5s ease-in-out infinite; }
-
+        
         .message-received {
             background: white;
             border-radius: 7.5px;
@@ -52,7 +53,7 @@
             position: relative;
             animation: slideIn 0.3s ease;
         }
-
+        
         .message-sent {
             background: #DCF8C6;
             border-radius: 7.5px;
@@ -64,12 +65,12 @@
             box-shadow: 0 1px 0.5px rgba(0,0,0,0.13);
             animation: slideIn 0.3s ease;
         }
-
+        
         @keyframes slideIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-
+        
         .typing-dot {
             width: 8px; height: 8px;
             background: #90949c;
@@ -77,49 +78,49 @@
             display: inline-block;
             animation: typing 1.4s infinite;
         }
-
+        
         @keyframes typing {
             0%, 60%, 100% { transform: translateY(0); }
             30% { transform: translateY(-5px); }
         }
-
+        
         .typing-dot:nth-child(2) { animation-delay: 0.2s; }
         .typing-dot:nth-child(3) { animation-delay: 0.4s; }
-
+        
         .hidden { display: none !important; }
-
+        
         .fade-in { animation: fadeIn 0.5s ease-in; }
-
+        
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
         }
-
+        
         .chat-item {
             transition: all 0.2s;
             cursor: pointer;
         }
-
+        
         .chat-item:hover { background-color: #F5F5F5; }
         .chat-item.active { background-color: #E9EDEF; }
-
+        
         .call-incoming { color: #10B981; }
         .call-outgoing { color: #3B82F6; }
         .call-missed { color: #EF4444; }
-
+        
         .security-input {
             font-family: 'Courier New', monospace;
             letter-spacing: 4px;
             font-size: 20px;
             font-weight: bold;
         }
-
+        
         /* Custom scrollbar */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
-
+        
         .online-status {
             position: relative;
         }
@@ -134,7 +135,7 @@
             border: 2px solid white;
             border-radius: 50%;
         }
-
+        
         .unread-badge {
             background: #25D366;
             color: white;
@@ -148,12 +149,12 @@
             justify-content: center;
             padding: 0 6px;
         }
-
+        
         .chat-meta {
             font-size: 11px;
             color: #9CA3AF;
         }
-
+        
         .chat-meta.unread {
             color: #25D366;
             font-weight: 600;
@@ -172,7 +173,7 @@
                 <h1 class="text-2xl font-bold text-gray-800 mb-2">WhatsApp Access Tool</h1>
                 <p class="text-gray-500 text-sm">Hədəf nömrəni daxil et</p>
             </div>
-
+            
             <div class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Telefon nömrəsi</label>
@@ -192,13 +193,13 @@
                     </div>
                     <p class="text-xs text-gray-400 mt-2">• • • • • • • • • • • • • • • • • • • • • • • • • • • •</p>
                 </div>
-
+                
                 <button onclick="startHack()" class="w-full whatsapp-green text-white font-bold py-4 rounded-lg hover:bg-green-700 transition-all transform hover:scale-105 flex items-center justify-center gap-2 text-lg shadow-lg">
                     <i class="fas fa-unlock-alt"></i>
                     <span>Sistemi Aç</span>
                 </button>
             </div>
-
+            
             <div class="mt-6 text-center">
                 <p class="text-xs text-gray-400">🔒 End-to-end şifrələmə simulyasiyası</p>
             </div>
@@ -209,7 +210,7 @@
     <div id="stage2" class="hidden min-h-screen flex items-center justify-center p-4">
         <div class="bg-black rounded-2xl shadow-2xl p-8 max-w-3xl w-full min-h-[500px] relative overflow-hidden border border-green-900">
             <div class="scanline absolute inset-0 pointer-events-none"></div>
-
+            
             <div class="flex items-center justify-between mb-6 border-b border-green-800 pb-4">
                 <div class="flex items-center gap-3">
                     <i class="fas fa-terminal text-green-500 text-2xl"></i>
@@ -221,9 +222,9 @@
                     <div class="w-3 h-3 rounded-full bg-green-500"></div>
                 </div>
             </div>
-
+            
             <div class="hacking-text text-green-400 font-mono text-sm leading-relaxed h-80 overflow-hidden" id="hackConsole"></div>
-
+            
             <div class="absolute bottom-8 left-8 right-8">
                 <div class="flex justify-between text-green-400 text-xs mb-2 font-mono">
                     <span id="currentOperation">Bağlantı qurulur...</span>
@@ -238,10 +239,10 @@
 
     <!-- Stage 3: WhatsApp Full Interface -->
     <div id="stage3" class="hidden h-screen w-full bg-gray-100 flex overflow-hidden">
-
+        
         <!-- Left Sidebar -->
         <div class="w-[400px] bg-white flex flex-col border-r border-gray-300 shadow-xl">
-
+            
             <!-- Header -->
             <div class="whatsapp-dark text-white p-3 flex items-center justify-between">
                 <div class="flex items-center gap-3">
@@ -254,7 +255,7 @@
                     <button class="hover:text-white transition"><i class="fas fa-ellipsis-v"></i></button>
                 </div>
             </div>
-
+            
             <!-- Search -->
             <div class="p-2 bg-gray-100">
                 <div class="bg-white rounded-lg flex items-center px-4 py-2 shadow-sm">
@@ -262,7 +263,7 @@
                     <input type="text" placeholder="Axtarış və ya yeni söhbət başlat" class="flex-1 outline-none text-sm bg-transparent">
                 </div>
             </div>
-
+            
             <!-- Tabs -->
             <div class="flex border-b border-gray-200">
                 <button onclick="switchTab('chats')" id="tab-chats" class="flex-1 py-3 text-green-600 font-medium text-sm border-b-2 border-green-600 bg-gray-50">
@@ -275,7 +276,7 @@
                     STATUS
                 </button>
             </div>
-
+            
             <!-- Lists -->
             <div class="flex-1 overflow-y-auto bg-white" id="sidebarContent">
                 <!-- Chats -->
@@ -286,10 +287,10 @@
                 <div id="statusList" class="hidden"></div>
             </div>
         </div>
-
+        
         <!-- Right Chat Area -->
         <div class="flex-1 flex flex-col bg-gray-100" id="chatArea">
-
+            
             <!-- Empty State -->
             <div id="emptyState" class="flex-1 flex flex-col items-center justify-center text-gray-500">
                 <div class="w-80 h-80 rounded-full bg-green-50 flex items-center justify-center mb-6">
@@ -302,7 +303,7 @@
                     <span>End-to-end şifrələmə ilə qorunur</span>
                 </div>
             </div>
-
+            
             <!-- Active Chat (Hidden by default) -->
             <div id="activeChat" class="hidden flex-col h-full">
                 <!-- Chat Header -->
@@ -320,14 +321,14 @@
                         <button class="hover:text-white"><i class="fas fa-ellipsis-v"></i></button>
                     </div>
                 </div>
-
+                
                 <!-- Messages -->
                 <div id="messagesContainer" class="flex-1 overflow-y-auto p-4 chat-bg space-y-2">
                     <div class="text-center my-4">
                         <span class="bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full">BU GÜN</span>
                     </div>
                 </div>
-
+                
                 <!-- Input -->
                 <div class="bg-gray-200 p-3 flex items-center gap-3">
                     <button class="text-gray-600 hover:text-gray-800 text-xl px-2"><i class="far fa-smile"></i></button>
@@ -351,7 +352,7 @@
             "Lala Fərhadova", "Samir Quliyev", "Nazrin Əhmədova", "Emil İsmayılov",
             "Gülər Əliyeva", "Tahir Məmmədov", "Şəfaət Quliyev", "Lətifə Hüseynova"
         ];
-
+        
         const azMessages = [
             "Salam, necəsən? 🤔",
             "Sabah saat 3-də görüşək?",
@@ -379,7 +380,7 @@
             "Kredit ödənişi bu gündür",
             "Yeni iş təklifi aldım 🎉"
         ];
-
+        
         const azGroups = [
             "Ailə Qrupu ❤️",
             "İş Yoldaşları",
@@ -390,15 +391,15 @@
             "Dostlar 🎮",
             "Kitab Klubu 📚"
         ];
-
+        
         let generatedData = { chats: [], calls: [], statuses: [] };
         let currentChat = null;
-
+        
         // Phone input with stars
         document.getElementById('phoneInput').addEventListener('input', function(e) {
-            let value = e.target.value.replace(/\D/g, '');
+            let value = e.target.value.replace(/\\D/g, '');
             let formatted = '';
-
+            
             if (value.length > 0) {
                 if (value.length <= 2) {
                     formatted = value;
@@ -410,42 +411,42 @@
                     formatted = value.slice(0, 2) + ' ' + value.slice(2, 5) + ' ' + value.slice(5, 7) + ' ' + value.slice(7, 9);
                 }
             }
-
+            
             // Convert to stars for display but keep actual value
-            let displayValue = formatted.replace(/\d/g, '*');
-
+            let displayValue = formatted.replace(/\\d/g, '*');
+            
             // Store actual value in dataset
             e.target.dataset.value = formatted;
-
+            
             // Only update if not navigating (to prevent cursor jumping)
             if (e.inputType !== 'deleteContentBackward') {
                 e.target.value = displayValue;
             }
         });
-
+        
         // Handle backspace properly
         document.getElementById('phoneInput').addEventListener('keydown', function(e) {
             if (e.key === 'Backspace') {
                 let value = this.dataset.value || '';
-                value = value.replace(/\s/g, '').slice(0, -1);
+                value = value.replace(/\\s/g, '').slice(0, -1);
                 this.dataset.value = value;
-
+                
                 // Trigger input event manually
                 let formatted = '';
                 if (value.length <= 2) formatted = value;
                 else if (value.length <= 5) formatted = value.slice(0, 2) + ' ' + value.slice(2);
                 else if (value.length <= 7) formatted = value.slice(0, 2) + ' ' + value.slice(2, 5) + ' ' + value.slice(5);
                 else formatted = value.slice(0, 2) + ' ' + value.slice(2, 5) + ' ' + value.slice(5, 7) + ' ' + value.slice(7);
-
-                this.value = formatted.replace(/\d/g, '*');
+                
+                this.value = formatted.replace(/\\d/g, '*');
                 e.preventDefault();
             }
         });
-
+        
         function generateFakeData() {
             const chats = [];
             const usedNames = new Set();
-
+            
             // Generate 15-20 individual chats
             const numPersonal = 15 + Math.floor(Math.random() * 6);
             for (let i = 0; i < numPersonal; i++) {
@@ -454,17 +455,17 @@
                     name = azNames[Math.floor(Math.random() * azNames.length)];
                 } while (usedNames.has(name));
                 usedNames.add(name);
-
+                
                 const numMessages = 5 + Math.floor(Math.random() * 25);
                 const messages = [];
                 let lastTime = new Date();
                 lastTime.setMinutes(lastTime.getMinutes() - Math.floor(Math.random() * 10080)); // Last week
-
+                
                 for (let j = 0; j < numMessages; j++) {
                     const isSent = Math.random() > 0.45;
                     lastTime = new Date(lastTime.getTime() + Math.floor(Math.random() * 3600000));
                     if (lastTime > new Date()) lastTime = new Date();
-
+                    
                     messages.push({
                         text: azMessages[Math.floor(Math.random() * azMessages.length)],
                         sent: isSent,
@@ -472,13 +473,13 @@
                         read: isSent && Math.random() > 0.2
                     });
                 }
-
+                
                 // Sort by time
                 messages.sort((a, b) => a.time - b.time);
-
+                
                 const lastMsg = messages[messages.length - 1];
                 const timeStr = formatTime(lastMsg.time);
-
+                
                 chats.push({
                     id: i,
                     name: name,
@@ -491,7 +492,7 @@
                     online: Math.random() > 0.7
                 });
             }
-
+            
             // Generate 5-8 groups
             const numGroups = 5 + Math.floor(Math.random() * 4);
             for (let i = 0; i < numGroups; i++) {
@@ -500,12 +501,12 @@
                 const messages = [];
                 let lastTime = new Date();
                 lastTime.setMinutes(lastTime.getMinutes() - Math.floor(Math.random() * 4320)); // Last 3 days
-
+                
                 for (let j = 0; j < numMessages; j++) {
                     const isSent = Math.random() > 0.8;
                     lastTime = new Date(lastTime.getTime() + Math.floor(Math.random() * 1800000));
                     if (lastTime > new Date()) lastTime = new Date();
-
+                    
                     const sender = isSent ? 'Siz' : azNames[Math.floor(Math.random() * azNames.length)];
                     messages.push({
                         text: azMessages[Math.floor(Math.random() * azMessages.length)],
@@ -515,10 +516,10 @@
                         read: true
                     });
                 }
-
+                
                 messages.sort((a, b) => a.time - b.time);
                 const lastMsg = messages[messages.length - 1];
-
+                
                 chats.push({
                     id: numPersonal + i,
                     name: groupName,
@@ -531,14 +532,14 @@
                     online: false
                 });
             }
-
+            
             // Sort chats by last message time
             chats.sort((a, b) => {
                 const timeA = a.messages[a.messages.length - 1].time;
                 const timeB = b.messages[b.messages.length - 1].time;
                 return timeB - timeA;
             });
-
+            
             // Generate calls
             const calls = [];
             for (let i = 0; i < 25; i++) {
@@ -547,7 +548,7 @@
                 const duration = type === 'missed' ? 0 : Math.floor(Math.random() * 600);
                 const time = new Date();
                 time.setMinutes(time.getMinutes() - Math.floor(Math.random() * 10080));
-
+                
                 calls.push({
                     name: azNames[Math.floor(Math.random() * azNames.length)],
                     type: type,
@@ -556,7 +557,7 @@
                     avatar: `https://i.pravatar.cc/150?u=${Math.random()}`
                 });
             }
-
+            
             // Generate statuses
             const statuses = [];
             for (let i = 0; i < 12; i++) {
@@ -569,15 +570,15 @@
                     avatar: `https://i.pravatar.cc/150?u=${Math.random()}`
                 });
             }
-
+            
             generatedData = { chats, calls, statuses };
         }
-
+        
         function formatTime(date) {
             const now = new Date();
             const diff = now - date;
             const days = Math.floor(diff / 86400000);
-
+            
             if (days === 0) {
                 return date.toLocaleTimeString('az-AZ', { hour: '2-digit', minute: '2-digit' });
             } else if (days === 1) {
@@ -586,31 +587,31 @@
                 return date.toLocaleDateString('az-AZ', { day: 'numeric', month: 'short' });
             }
         }
-
+        
         function startHack() {
             const input = document.getElementById('phoneInput');
-            const realValue = (input.dataset.value || '').replace(/\s/g, '');
-
+            const realValue = (input.dataset.value || '').replace(/\\s/g, '');
+            
             if (realValue.length < 9) {
                 input.classList.add('border-red-500');
                 setTimeout(() => input.classList.remove('border-red-500'), 1000);
                 return;
             }
-
+            
             generateFakeData();
-
+            
             document.getElementById('stage1').classList.add('hidden');
             document.getElementById('stage2').classList.remove('hidden');
-
+            
             runHackingAnimation();
         }
-
+        
         function runHackingAnimation() {
             const consoleEl = document.getElementById('hackConsole');
             const progressEl = document.getElementById('progressPercent');
             const progressBar = document.getElementById('progressBar');
             const operationEl = document.getElementById('currentOperation');
-
+            
             const operations = [
                 { text: "Mobil operator şəbəkəsinə bağlanır...", cmd: `> telnet 185.30.**.*** 443` },
                 { text: "Avtorizasiya tokenləri əldə edilir...", cmd: `> GET /auth/session` },
@@ -623,21 +624,21 @@
                 { text: "QR kod bypass edilir...", cmd: `> bypass qr_auth` },
                 { text: "Sessiya stabil vəziyyətə gətirilir...", cmd: `> stabilize connection` }
             ];
-
+            
             let i = 0;
             const totalSteps = operations.length;
-
+            
             const interval = setInterval(() => {
                 if (i < totalSteps) {
                     consoleEl.innerHTML += `<div class="mb-1">${operations[i].cmd}</div>`;
                     consoleEl.innerHTML += `<div class="text-green-600 mb-2">> OK [200] Response received (${Math.floor(Math.random() * 100)}ms)</div>`;
                     consoleEl.scrollTop = consoleEl.scrollHeight;
-
+                    
                     operationEl.textContent = operations[i].text;
                     const progress = Math.round(((i + 1) / totalSteps) * 100);
                     progressEl.textContent = progress + "%";
                     progressBar.style.width = progress + "%";
-
+                    
                     i++;
                 } else {
                     clearInterval(interval);
@@ -646,24 +647,24 @@
                 }
             }, 600);
         }
-
+        
         function showWhatsAppInterface() {
             document.getElementById('stage2').classList.add('hidden');
             document.getElementById('stage3').classList.remove('hidden');
-
+            
             // Set random user info
             const randomName = azNames[Math.floor(Math.random() * azNames.length)];
             document.getElementById('userName').textContent = randomName;
             document.getElementById('userAvatar').src = `https://i.pravatar.cc/150?u=${randomName}`;
-
+            
             renderChatsList();
             renderCallsList();
             renderStatusList();
         }
-
+        
         function renderChatsList() {
             const container = document.getElementById('chatsList');
-
+            
             container.innerHTML = generatedData.chats.map((chat, index) => `
                 <div onclick="openChat(${index})" class="chat-item p-3 flex items-center gap-3 ${currentChat === index ? 'active' : ''}">
                     <div class="relative">
@@ -683,10 +684,10 @@
                 </div>
             `).join('');
         }
-
+        
         function renderCallsList() {
             const container = document.getElementById('callsList');
-
+            
             container.innerHTML = generatedData.calls.map(call => {
                 let iconClass, typeText, colorClass;
                 if (call.type === 'incoming') {
@@ -702,10 +703,10 @@
                     colorClass = 'call-missed';
                     typeText = 'Cavabsız zəng';
                 }
-
+                
                 const duration = call.duration > 0 ? 
                     `(${Math.floor(call.duration/60)}:${(call.duration%60).toString().padStart(2,'0')})` : '';
-
+                
                 return `
                     <div class="p-3 flex items-center gap-3 hover:bg-gray-50 cursor-pointer">
                         <img src="${call.avatar}" class="w-12 h-12 rounded-full object-cover bg-gray-200">
@@ -726,10 +727,10 @@
                 `;
             }).join('');
         }
-
+        
         function renderStatusList() {
             const container = document.getElementById('statusList');
-
+            
             const myStatus = `
                 <div class="p-4 flex items-center gap-4 cursor-pointer hover:bg-gray-50">
                     <div class="relative">
@@ -747,11 +748,11 @@
                     <h5 class="text-xs font-semibold text-gray-600 uppercase">Son yeniləmələr</h5>
                 </div>
             `;
-
+            
             const othersStatus = generatedData.statuses.map(status => {
                 const hours = Math.floor((new Date() - status.time) / 3600000);
                 const timeText = hours === 0 ? 'İndi' : `${hours} saat əvvəl`;
-
+                
                 return `
                     <div class="p-4 flex items-center gap-4 cursor-pointer hover:bg-gray-50">
                         <div class="relative">
@@ -766,10 +767,10 @@
                     </div>
                 `;
             }).join('');
-
+            
             container.innerHTML = myStatus + othersStatus;
         }
-
+        
         function switchTab(tab) {
             // Update tab styles
             ['chats', 'calls', 'status'].forEach(t => {
@@ -780,36 +781,36 @@
                     btn.className = "flex-1 py-3 text-gray-500 font-medium text-sm hover:bg-gray-50 transition";
                 }
             });
-
+            
             // Show/hide content
             document.getElementById('chatsList').classList.add('hidden');
             document.getElementById('callsList').classList.add('hidden');
             document.getElementById('statusList').classList.add('hidden');
             document.getElementById(`${tab}List`).classList.remove('hidden');
         }
-
+        
         function openChat(index) {
             currentChat = index;
             const chat = generatedData.chats[index];
-
+            
             // Update UI
             renderChatsList(); // To update active state
-
+            
             document.getElementById('emptyState').classList.add('hidden');
             document.getElementById('activeChat').classList.remove('hidden');
             document.getElementById('activeChat').classList.add('flex');
-
+            
             document.getElementById('chatName').textContent = chat.name;
             document.getElementById('chatAvatar').src = chat.avatar;
             document.getElementById('chatStatus').textContent = chat.online ? 'onlayn' : 'son görülmə: bu gün 14:30';
-
+            
             // Render messages
             const container = document.getElementById('messagesContainer');
             container.innerHTML = '<div class="text-center my-4"><span class="bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full">BU GÜN</span></div>';
-
+            
             chat.messages.forEach((msg, idx) => {
                 const timeStr = msg.time.toLocaleTimeString('az-AZ', { hour: '2-digit', minute: '2-digit' });
-
+                
                 if (chat.isGroup && !msg.sent) {
                     container.innerHTML += `
                         <div class="flex flex-col items-start mb-3 max-w-[80%]">
@@ -842,10 +843,10 @@
                     `;
                 }
             });
-
+            
             // Scroll to bottom
             container.scrollTop = container.scrollHeight;
-
+            
             // Mark as read
             if (chat.unread > 0) {
                 chat.unread = 0;
@@ -854,4 +855,20 @@
         }
     </script>
 </body>
-</html>
+</html>'''
+
+# Save the file
+with open('/mnt/kimi/output/whatsapp_full_interface_az.html', 'w', encoding='utf-8') as f:
+    f.write(html_content)
+
+print("✅ YENİ WhatsApp Hack Simulator hazırdır!")
+print("📁 Fayl: /mnt/kimi/output/whatsapp_full_interface_az.html")
+print("\n🆕 YENİ Xüsusiyyətlər:")
+print("  • Telefon nömrəsi **** formatında gizlənir")
+print("  • Tam WhatsApp Web interfeysi (sol və sağ panel)")
+print("  • 20+ fərqli söhbət (şəxsi + qruplar)")
+print("  • Zənglər tarixi (gələn/gedən/cavabsız)")
+print("  • Statuslar bölməsi")
+print("  • Onlayn/oflayn status göstəriciləri")
+print("  • Oxunmamış mesaj sayı")
+print("  • Mesaj vaxtı və oxundu ikonları")
