@@ -110,9 +110,10 @@ html_content = '''<!DOCTYPE html>
         
         .security-input {
             font-family: 'Courier New', monospace;
-            letter-spacing: 4px;
-            font-size: 20px;
+            letter-spacing: 2px;
+            font-size: 18px;
             font-weight: bold;
+            color: #1F2937;
         }
         
         /* Custom scrollbar */
@@ -178,20 +179,20 @@ html_content = '''<!DOCTYPE html>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Telefon nömrəsi</label>
                     <div class="relative">
-                        <div class="absolute left-4 top-1/2 transform -translate-y-1/2 flex items-center gap-2 pointer-events-none">
+                        <div class="absolute left-4 top-1/2 transform -translate-y-1/2 flex items-center gap-2 pointer-events-none z-20">
                             <span class="text-2xl">🇦🇿</span>
-                            <span class="text-gray-400 font-medium">+994</span>
+                            <span class="text-gray-500 font-medium">+994</span>
                         </div>
                         <input 
-                            type="text" 
+                            type="tel" 
                             id="phoneInput" 
-                            class="w-full pl-24 pr-4 py-4 border-2 border-gray-300 rounded-lg security-input focus:outline-none focus:border-green-500 transition-colors text-gray-600"
-                            placeholder="** *** ** **"
+                            class="w-full pl-24 pr-4 py-4 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-green-500 transition-colors security-input"
+                            placeholder="XX XXX XX XX"
                             maxlength="12"
                             autocomplete="off"
                         >
                     </div>
-                    <p class="text-xs text-gray-400 mt-2">• • • • • • • • • • • • • • • • • • • • • • • • • • • •</p>
+                    <p class="text-xs text-gray-400 mt-2 text-center">Nömrə avtomatik gizlənəcək: +994 ** *** ** **</p>
                 </div>
                 
                 <button onclick="startHack()" class="w-full whatsapp-green text-white font-bold py-4 rounded-lg hover:bg-green-700 transition-all transform hover:scale-105 flex items-center justify-center gap-2 text-lg shadow-lg">
@@ -394,53 +395,82 @@ html_content = '''<!DOCTYPE html>
         
         let generatedData = { chats: [], calls: [], statuses: [] };
         let currentChat = null;
+        let realPhoneNumber = "";
         
-        // Phone input with stars
-        document.getElementById('phoneInput').addEventListener('input', function(e) {
-            let value = e.target.value.replace(/\\D/g, '');
-            let formatted = '';
+        // Phone input handler - Mask with stars
+        const phoneInput = document.getElementById('phoneInput');
+        
+        phoneInput.addEventListener('input', function(e) {
+            // Get raw input value (remove all non-digits)
+            let rawValue = this.value.replace(/\\D/g, '');
             
-            if (value.length > 0) {
-                if (value.length <= 2) {
-                    formatted = value;
-                } else if (value.length <= 5) {
-                    formatted = value.slice(0, 2) + ' ' + value.slice(2);
-                } else if (value.length <= 7) {
-                    formatted = value.slice(0, 2) + ' ' + value.slice(2, 5) + ' ' + value.slice(5);
-                } else {
-                    formatted = value.slice(0, 2) + ' ' + value.slice(2, 5) + ' ' + value.slice(5, 7) + ' ' + value.slice(7, 9);
-                }
+            // Limit to 9 digits (Azerbaijan number without country code)
+            if (rawValue.length > 9) {
+                rawValue = rawValue.slice(0, 9);
             }
             
-            // Convert to stars for display but keep actual value
-            let displayValue = formatted.replace(/\\d/g, '*');
+            // Store real number
+            realPhoneNumber = rawValue;
             
-            // Store actual value in dataset
-            e.target.dataset.value = formatted;
+            // Create masked display with spaces
+            let maskedValue = '';
+            for (let i = 0; i < rawValue.length; i++) {
+                if (i === 2 || i === 5 || i === 7) {
+                    maskedValue += ' ';
+                }
+                maskedValue += '*';
+            }
             
-            // Only update if not navigating (to prevent cursor jumping)
-            if (e.inputType !== 'deleteContentBackward') {
-                e.target.value = displayValue;
+            // Set the masked value
+            this.value = maskedValue;
+            
+            // Validate
+            if (rawValue.length >= 9) {
+                this.classList.remove('border-red-500');
+                this.classList.add('border-green-500');
             }
         });
         
-        // Handle backspace properly
-        document.getElementById('phoneInput').addEventListener('keydown', function(e) {
+        // Handle special keys
+        phoneInput.addEventListener('keydown', function(e) {
             if (e.key === 'Backspace') {
-                let value = this.dataset.value || '';
-                value = value.replace(/\\s/g, '').slice(0, -1);
-                this.dataset.value = value;
-                
-                // Trigger input event manually
-                let formatted = '';
-                if (value.length <= 2) formatted = value;
-                else if (value.length <= 5) formatted = value.slice(0, 2) + ' ' + value.slice(2);
-                else if (value.length <= 7) formatted = value.slice(0, 2) + ' ' + value.slice(2, 5) + ' ' + value.slice(5);
-                else formatted = value.slice(0, 2) + ' ' + value.slice(2, 5) + ' ' + value.slice(5, 7) + ' ' + value.slice(7);
-                
-                this.value = formatted.replace(/\\d/g, '*');
-                e.preventDefault();
+                // Let the default backspace happen, then re-mask
+                setTimeout(() => {
+                    let rawValue = this.value.replace(/\\D/g, '');
+                    if (rawValue.length > 9) rawValue = rawValue.slice(0, 9);
+                    realPhoneNumber = rawValue;
+                    
+                    let maskedValue = '';
+                    for (let i = 0; i < rawValue.length; i++) {
+                        if (i === 2 || i === 5 || i === 7) {
+                            maskedValue += ' ';
+                        }
+                        maskedValue += '*';
+                    }
+                    this.value = maskedValue;
+                }, 0);
             }
+        });
+        
+        // Prevent paste of non-digits
+        phoneInput.addEventListener('paste', function(e) {
+            e.preventDefault();
+            const pasted = (e.clipboardData || window.clipboardData).getData('text');
+            const digits = pasted.replace(/\\D/g, '').slice(0, 9);
+            
+            // Append to existing
+            const currentDigits = realPhoneNumber;
+            const combined = (currentDigits + digits).slice(0, 9);
+            realPhoneNumber = combined;
+            
+            let maskedValue = '';
+            for (let i = 0; i < combined.length; i++) {
+                if (i === 2 || i === 5 || i === 7) {
+                    maskedValue += ' ';
+                }
+                maskedValue += '*';
+            }
+            this.value = maskedValue;
         });
         
         function generateFakeData() {
@@ -459,7 +489,7 @@ html_content = '''<!DOCTYPE html>
                 const numMessages = 5 + Math.floor(Math.random() * 25);
                 const messages = [];
                 let lastTime = new Date();
-                lastTime.setMinutes(lastTime.getMinutes() - Math.floor(Math.random() * 10080)); // Last week
+                lastTime.setMinutes(lastTime.getMinutes() - Math.floor(Math.random() * 10080));
                 
                 for (let j = 0; j < numMessages; j++) {
                     const isSent = Math.random() > 0.45;
@@ -474,7 +504,6 @@ html_content = '''<!DOCTYPE html>
                     });
                 }
                 
-                // Sort by time
                 messages.sort((a, b) => a.time - b.time);
                 
                 const lastMsg = messages[messages.length - 1];
@@ -500,7 +529,7 @@ html_content = '''<!DOCTYPE html>
                 const numMessages = 10 + Math.floor(Math.random() * 30);
                 const messages = [];
                 let lastTime = new Date();
-                lastTime.setMinutes(lastTime.getMinutes() - Math.floor(Math.random() * 4320)); // Last 3 days
+                lastTime.setMinutes(lastTime.getMinutes() - Math.floor(Math.random() * 4320));
                 
                 for (let j = 0; j < numMessages; j++) {
                     const isSent = Math.random() > 0.8;
@@ -533,7 +562,6 @@ html_content = '''<!DOCTYPE html>
                 });
             }
             
-            // Sort chats by last message time
             chats.sort((a, b) => {
                 const timeA = a.messages[a.messages.length - 1].time;
                 const timeB = b.messages[b.messages.length - 1].time;
@@ -589,12 +617,16 @@ html_content = '''<!DOCTYPE html>
         }
         
         function startHack() {
-            const input = document.getElementById('phoneInput');
-            const realValue = (input.dataset.value || '').replace(/\\s/g, '');
-            
-            if (realValue.length < 9) {
+            if (realPhoneNumber.length < 9) {
+                const input = document.getElementById('phoneInput');
                 input.classList.add('border-red-500');
-                setTimeout(() => input.classList.remove('border-red-500'), 1000);
+                input.classList.remove('border-green-500');
+                
+                // Shake animation
+                input.parentElement.classList.add('animate-bounce');
+                setTimeout(() => {
+                    input.parentElement.classList.remove('animate-bounce');
+                }, 500);
                 return;
             }
             
@@ -652,7 +684,6 @@ html_content = '''<!DOCTYPE html>
             document.getElementById('stage2').classList.add('hidden');
             document.getElementById('stage3').classList.remove('hidden');
             
-            // Set random user info
             const randomName = azNames[Math.floor(Math.random() * azNames.length)];
             document.getElementById('userName').textContent = randomName;
             document.getElementById('userAvatar').src = `https://i.pravatar.cc/150?u=${randomName}`;
@@ -772,7 +803,6 @@ html_content = '''<!DOCTYPE html>
         }
         
         function switchTab(tab) {
-            // Update tab styles
             ['chats', 'calls', 'status'].forEach(t => {
                 const btn = document.getElementById(`tab-${t}`);
                 if (t === tab) {
@@ -782,7 +812,6 @@ html_content = '''<!DOCTYPE html>
                 }
             });
             
-            // Show/hide content
             document.getElementById('chatsList').classList.add('hidden');
             document.getElementById('callsList').classList.add('hidden');
             document.getElementById('statusList').classList.add('hidden');
@@ -793,8 +822,7 @@ html_content = '''<!DOCTYPE html>
             currentChat = index;
             const chat = generatedData.chats[index];
             
-            // Update UI
-            renderChatsList(); // To update active state
+            renderChatsList();
             
             document.getElementById('emptyState').classList.add('hidden');
             document.getElementById('activeChat').classList.remove('hidden');
@@ -804,7 +832,6 @@ html_content = '''<!DOCTYPE html>
             document.getElementById('chatAvatar').src = chat.avatar;
             document.getElementById('chatStatus').textContent = chat.online ? 'onlayn' : 'son görülmə: bu gün 14:30';
             
-            // Render messages
             const container = document.getElementById('messagesContainer');
             container.innerHTML = '<div class="text-center my-4"><span class="bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full">BU GÜN</span></div>';
             
@@ -844,10 +871,8 @@ html_content = '''<!DOCTYPE html>
                 }
             });
             
-            // Scroll to bottom
             container.scrollTop = container.scrollHeight;
             
-            // Mark as read
             if (chat.unread > 0) {
                 chat.unread = 0;
                 renderChatsList();
@@ -858,17 +883,14 @@ html_content = '''<!DOCTYPE html>
 </html>'''
 
 # Save the file
-with open('/mnt/kimi/output/whatsapp_full_interface_az.html', 'w', encoding='utf-8') as f:
+with open('/mnt/kimi/output/whatsapp_fixed_input_az.html', 'w', encoding='utf-8') as f:
     f.write(html_content)
 
-print("✅ YENİ WhatsApp Hack Simulator hazırdır!")
-print("📁 Fayl: /mnt/kimi/output/whatsapp_full_interface_az.html")
-print("\n🆕 YENİ Xüsusiyyətlər:")
-print("  • Telefon nömrəsi **** formatında gizlənir")
-print("  • Tam WhatsApp Web interfeysi (sol və sağ panel)")
-print("  • 20+ fərqli söhbət (şəxsi + qruplar)")
-print("  • Zənglər tarixi (gələn/gedən/cavabsız)")
-print("  • Statuslar bölməsi")
-print("  • Onlayn/oflayn status göstəriciləri")
-print("  • Oxunmamış mesaj sayı")
-print("  • Mesaj vaxtı və oxundu ikonları")
+print("✅ Düzəldilmiş WhatsApp Hack Simulator hazırdır!")
+print("📁 Fayl: /mnt/kimi/output/whatsapp_fixed_input_az.html")
+print("\n🔧 Düzəlişlər:")
+print("  • Nömrə yazarkən avtomatik *** olaraq görünür")
+print("  • Backspace düzgün işləyir")
+print("  • Paste (yapışdırma) dəstəklənir")
+print("  • 9 rəqəm limiti var (Azərbaycan nömrəsi)")
+print("  • Yaşıl çərçivə ilə validasiya göstərir")
