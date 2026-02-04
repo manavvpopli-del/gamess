@@ -80,20 +80,19 @@
         
         .messages-scroll { flex: 1; overflow-y: auto; overflow-x: hidden; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; padding: 16px; display: flex; flex-direction: column; gap: 2px; min-height: 0; }
         
-        /* DÜZƏLİŞ: Input çox aşağıda idi, yuxarı qaldırıldı */
         .chat-input-area { 
             background: var(--glass-bg); 
             border-top: 1px solid var(--border-color); 
-            padding: 12px 16px 20px 16px; /* Bottom padding artırıldı */
+            padding: 12px 16px 20px 16px; 
             flex-shrink: 0; 
-            min-height: 80px; /* Min height artırıldı */
+            min-height: 80px; 
             position: relative;
             z-index: 10;
         }
         
         @media (max-width: 768px) {
             .chat-input-area {
-                padding-bottom: max(20px, env(safe-area-inset-bottom)); /* Mobilde safe area nəzərə alınsın amma çox olmasın */
+                padding-bottom: max(20px, env(safe-area-inset-bottom));
             }
         }
         
@@ -123,7 +122,6 @@
         .msg-reply { background: rgba(0,0,0,0.2); border-left: 2px solid var(--primary-light); padding: 4px 8px; margin-bottom: 4px; border-radius: 6px; font-size: 11px; }
         .msg-meta { font-size: 10px; margin-top: 2px; opacity: 0.85; display: flex; align-items: center; gap: 4px; justify-content: flex-end; }
         
-        /* BOSS Badge stilı */
         .msg-sender { 
             font-size: 11px; 
             font-weight: 600; 
@@ -216,7 +214,6 @@
         #searchResults { background: rgba(10, 10, 10, 0.98); max-height: 35vh; overflow-y: auto; }
         .hidden { display: none !important; }
         
-        /* YENİ: BOSS Giriş Animasiyası (Hamı görür) */
         .boss-entry-overlay {
             position: fixed;
             inset: 0;
@@ -271,7 +268,6 @@
             font-weight: 600;
         }
         
-        /* YENİ: Ekran Mesajı Overlay */
         .screen-message-overlay {
             position: fixed;
             inset: 0;
@@ -353,7 +349,6 @@
         }
         .sync-indicator.active { display: flex; }
         
-        /* Status indicators */
         .status-dot {
             width: 8px;
             height: 8px;
@@ -369,7 +364,6 @@
 </head>
 <body class="h-screen flex flex-col theme-red">
 
-    <!-- YENİ: BOSS Giriş Animasiyası (Hamı görür) -->
     <div id="bossEntryOverlay" class="boss-entry-overlay">
         <div class="boss-entry-content">
             <img src="boss.png" class="boss-entry-icon" alt="BOSS" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
@@ -379,13 +373,11 @@
         </div>
     </div>
 
-    <!-- YENİ: Ekran Mesajı Overlay -->
     <div id="screenMessageOverlay" class="screen-message-overlay" onclick="closeScreenMessage()">
         <div class="screen-message-text" id="screenMessageText">MESAJ</div>
         <div class="screen-message-sender" id="screenMessageSender">QURUCU</div>
     </div>
 
-    <!-- YENİ: Animasiya Göndərmə Modalı -->
     <div id="animationModal" class="fixed inset-0 modal-overlay hidden z-[60] flex items-center justify-center p-4" onclick="if(event.target === this) closeAnimationModal()">
         <div class="modal-content-red rounded-3xl p-6 w-full max-w-md">
             <div class="flex justify-between items-center mb-6">
@@ -439,7 +431,6 @@
 
     <input type="file" id="avatarInput" style="display: none;" accept="image/*">
 
-    <!-- LANDING -->
     <div id="landing" class="flex-1 flex items-center justify-center p-4 overflow-auto">
         <div class="max-w-md w-full space-y-6 pb-8">
             <div class="text-center space-y-2">
@@ -508,7 +499,6 @@
         </div>
     </div>
 
-    <!-- THEME PICKER -->
     <div id="themePicker" class="theme-picker">
         <div class="flex justify-between items-center mb-4">
             <h3 class="text-lg font-bold">🎨 Tema Seç</h3>
@@ -519,7 +509,6 @@
         <div class="theme-grid" id="themeGrid"></div>
     </div>
 
-    <!-- USER MODAL (Permissions) -->
     <div id="userModal" class="fixed inset-0 modal-overlay hidden z-50 flex items-center justify-center p-4" onclick="if(event.target === this) closeUserModal()">
         <div class="modal-content-red rounded-3xl p-6 w-full max-w-sm">
             <div class="flex items-center gap-4 mb-6">
@@ -536,7 +525,6 @@
             <div class="space-y-3">
                 <h4 class="text-xs font-bold uppercase tracking-wider mb-3 opacity-60">İcazələr</h4>
                 
-                <!-- YENİ: Ekran Mesajı göndərmə düyməsi -->
                 <button onclick="openAnimationModalFromUser()" class="w-full py-3 mb-3 rounded-xl bg-gradient-to-r from-amber-600/20 to-orange-600/20 border-2 border-amber-500/50 text-amber-400 hover:bg-amber-600/30 transition flex items-center justify-center gap-2 font-bold">
                     <i class="fas fa-bullhorn"></i>
                     <span>Ekran Mesajı Göndər</span>
@@ -573,7 +561,6 @@
         </div>
     </div>
 
-    <!-- ROOM INTERFACE -->
     <div id="room" class="hidden flex-1 flex-col relative">
         <button class="cinema-toggle" onclick="toggleCinemaMode()" title="Sinema Rejimi">
             <i class="fas fa-film text-xl"></i>
@@ -687,7 +674,6 @@
                     </div>
                 </div>
                 
-                <!-- DÜZƏLİş: Input sahəsi yuxarı qaldırıldı, çox aşağıda qalmaması üçün -->
                 <div class="chat-input-area">
                     <div class="input-container">
                         <textarea id="messageInput" placeholder="Mesaj yaz..." rows="1" 
@@ -755,7 +741,7 @@
         let messageIds = new Set();
         let playerReady = false;
         let dbRefs = [];
-        let roomMasterId = null; // BOSS or Host ID
+        let roomMasterId = null;
         let currentAnimType = 'shake';
         
         const themes = [
@@ -1277,10 +1263,12 @@
             if (currentRoom) db.ref(`rooms/${currentRoom}/typing/${uid}`).remove();
         }
         
+        // DÜZƏLİŞ: sendMessage funksiyası - isSending flag problemini həll edir
         function sendMessage() {
-            if (isSending) return;
             const input = document.getElementById('messageInput');
+            const sendBtn = document.getElementById('sendBtn');
             const text = input.value.trim();
+            
             if (!text || !currentRoom) return;
             
             if (!isHost && !isCreator && userPermissions.chat === false) {
@@ -1288,7 +1276,15 @@
                 return;
             }
             
+            // Əgər artıq göndərilirse, dayandır
+            if (isSending) return;
+            
+            // Göndərmə başladı
             isSending = true;
+            sendBtn.disabled = true;
+            sendBtn.style.opacity = '0.5';
+            
+            // Typing-i sil
             db.ref(`rooms/${currentRoom}/typing/${userId}`).remove();
             
             const msg = {
@@ -1297,10 +1293,26 @@
             };
             if (replyingTo) { msg.replyTo = replyingTo; cancelReply(); }
             
+            // Input təmizlə
             input.value = '';
             input.style.height = 'auto';
             
-            db.ref(`rooms/${currentRoom}/messages`).push(msg).finally(() => isSending = false);
+            // Firebase-ə göndər
+            db.ref(`rooms/${currentRoom}/messages`).push(msg)
+                .then(() => {
+                    // Uğurlu göndərmə
+                    isSending = false;
+                    sendBtn.disabled = false;
+                    sendBtn.style.opacity = '1';
+                })
+                .catch((error) => {
+                    // Xəta halı
+                    console.error('Mesaj göndərilmədi:', error);
+                    isSending = false;
+                    sendBtn.disabled = false;
+                    sendBtn.style.opacity = '1';
+                    showNotification('Xəta', 'Mesaj göndərilmədi, təkrar yoxlayın');
+                });
         }
         
         function displayMessage(msgId, msg) {
@@ -1351,7 +1363,6 @@
             // Visual update
             el.classList.toggle('active', newState);
             
-            // DÜZƏLİŞ: Permission düzgün yazılır (true/false)
             db.ref(`rooms/${currentRoom}/permissions/${selectedUserId}/${type}`).set(newState)
                 .then(() => {
                     showNotification('Uğurlu', `${type}: ${newState ? 'Aktiv' : 'Deaktiv'}`);
