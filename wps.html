@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WhatsApp Security Simulator</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Segoe+UI:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;600;700&family=Segoe+UI:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -15,9 +15,8 @@
             --wa-bubble: #DCF8C6;
             --wa-bg: #ECE5DD;
             --wa-blue: #34B7F1;
-            --wa-gray: #F0F2F5;
-            --wa-text: #111B21;
-            --wa-secondary: #667781;
+            --hacker-green: #00ff41;
+            --hacker-dark: #0d1117;
         }
 
         * {
@@ -27,192 +26,362 @@
         }
 
         body {
-            font-family: 'Segoe UI', 'Roboto', sans-serif;
-            background: #dadbd3;
+            font-family: 'Fira Code', 'Segoe UI', monospace;
+            background: var(--hacker-dark);
+            color: var(--hacker-green);
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
+            overflow-x: hidden;
         }
 
-        /* Background Pattern */
-        body::before {
-            content: '';
+        /* Matrix Background */
+        #matrix-canvas {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23075e54' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E");
             z-index: -1;
+            opacity: 0.1;
         }
 
-        /* Main Container */
-        .app-container {
+        /* Scanline Effect */
+        .scanline {
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
-            max-width: 1200px;
-            height: 90vh;
-            background: white;
-            box-shadow: 0 17px 50px 0 rgba(0,0,0,0.19), 0 12px 15px 0 rgba(0,0,0,0.24);
-            border-radius: 10px;
-            overflow: hidden;
-            display: flex;
-            position: relative;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2));
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 1000;
+            animation: scanline 10s linear infinite;
         }
 
-        /* Sidebar */
-        .sidebar {
-            width: 35%;
-            background: white;
-            border-right: 1px solid #e9edef;
-            display: flex;
-            flex-direction: column;
+        @keyframes scanline {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(10px); }
         }
 
-        .header {
-            background: var(--wa-dark-green);
-            padding: 10px 16px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            color: white;
-            height: 60px;
-        }
-
-        .header-icons {
-            display: flex;
-            gap: 20px;
-        }
-
-        .header-icons i {
-            cursor: pointer;
-            font-size: 18px;
-            opacity: 0.9;
-            transition: opacity 0.2s;
-        }
-
-        .header-icons i:hover {
-            opacity: 1;
-        }
-
-        /* Search/Input Area */
-        .search-container {
-            background: var(--wa-gray);
-            padding: 10px 16px;
-            border-bottom: 1px solid #e9edef;
-        }
-
-        .search-box {
-            background: white;
-            border-radius: 8px;
-            padding: 8px 12px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-        }
-
-        .search-box i {
-            color: var(--wa-secondary);
-            font-size: 14px;
-        }
-
-        .search-box input {
-            border: none;
-            outline: none;
-            flex: 1;
-            font-size: 14px;
-            color: var(--wa-text);
-        }
-
-        .search-box input::placeholder {
-            color: var(--wa-secondary);
-        }
-
-        /* Country List */
-        .country-list {
-            flex: 1;
-            overflow-y: auto;
-        }
-
-        .country-item {
-            display: flex;
-            align-items: center;
-            padding: 12px 16px;
-            cursor: pointer;
-            transition: background 0.2s;
-            border-bottom: 1px solid #f0f2f5;
-        }
-
-        .country-item:hover {
-            background: #f5f6f6;
-        }
-
-        .country-item.active {
-            background: #f0f2f5;
-        }
-
-        .country-flag {
-            width: 40px;
-            height: 40px;
+        /* WhatsApp Logo Animation */
+        .whatsapp-logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
-            margin-right: 12px;
-            background: var(--wa-gray);
-        }
-
-        .country-info {
-            flex: 1;
-        }
-
-        .country-name {
-            font-weight: 500;
-            color: var(--wa-text);
-            font-size: 16px;
-        }
-
-        .country-code {
-            color: var(--wa-secondary);
-            font-size: 13px;
-            margin-top: 2px;
-        }
-
-        /* Main Chat Area */
-        .chat-area {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background: var(--wa-bg);
+            font-size: 40px;
+            color: white;
+            margin: 0 auto 20px;
+            box-shadow: 0 0 30px rgba(37, 211, 102, 0.5);
+            animation: pulse 2s infinite;
             position: relative;
         }
 
-        .chat-header {
-            background: var(--wa-gray);
-            padding: 10px 16px;
+        .whatsapp-logo::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 3px solid #25D366;
+            animation: ripple 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes ripple {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+
+        /* Main Container */
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header with WhatsApp Branding */
+        .main-header {
+            text-align: center;
+            padding: 30px 0;
+            border-bottom: 2px solid var(--hacker-green);
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .main-header::before {
+            content: '\f232';
+            font-family: 'Font Awesome 6 Brands';
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 40px;
+            color: #25D366;
+        }
+
+        .main-header::after {
+            content: '\f232';
+            font-family: 'Font Awesome 6 Brands';
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 40px;
+            color: #25D366;
+        }
+
+        h1.glitch {
+            font-size: 3rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            position: relative;
+            text-shadow: 0.05em 0 0 #00fffc, -0.03em -0.04em 0 #fc00ff,
+                         0.025em 0.04em 0 #fffc00;
+            animation: glitch 725ms infinite;
+        }
+
+        @keyframes glitch {
+            0% { text-shadow: 0.05em 0 0 #00fffc, -0.03em -0.04em 0 #fc00ff, 0.025em 0.04em 0 #fffc00; }
+            15% { text-shadow: 0.05em 0 0 #00fffc, -0.03em -0.04em 0 #fc00ff, 0.025em 0.04em 0 #fffc00; }
+            16% { text-shadow: -0.05em -0.025em 0 #00fffc, 0.025em 0.035em 0 #fc00ff, -0.05em -0.05em 0 #fffc00; }
+            49% { text-shadow: -0.05em -0.025em 0 #00fffc, 0.025em 0.035em 0 #fc00ff, -0.05em -0.05em 0 #fffc00; }
+            50% { text-shadow: 0.05em 0.035em 0 #00fffc, 0.03em 0 0 #fc00ff, 0 -0.04em 0 #fffc00; }
+            99% { text-shadow: 0.05em 0.035em 0 #00fffc, 0.03em 0 0 #fc00ff, 0 -0.04em 0 #fffc00; }
+            100% { text-shadow: -0.05em 0 0 #00fffc, -0.025em -0.04em 0 #fc00ff, -0.04em -0.025em 0 #fffc00; }
+        }
+
+        /* Terminal Window */
+        .terminal {
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid var(--hacker-green);
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.3), inset 0 0 20px rgba(0, 255, 65, 0.1);
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .terminal::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 30px;
+            background: linear-gradient(90deg, var(--wa-dark-green), var(--wa-light-green));
+            opacity: 0.3;
+        }
+
+        .terminal-header {
+            position: relative;
+            z-index: 10;
+            padding: 8px 16px;
+            background: rgba(0, 255, 65, 0.1);
+            border-bottom: 1px solid var(--hacker-green);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .terminal-body {
+            padding: 20px;
+        }
+
+        /* Country Cards */
+        .country-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .country-card {
+            background: rgba(0, 255, 65, 0.05);
+            border: 2px solid var(--hacker-green);
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .country-card:hover {
+            background: rgba(0, 255, 65, 0.2);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 255, 65, 0.3);
+        }
+
+        .country-card.selected {
+            background: rgba(37, 211, 102, 0.3);
+            border-color: #25D366;
+            box-shadow: 0 0 30px rgba(37, 211, 102, 0.5);
+        }
+
+        .country-card.selected::after {
+            content: '\f232';
+            font-family: 'Font Awesome 6 Brands';
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: #25D366;
+            font-size: 20px;
+        }
+
+        .country-flag {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .country-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .country-code {
+            color: var(--wa-light-green);
+            font-size: 0.9rem;
+        }
+
+        /* Phone Input Section */
+        .phone-section {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+
+        .phone-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .phone-input-wrapper {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid var(--hacker-green);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .phone-input-wrapper:focus-within {
+            border-color: #25D366;
+            box-shadow: 0 0 15px rgba(37, 211, 102, 0.3);
+        }
+
+        .country-indicator {
             display: flex;
             align-items: center;
-            border-bottom: 1px solid #e9edef;
-            height: 60px;
+            gap: 8px;
+            padding-right: 15px;
+            border-right: 1px solid var(--hacker-green);
+            font-weight: 600;
+            color: #25D366;
         }
 
-        .chat-header-info {
+        .phone-input {
             flex: 1;
-            margin-left: 12px;
+            background: transparent;
+            border: none;
+            color: var(--hacker-green);
+            font-size: 1.2rem;
+            font-family: 'Fira Code', monospace;
+            outline: none;
         }
 
-        .chat-header-name {
-            font-weight: 500;
-            color: var(--wa-text);
+        .phone-input::placeholder {
+            color: rgba(0, 255, 65, 0.5);
+        }
+
+        /* Buttons */
+        .cyber-btn {
+            background: transparent;
+            border: 2px solid var(--hacker-green);
+            color: var(--hacker-green);
+            padding: 12px 24px;
+            font-family: 'Fira Code', monospace;
             font-size: 16px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        .chat-header-status {
-            color: var(--wa-secondary);
-            font-size: 13px;
+        .cyber-btn:hover {
+            background: var(--hacker-green);
+            color: #000;
+            box-shadow: 0 0 30px var(--hacker-green);
+        }
+
+        .cyber-btn.whatsapp {
+            border-color: #25D366;
+            color: #25D366;
+        }
+
+        .cyber-btn.whatsapp:hover {
+            background: #25D366;
+            color: #000;
+            box-shadow: 0 0 30px #25D366;
+        }
+
+        /* Chat Interface */
+        .chat-interface {
+            display: none;
+            background: var(--wa-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+            animation: slideUp 0.5s;
+        }
+
+        .chat-interface.active {
+            display: block;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .chat-header-wa {
+            background: var(--wa-dark-green);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .chat-header-info h3 {
+            margin: 0;
+            font-size: 1.1rem;
+        }
+
+        .chat-header-info p {
+            margin: 0;
+            font-size: 0.85rem;
+            opacity: 0.8;
             display: flex;
             align-items: center;
             gap: 5px;
@@ -221,96 +390,87 @@
         .status-dot {
             width: 8px;
             height: 8px;
-            background: var(--wa-light-green);
+            background: #25D366;
             border-radius: 50%;
             display: inline-block;
         }
 
-        /* Chat Background Pattern */
-        .chat-background {
-            flex: 1;
-            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23075e54' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E");
-            position: relative;
+        .chat-messages {
+            height: 400px;
             overflow-y: auto;
             padding: 20px;
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23075e54' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E");
             display: flex;
             flex-direction: column;
+            gap: 10px;
         }
 
-        /* Messages */
         .message {
             max-width: 70%;
             padding: 8px 12px;
             border-radius: 8px;
-            margin-bottom: 12px;
             position: relative;
-            font-size: 14.2px;
-            line-height: 19px;
+            font-size: 14px;
+            line-height: 1.4;
             box-shadow: 0 1px 0.5px rgba(0,0,0,0.13);
+            animation: messageSlide 0.3s;
+        }
+
+        @keyframes messageSlide {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .message-received {
             background: white;
             align-self: flex-start;
             border-top-left-radius: 0;
+            color: #111B21;
         }
 
         .message-sent {
             background: var(--wa-bubble);
             align-self: flex-end;
             border-top-right-radius: 0;
+            color: #111B21;
         }
 
         .message-time {
             font-size: 11px;
-            color: var(--wa-secondary);
+            color: #667781;
             float: right;
             margin-left: 8px;
             margin-top: 4px;
         }
 
         .message-status {
-            color: var(--wa-blue);
+            color: #53bdeb;
             margin-left: 3px;
             font-size: 12px;
         }
 
-        /* Input Area */
-        .input-area {
-            background: var(--wa-gray);
-            padding: 10px 16px;
+        .chat-input-area {
+            background: #F0F2F5;
+            padding: 10px 20px;
             display: flex;
             align-items: center;
             gap: 10px;
-            border-top: 1px solid #e9edef;
         }
 
-        .input-icons {
-            color: var(--wa-secondary);
-            font-size: 20px;
-            cursor: pointer;
-            transition: color 0.2s;
-        }
-
-        .input-icons:hover {
-            color: var(--wa-secondary);
-        }
-
-        .message-input {
+        .chat-input {
             flex: 1;
             background: white;
             border: none;
-            border-radius: 8px;
-            padding: 10px 12px;
-            font-size: 15px;
+            border-radius: 20px;
+            padding: 10px 15px;
             outline: none;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+            font-size: 15px;
         }
 
-        .send-btn {
+        .chat-send-btn {
             width: 40px;
             height: 40px;
-            background: var(--wa-teal);
+            background: #25D366;
             border: none;
             border-radius: 50%;
             color: white;
@@ -318,165 +478,104 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: background 0.2s;
+            transition: transform 0.2s;
         }
 
-        .send-btn:hover {
-            background: var(--wa-dark-green);
+        .chat-send-btn:hover {
+            transform: scale(1.1);
         }
 
-        /* Phone Input Modal */
-        .phone-modal {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+        /* Profile Images */
+        .profile-img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+
+        /* Contact List Sidebar */
+        .chat-layout {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            height: 500px;
+        }
+
+        .contacts-sidebar {
             background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 17px 50px 0 rgba(0,0,0,0.25);
-            z-index: 1000;
-            width: 90%;
-            max-width: 400px;
+            border-right: 1px solid #e9edef;
+            overflow-y: auto;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            cursor: pointer;
+            transition: background 0.2s;
+            border-bottom: 1px solid #f0f2f5;
+        }
+
+        .contact-item:hover {
+            background: #f5f6f6;
+        }
+
+        .contact-item.active {
+            background: #f0f2f5;
+        }
+
+        .contact-info h4 {
+            margin: 0;
+            font-size: 16px;
+            color: #111B21;
+            font-weight: 500;
+        }
+
+        .contact-info p {
+            margin: 4px 0 0;
+            font-size: 13px;
+            color: #667781;
+        }
+
+        .contact-time {
+            font-size: 12px;
+            color: #667781;
+            margin-left: auto;
+        }
+
+        /* Loading Animation */
+        .loading-screen {
             display: none;
-        }
-
-        .phone-modal.active {
-            display: block;
-        }
-
-        .modal-overlay {
-            position: absolute;
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.6);
-            z-index: 999;
-            display: none;
-        }
-
-        .modal-overlay.active {
-            display: block;
-        }
-
-        .modal-title {
-            font-size: 20px;
-            font-weight: 600;
-            color: var(--wa-text);
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .phone-input-container {
-            margin-bottom: 20px;
-        }
-
-        .phone-label {
-            display: block;
-            color: var(--wa-secondary);
-            font-size: 13px;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            font-weight: 600;
-        }
-
-        .phone-input-wrapper {
-            display: flex;
-            gap: 10px;
+            background: rgba(0,0,0,0.9);
+            z-index: 9999;
+            justify-content: center;
             align-items: center;
-            border: 2px solid #e9edef;
-            border-radius: 8px;
-            padding: 12px;
-            transition: border-color 0.2s;
+            flex-direction: column;
         }
 
-        .phone-input-wrapper:focus-within {
-            border-color: var(--wa-teal);
-        }
-
-        .country-select {
+        .loading-screen.active {
             display: flex;
-            align-items: center;
-            gap: 8px;
-            padding-right: 10px;
-            border-right: 1px solid #e9edef;
-            cursor: pointer;
-            font-weight: 500;
         }
 
-        .phone-input-field {
-            border: none;
-            outline: none;
-            flex: 1;
-            font-size: 16px;
-            color: var(--wa-text);
-        }
-
-        .verify-btn {
-            width: 100%;
-            background: var(--wa-light-green);
-            color: white;
-            border: none;
-            padding: 14px;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .verify-btn:hover {
-            background: #1faa5c;
-        }
-
-        .verify-btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-
-        /* Security Warning */
-        .security-notice {
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 20px;
-            font-size: 13px;
-            color: #856404;
-            display: flex;
-            align-items: start;
-            gap: 10px;
-        }
-
-        .security-notice i {
-            color: #f39c12;
-            margin-top: 2px;
-        }
-
-        /* Loading Animation */
-        .loading-container {
-            display: none;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            z-index: 1001;
-        }
-
-        .loading-container.active {
-            display: block;
-        }
-
-        .whatsapp-loader {
+        .whatsapp-spinner {
             width: 60px;
             height: 60px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid var(--wa-light-green);
+            border: 4px solid #1f2229;
+            border-top: 4px solid #25D366;
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
+            margin-bottom: 20px;
         }
 
         @keyframes spin {
@@ -484,322 +583,277 @@
             100% { transform: rotate(360deg); }
         }
 
-        .loading-text {
-            color: var(--wa-secondary);
-            font-size: 14px;
-        }
-
         /* Error Message */
-        .error-message {
-            color: #e74c3c;
-            font-size: 13px;
-            margin-top: 8px;
+        .error-msg {
+            color: #ff0040;
+            font-size: 14px;
+            margin-top: 10px;
             display: none;
-        }
-
-        .error-message.active {
-            display: block;
-        }
-
-        /* Result Modal */
-        .result-modal {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 17px 50px 0 rgba(0,0,0,0.3);
-            z-index: 1002;
-            width: 90%;
-            max-width: 450px;
-            text-align: center;
-            display: none;
-        }
-
-        .result-modal.active {
-            display: block;
-        }
-
-        .result-icon {
-            width: 80px;
-            height: 80px;
-            background: #fee2e2;
-            border-radius: 50%;
-            display: flex;
             align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
-            font-size: 40px;
-            color: #dc2626;
+            gap: 5px;
         }
 
-        .result-title {
-            font-size: 24px;
-            font-weight: 700;
-            color: #dc2626;
-            margin-bottom: 12px;
-        }
-
-        .result-desc {
-            color: var(--wa-secondary);
-            font-size: 14px;
-            line-height: 1.5;
-            margin-bottom: 24px;
-        }
-
-        .result-details {
-            background: #f9fafb;
-            border-radius: 8px;
-            padding: 16px;
-            text-align: left;
-            margin-bottom: 24px;
-            font-size: 13px;
-            color: var(--wa-text);
-        }
-
-        .result-details li {
-            margin-bottom: 8px;
-            padding-left: 8px;
-            border-left: 3px solid var(--wa-light-green);
-        }
-
-        .close-btn {
-            background: var(--wa-gray);
-            color: var(--wa-text);
-            border: none;
-            padding: 12px 32px;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .close-btn:hover {
-            background: #e5e7eb;
+        .error-msg.active {
+            display: flex;
         }
 
         /* Responsive */
         @media (max-width: 768px) {
-            .app-container {
-                height: 100vh;
-                border-radius: 0;
+            .chat-layout {
+                grid-template-columns: 1fr;
             }
-            
-            .sidebar {
-                width: 100%;
-            }
-            
-            .chat-area {
+            .contacts-sidebar {
                 display: none;
             }
-            
-            .chat-area.active {
-                display: flex;
-                position: absolute;
-                width: 100%;
-                height: 100%;
-                z-index: 100;
+            h1.glitch {
+                font-size: 2rem;
             }
         }
 
-        /* Lock Icon Animation */
-        .lock-animation {
-            animation: shake 0.5s;
+        /* Warning Banner */
+        .warning-banner {
+            background: repeating-linear-gradient(45deg, #ff0000, #ff0000 10px, #cc0000 10px, #cc0000 20px);
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-weight: bold;
+            animation: slide 20s linear infinite;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            font-size: 14px;
         }
 
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-10px); }
-            75% { transform: translateX(10px); }
-        }
-
-        /* Typing Indicator */
-        .typing-indicator {
-            display: none;
-            background: white;
-            padding: 12px 16px;
-            border-radius: 8px;
-            border-top-left-radius: 0;
-            align-self: flex-start;
-            margin-bottom: 12px;
-            box-shadow: 0 1px 0.5px rgba(0,0,0,0.13);
-        }
-
-        .typing-indicator.active {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .typing-dot {
-            width: 8px;
-            height: 8px;
-            background: var(--wa-secondary);
-            border-radius: 50%;
-            animation: typing 1.4s infinite;
-        }
-
-        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
-        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
-
-        @keyframes typing {
-            0%, 60%, 100% { transform: translateY(0); }
-            30% { transform: translateY(-10px); }
+        @keyframes slide {
+            0% { background-position: 0 0; }
+            100% { background-position: 50px 50px; }
         }
     </style>
 </head>
 <body>
+    <canvas id="matrix-canvas"></canvas>
+    <div class="scanline"></div>
 
-    <div class="app-container">
-        <!-- Sidebar -->
-        <div class="sidebar">
-            <div class="header">
-                <div class="font-semibold text-lg">WhatsApp Simulator</div>
-                <div class="header-icons">
-                    <i class="fas fa-circle-notch" title="Status"></i>
-                    <i class="fas fa-comment-alt" title="New chat"></i>
-                    <i class="fas fa-ellipsis-v" title="Menu"></i>
-                </div>
+    <div class="loading-screen" id="loading-screen">
+        <div class="whatsapp-spinner"></div>
+        <div style="color: #25D366; font-family: 'Fira Code', monospace;">Connecting to WhatsApp...</div>
+    </div>
+
+    <div class="main-container">
+        <!-- Warning Banner -->
+        <div class="warning-banner">
+            ⚠️ TƏHLÜKƏSİZLİK TƏLİMATI: Bu alət yalnız kiber təhlükəsizlik təhsili üçündür | REAL HACKING QANUNSUZDUR ⚠️
+        </div>
+
+        <!-- Main Header -->
+        <div class="main-header">
+            <div class="whatsapp-logo">
+                <i class="fab fa-whatsapp"></i>
             </div>
+            <h1 class="glitch" data-text="WHATSAPP SECURITY SIMULATOR">WHATSAPP SECURITY SIMULATOR</h1>
+            <p style="color: #25D366; margin-top: 10px; font-size: 1.1rem;">
+                <i class="fas fa-shield-alt"></i> Kiber Təhlükəsizlik Təlim Platforması v3.0
+            </p>
+        </div>
 
-            <div class="search-container">
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Search or start new chat" id="search-input">
-                </div>
+        <!-- Country Selection -->
+        <div class="terminal" id="country-section">
+            <div class="terminal-header">
+                <span><i class="fas fa-globe"></i> Hədəf Region Seçimi / Hedef Bölge Seçimi / انتخاب منطقه هدف</span>
+                <span style="color: #25D366;"><i class="fab fa-whatsapp"></i> WhatsApp Protocol</span>
             </div>
-
-            <div class="country-list" id="country-list">
-                <div class="country-item active" onclick="selectCountry('AZ')">
-                    <div class="country-flag">🇦🇿</div>
-                    <div class="country-info">
+            <div class="terminal-body">
+                <div class="country-grid">
+                    <div class="country-card" onclick="selectCountry('AZ')" id="card-AZ">
+                        <div class="country-flag">🇦🇿</div>
                         <div class="country-name">Azərbaycan</div>
-                        <div class="country-code">+994</div>
+                        <div class="country-code">+994 XXX XX XX</div>
+                        <div style="margin-top: 10px; font-size: 0.8rem; color: #25D366;">
+                            <i class="fas fa-comments"></i> Azərbaycan dili
+                        </div>
                     </div>
-                </div>
-                <div class="country-item" onclick="selectCountry('TR')">
-                    <div class="country-flag">🇹🇷</div>
-                    <div class="country-info">
-                        <div class="country-name">Türkiyə</div>
-                        <div class="country-code">+90</div>
+                    <div class="country-card" onclick="selectCountry('TR')" id="card-TR">
+                        <div class="country-flag">🇹🇷</div>
+                        <div class="country-name">Türkiyə / Turkey</div>
+                        <div class="country-code">+90 XXX XXX XXXX</div>
+                        <div style="margin-top: 10px; font-size: 0.8rem; color: #25D366;">
+                            <i class="fas fa-comments"></i> Türkçe
+                        </div>
                     </div>
-                </div>
-                <div class="country-item" onclick="selectCountry('IR')">
-                    <div class="country-flag">🇮🇷</div>
-                    <div class="country-info">
-                        <div class="country-name">İran</div>
-                        <div class="country-code">+98</div>
+                    <div class="country-card" onclick="selectCountry('IR')" id="card-IR">
+                        <div class="country-flag">🇮🇷</div>
+                        <div class="country-name">İran / Iran</div>
+                        <div class="country-code">+98 XXX XXX XXXX</div>
+                        <div style="margin-top: 10px; font-size: 0.8rem; color: #25D366;">
+                            <i class="fas fa-comments"></i> فارسی
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Chat Area -->
-        <div class="chat-area" id="chat-area">
-            <div class="chat-header">
-                <div class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-xl">
-                    🔒
+        <!-- Phone Input Section -->
+        <div class="terminal phone-section" id="phone-section">
+            <div class="terminal-header">
+                <span id="phone-header-text">Telefon Nömrəsi Daxil Edin</span>
+                <span style="color: #25D366;"><i class="fas fa-lock"></i> E2EE Encryption</span>
+            </div>
+            <div class="terminal-body">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <i class="fab fa-whatsapp" style="font-size: 48px; color: #25D366; margin-bottom: 10px;"></i>
+                    <p style="color: #667781; font-size: 0.9rem;">
+                        WhatsApp uçtan-uça şifrələmə istifadə edir<br>
+                        End-to-end encrypted
+                    </p>
                 </div>
-                <div class="chat-header-info">
-                    <div class="chat-header-name" id="chat-name">Kiber Təhlükəsizlik Botu</div>
-                    <div class="chat-header-status">
-                        <span class="status-dot"></span>
-                        <span id="status-text">onlayn</span>
+
+                <div class="phone-input-wrapper">
+                    <div class="country-indicator" id="country-indicator">
+                        🇦🇿 <span>+994</span>
+                    </div>
+                    <input type="tel" class="phone-input" id="phone-input" placeholder="XX XXX XX XX" maxlength="12">
+                </div>
+
+                <div class="error-msg" id="error-msg">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span id="error-text">Zəhmət olmasa, düzgün nömrə daxil edin</span>
+                </div>
+
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="cyber-btn whatsapp" onclick="verifyPhone()">
+                        <i class="fab fa-whatsapp"></i> <span id="verify-btn-text">Nömrəni Yoxla</span>
+                    </button>
+                    <button class="cyber-btn" onclick="backToCountries()" style="margin-left: 10px;">
+                        <i class="fas fa-arrow-left"></i> Geri
+                    </button>
+                </div>
+
+                <div style="margin-top: 30px; padding: 15px; background: rgba(255,0,0,0.1); border-left: 3px solid #ff0040; border-radius: 4px;">
+                    <h4 style="color: #ff0040; margin-bottom: 10px;"><i class="fas fa-exclamation-triangle"></i> Təhlükəsizlik Xəbərdarlığı</h4>
+                    <p style="font-size: 0.9rem; line-height: 1.5;">
+                        Bu simulyasiya yalnız təhsil məqsədlidir. Real WhatsApp hesaplarına icazəsiz giriş 
+                        <span style="color: #ff0040; font-weight: bold;">qanunsuzdur</span> və ciddi cinayət cəzalarına səbəb ola bilər.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Interface -->
+        <div class="chat-interface" id="chat-interface">
+            <div class="chat-layout">
+                <!-- Contacts Sidebar -->
+                <div class="contacts-sidebar" id="contacts-list">
+                    <!-- Contacts will be populated by JS -->
+                </div>
+
+                <!-- Chat Area -->
+                <div style="display: flex; flex-direction: column; height: 100%;">
+                    <div class="chat-header-wa" id="chat-header">
+                        <div class="profile-img" id="chat-avatar">👤</div>
+                        <div class="chat-header-info">
+                            <h3 id="chat-contact-name">Contact Name</h3>
+                            <p><span class="status-dot"></span> <span id="chat-status">onlayn</span></p>
+                        </div>
+                        <div style="margin-left: auto; display: flex; gap: 20px; color: white;">
+                            <i class="fas fa-search" style="cursor: pointer;"></i>
+                            <i class="fas fa-paperclip" style="cursor: pointer;"></i>
+                            <i class="fas fa-ellipsis-v" style="cursor: pointer;"></i>
+                        </div>
+                    </div>
+
+                    <div class="chat-messages" id="chat-messages">
+                        <!-- Messages will be populated by JS -->
+                    </div>
+
+                    <div class="chat-input-area">
+                        <i class="far fa-smile" style="font-size: 24px; color: #54656f; cursor: pointer;"></i>
+                        <i class="fas fa-paperclip" style="font-size: 24px; color: #54656f; cursor: pointer;"></i>
+                        <input type="text" class="chat-input" placeholder="Type a message" id="chat-input">
+                        <button class="chat-send-btn" onclick="sendMessage()">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
                     </div>
                 </div>
-                <div class="header-icons text-gray-600">
-                    <i class="fas fa-search mr-4"></i>
-                    <i class="fas fa-paperclip mr-4"></i>
-                    <i class="fas fa-ellipsis-v"></i>
-                </div>
             </div>
 
-            <div class="chat-background" id="chat-background">
-                <div class="message message-received">
-                    👋 Salam! Bu WhatsApp Təhlükəsizlik Təlim Botudur.
-                    <span class="message-time">12:00 <i class="fas fa-check message-status"></i></span>
-                </div>
-                
-                <div class="message message-received" id="intro-message">
-                    Zəhmət olmasa, öyrənmək istədiyiniz ölkəni seçin:
-                    <span class="message-time">12:00 <i class="fas fa-check message-status"></i></span>
-                </div>
-
-                <div class="typing-indicator" id="typing-indicator">
-                    <div class="typing-dot"></div>
-                    <div class="typing-dot"></div>
-                    <div class="typing-dot"></div>
-                </div>
-            </div>
-
-            <div class="input-area">
-                <i class="fas fa-smile input-icons"></i>
-                <i class="fas fa-paperclip input-icons"></i>
-                <input type="text" class="message-input" placeholder="Type a message" id="message-input" readonly>
-                <button class="send-btn" onclick="openPhoneModal()">
-                    <i class="fas fa-phone"></i>
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="cyber-btn" onclick="closeChat()">
+                    <i class="fas fa-times"></i> Simulyasiyanı Bağla
                 </button>
             </div>
         </div>
 
-        <!-- Modal Overlay -->
-        <div class="modal-overlay" id="modal-overlay"></div>
-
-        <!-- Phone Input Modal -->
-        <div class="phone-modal" id="phone-modal">
-            <div class="security-notice">
-                <i class="fas fa-exclamation-triangle"></i>
-                <div>
-                    <strong>Təhlükəsizlik Xəbərdarlığı:</strong> Bu yalnız təhsil simulyasiyasıdır. Real məlumatlara icazəsiz giriş qanunsuzdur.
-                </div>
+        <!-- Security Info -->
+        <div class="terminal" style="margin-top: 30px;">
+            <div class="terminal-header">
+                <span><i class="fas fa-shield-alt"></i> TƏHLÜKƏSİZLİK MƏLUMATI</span>
             </div>
-            
-            <div class="modal-title" id="modal-title">Telefon Nömrəsi Daxil Edin</div>
-            
-            <div class="phone-input-container">
-                <label class="phone-label" id="phone-label">Telefon Nömrəsi</label>
-                <div class="phone-input-wrapper">
-                    <div class="country-select" id="country-display">
-                        🇦🇿 <span>+994</span> <i class="fas fa-chevron-down text-xs ml-1"></i>
+            <div class="terminal-body" style="font-size: 0.9rem;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                    <div>
+                        <h4 style="color: #25D366; margin-bottom: 10px;"><i class="fas fa-lock"></i> WhatsApp Təhlükəsizliyi</h4>
+                        <ul style="list-style: none; padding: 0;">
+                            <li style="margin-bottom: 8px;"><i class="fas fa-check" style="color: #25D366; margin-right: 8px;"></i> Uçtan-uça şifrələmə (E2EE)</li>
+                            <li style="margin-bottom: 8px;"><i class="fas fa-check" style="color: #25D366; margin-right: 8px;"></i> Signal Protocol</li>
+                            <li style="margin-bottom: 8px;"><i class="fas fa-check" style="color: #25D366; margin-right: 8px;"></i> Perfect Forward Secrecy</li>
+                            <li><i class="fas fa-check" style="color: #25D366; margin-right: 8px;"></i> Metadata minimallaşdırma</li>
+                        </ul>
                     </div>
-                    <input type="tel" class="phone-input-field" id="phone-input" placeholder="XX XXX XX XX" maxlength="12">
+                    <div>
+                        <h4 style="color: #ff0040; margin-bottom: 10px;"><i class="fas fa-gavel"></i> Qanuni Cəzalar</h4>
+                        <ul style="list-style: none; padding: 0;">
+                            <li style="margin-bottom: 8px;"><strong>AZ:</strong> 2-7 il həbs (Kiber Cinayətlər Məcəlləsi)</li>
+                            <li style="margin-bottom: 8px;"><strong>TR:</strong> 1-5 il hapis (Bilişim Suçları)</li>
+                            <li><strong>IR:</strong> Ağır cinayət cəzaları</li>
+                        </ul>
+                    </div>
                 </div>
-                <div class="error-message" id="error-message">Zəhmət olmasa, düzgün nömrə daxil edin</div>
             </div>
-
-            <button class="verify-btn" id="verify-btn" onclick="verifyPhone()">
-                Nömrəni Yoxla
-            </button>
-        </div>
-
-        <!-- Loading -->
-        <div class="loading-container" id="loading-container">
-            <div class="whatsapp-loader"></div>
-            <div class="loading-text" id="loading-text">Bağlantı yoxlanılır...</div>
-        </div>
-
-        <!-- Result Modal -->
-        <div class="result-modal" id="result-modal">
-            <div class="result-icon">
-                <i class="fas fa-lock"></i>
-            </div>
-            <div class="result-title" id="result-title">Giriş Qadağandır!</div>
-            <div class="result-desc" id="result-desc">
-                Bu əməliyyat qanunsuzdur. WhatsApp uçtan-uça şifrələmə istifadə edir.
-            </div>
-            <ul class="result-details" id="result-details">
-                <li>End-to-end şifrələmə (E2EE)</li>
-                <li>Signal Protocol müdafiəsi</li>
-                <li>Qanuni izləmə yalnız məhkəmə qərarı ilə</li>
-            </ul>
-            <button class="close-btn" onclick="closeResult()">Başa Düşdüm</button>
         </div>
     </div>
 
     <script>
+        // Matrix Rain Effect
+        const canvas = document.getElementById('matrix-canvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*';
+        const fontSize = 14;
+        const columns = canvas.width / fontSize;
+        const drops = [];
+
+        for (let i = 0; i < columns; i++) {
+            drops[i] = 1;
+        }
+
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(13, 17, 23, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = '#0F0';
+            ctx.font = fontSize + 'px monospace';
+
+            for (let i = 0; i < drops.length; i++) {
+                const text = chars[Math.floor(Math.random() * chars.length)];
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            }
+        }
+
+        setInterval(drawMatrix, 35);
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        // Country Data
         const countries = {
             'AZ': {
                 name: 'Azərbaycan',
@@ -808,17 +862,25 @@
                 placeholder: 'XX XXX XX XX',
                 lang: 'az',
                 texts: {
-                    modalTitle: 'Telefon Nömrəsi Daxil Edin',
-                    phoneLabel: 'Telefon Nömrəsi',
+                    phoneHeader: 'Telefon Nömrəsi Daxil Edin',
                     verifyBtn: 'Nömrəni Yoxla',
-                    errorMsg: 'Zəhmət olmasa, düzgün nömrə daxil edin',
-                    loadingText: 'Bağlantı yoxlanılır...',
-                    resultTitle: 'Giriş Qadağandır!',
-                    resultDesc: 'Bu əməliyyat qanunsuzdur. WhatsApp uçtan-uça şifrələmə istifadə edir.',
-                    status: 'onlayn',
-                    introMsg: 'Zəhmət olmasa, öyrənmək istədiyiniz ölkəni seçin:',
-                    chatName: 'Kiber Təhlükəsizlik Botu'
-                }
+                    errorMsg: 'Zəhmət olmasa, düzgün nömrə daxil edin (məsələn: 50 123 45 67)',
+                    online: 'onlayn',
+                    typing: 'yazır...'
+                },
+                contacts: [
+                    { name: 'Ana', lastMsg: 'Sabah görüşək?', time: '12:30', unread: 2, avatar: '👩' },
+                    { name: 'Baba', lastMsg: 'Pul göndərdim', time: '11:45', unread: 0, avatar: '👨‍🦳' },
+                    { name: 'Elçin', lastMsg: 'Proyekt hazırdır', time: '10:20', unread: 1, avatar: '👨‍💻' },
+                    { name: 'Leyla', lastMsg: 'Təşəkkür edirəm', time: '09:15', unread: 0, avatar: '👩‍🎓' },
+                    { name: 'Kamran', lastMsg: 'Gəlirsən?', time: 'Dünən', unread: 3, avatar: '🧑' }
+                ],
+                messages: [
+                    { text: 'Salam, necəsən?', sent: false, time: '12:00' },
+                    { text: 'Yaxşıyam, sən?', sent: true, time: '12:01' },
+                    { text: 'İşlər necə gedir?', sent: false, time: '12:02' },
+                    { text: 'Çox yaxşı, təşəkkür edirəm!', sent: true, time: '12:03' }
+                ]
             },
             'TR': {
                 name: 'Türkiyə',
@@ -827,17 +889,25 @@
                 placeholder: 'XXX XXX XXXX',
                 lang: 'tr',
                 texts: {
-                    modalTitle: 'Telefon Numarası Girin',
-                    phoneLabel: 'Telefon Numarası',
+                    phoneHeader: 'Telefon Numarası Girin',
                     verifyBtn: 'Numarayı Doğrula',
-                    errorMsg: 'Lütfen doğru numara girin',
-                    loadingText: 'Bağlantı kontrol ediliyor...',
-                    resultTitle: 'Erişim Engellendi!',
-                    resultDesc: 'Bu işlem yasa dışıdır. WhatsApp uçtan uça şifreleme kullanır.',
-                    status: 'çevrimiçi',
-                    introMsg: 'Lütfen öğrenmek istediğiniz ülkeyi seçin:',
-                    chatName: 'Siber Güvenlik Botu'
-                }
+                    errorMsg: 'Lütfen doğru numara girin (örneğin: 532 123 4567)',
+                    online: 'çevrimiçi',
+                    typing: 'yazıyor...'
+                },
+                contacts: [
+                    { name: 'Anne', lastMsg: 'Yarın görüşelim?', time: '12:30', unread: 2, avatar: '👩' },
+                    { name: 'Baba', lastMsg: 'Para gönderdim', time: '11:45', unread: 0, avatar: '👨‍🦳' },
+                    { name: 'Ahmet', lastMsg: 'Proje hazır', time: '10:20', unread: 1, avatar: '👨‍💻' },
+                    { name: 'Ayşe', lastMsg: 'Teşekkür ederim', time: '09:15', unread: 0, avatar: '👩‍🎓' },
+                    { name: 'Mehmet', lastMsg: 'Geliyor musun?', time: 'Dün', unread: 3, avatar: '🧑' }
+                ],
+                messages: [
+                    { text: 'Merhaba, nasılsın?', sent: false, time: '12:00' },
+                    { text: 'İyiyim, sen?', sent: true, time: '12:01' },
+                    { text: 'İşler nasıl gidiyor?', sent: false, time: '12:02' },
+                    { text: 'Çok iyi, teşekkürler!', sent: true, time: '12:03' }
+                ]
             },
             'IR': {
                 name: 'İran',
@@ -846,81 +916,67 @@
                 placeholder: 'XXX XXX XXXX',
                 lang: 'fa',
                 texts: {
-                    modalTitle: 'شماره تلفن را وارد کنید',
-                    phoneLabel: 'شماره تلفن',
+                    phoneHeader: 'شماره تلفن را وارد کنید',
                     verifyBtn: 'تأیید شماره',
-                    errorMsg: 'لطفاً شماره صحیح وارد کنید',
-                    loadingText: 'در حال بررسی اتصال...',
-                    resultTitle: 'دسترسی مسدود شد!',
-                    resultDesc: 'این عمل غیرقانونی است. واتس‌اپ از رمزگذاری سرتاسری استفاده می‌کند.',
-                    status: 'آنلاین',
-                    introMsg: 'لطفاً کشور مورد نظر خود را انتخاب کنید:',
-                    chatName: 'ربات امنیت سایبری'
-                }
+                    errorMsg: 'لطفاً شماره صحیح وارد کنید (مثلاً: 912 123 4567)',
+                    online: 'آنلاین',
+                    typing: 'در حال نوشتن...'
+                },
+                contacts: [
+                    { name: 'مادر', lastMsg: 'فردا می‌بینمت؟', time: '12:30', unread: 2, avatar: '👩' },
+                    { name: 'پدر', lastMsg: 'پول فرستادم', time: '11:45', unread: 0, avatar: '👨‍🦳' },
+                    { name: 'علی', lastMsg: 'پروژه آماده است', time: '10:20', unread: 1, avatar: '👨‍💻' },
+                    { name: 'مریم', lastMsg: 'متشکرم', time: '09:15', unread: 0, avatar: '👩‍🎓' },
+                    { name: 'حسن', lastMsg: 'می‌آیی؟', time: 'دیروز', unread: 3, avatar: '🧑' }
+                ],
+                messages: [
+                    { text: 'سلام، چطوری؟', sent: false, time: '12:00' },
+                    { text: 'خوبم، تو چطوری؟', sent: true, time: '12:01' },
+                    { text: 'کارها چطور پیش می‌ره؟', sent: false, time: '12:02' },
+                    { text: 'خیلی خوب، ممنون!', sent: true, time: '12:03' }
+                ]
             }
         };
 
-        let currentCountry = 'AZ';
-        let phoneNumber = '';
+        let currentCountry = null;
+        let currentContact = null;
 
         function selectCountry(code) {
             currentCountry = code;
             const data = countries[code];
             
-            // Update active state
-            document.querySelectorAll('.country-item').forEach(item => {
-                item.classList.remove('active');
+            // Update UI
+            document.querySelectorAll('.country-card').forEach(card => {
+                card.classList.remove('selected');
             });
-            event.currentTarget.classList.add('active');
+            document.getElementById(`card-${code}`).classList.add('selected');
             
-            // Update chat
-            updateChatLanguage(data);
-            
-            // Show phone modal automatically
-            setTimeout(() => openPhoneModal(), 300);
-        }
-
-        function updateChatLanguage(data) {
-            document.getElementById('chat-name').textContent = data.texts.chatName;
-            document.getElementById('status-text').textContent = data.texts.status;
-            document.getElementById('intro-message').innerHTML = `
-                ${data.texts.introMsg}
-                <span class="message-time">12:00 <i class="fas fa-check message-status"></i></span>
-            `;
-        }
-
-        function openPhoneModal() {
-            const data = countries[currentCountry];
-            
-            // Update modal content
-            document.getElementById('modal-title').textContent = data.texts.modalTitle;
-            document.getElementById('phone-label').textContent = data.texts.phoneLabel;
-            document.getElementById('verify-btn').textContent = data.texts.verifyBtn;
-            document.getElementById('error-message').textContent = data.texts.errorMsg;
-            document.getElementById('country-display').innerHTML = 
-                `${data.flag} <span>${data.code}</span> <i class="fas fa-chevron-down text-xs ml-1"></i>`;
+            // Update phone section
+            document.getElementById('phone-header-text').textContent = data.texts.phoneHeader;
+            document.getElementById('country-indicator').innerHTML = `${data.flag} <span>${data.code}</span>`;
             document.getElementById('phone-input').placeholder = data.placeholder;
-            document.getElementById('phone-input').value = '';
+            document.getElementById('verify-btn-text').textContent = data.texts.verifyBtn;
+            document.getElementById('error-text').textContent = data.texts.errorMsg;
             
-            // Show modal
-            document.getElementById('modal-overlay').classList.add('active');
-            document.getElementById('phone-modal').classList.add('active');
-            document.getElementById('error-message').classList.remove('active');
+            // Show phone section
+            document.getElementById('country-section').style.display = 'none';
+            document.getElementById('phone-section').classList.add('active');
             
             // Focus input
             setTimeout(() => document.getElementById('phone-input').focus(), 100);
         }
 
-        function closePhoneModal() {
-            document.getElementById('modal-overlay').classList.remove('active');
-            document.getElementById('phone-modal').classList.remove('active');
+        function backToCountries() {
+            document.getElementById('country-section').style.display = 'block';
+            document.getElementById('phone-section').classList.remove('active');
+            document.getElementById('phone-input').value = '';
+            document.getElementById('error-msg').classList.remove('active');
         }
 
         // Phone input formatting
         document.getElementById('phone-input').addEventListener('input', function(e) {
             let value = e.target.value.replace(/\D/g, '');
             
-            // Format according to country
             if (currentCountry === 'AZ') {
                 // Format: XX XXX XX XX
                 if (value.length > 2) value = value.slice(0,2) + ' ' + value.slice(2);
@@ -933,7 +989,7 @@
             }
             
             e.target.value = value;
-            document.getElementById('error-message').classList.remove('active');
+            document.getElementById('error-msg').classList.remove('active');
         });
 
         function verifyPhone() {
@@ -941,148 +997,178 @@
             const rawNumber = input.value.replace(/\s/g, '');
             const data = countries[currentCountry];
             
-            // Validation
             let minLength = currentCountry === 'AZ' ? 9 : 10;
             
             if (rawNumber.length < minLength) {
-                document.getElementById('error-message').classList.add('active');
-                input.parentElement.classList.add('lock-animation');
-                setTimeout(() => input.parentElement.classList.remove('lock-animation'), 500);
+                document.getElementById('error-msg').classList.add('active');
+                input.parentElement.style.animation = 'shake 0.5s';
+                setTimeout(() => input.parentElement.style.animation = '', 500);
                 return;
             }
             
-            phoneNumber = data.code + ' ' + input.value;
-            closePhoneModal();
-            
             // Show loading
-            document.getElementById('loading-text').textContent = data.texts.loadingText;
-            document.getElementById('loading-container').classList.add('active');
+            document.getElementById('loading-screen').classList.add('active');
             
-            // Simulate process
+            // Simulate connection
             setTimeout(() => {
-                document.getElementById('loading-container').classList.remove('active');
-                showResult();
-            }, 3000);
+                document.getElementById('loading-screen').classList.remove('active');
+                openChatInterface();
+            }, 2000);
         }
 
-        function showResult() {
+        function openChatInterface() {
             const data = countries[currentCountry];
             
-            // Update result content
-            document.getElementById('result-title').textContent = data.texts.resultTitle;
-            document.getElementById('result-desc').textContent = data.texts.resultDesc;
+            // Populate contacts
+            const contactsList = document.getElementById('contacts-list');
+            contactsList.innerHTML = '';
             
-            // Update details based on language
-            const details = document.getElementById('result-details');
-            if (currentCountry === 'AZ') {
-                details.innerHTML = `
-                    <li>End-to-end şifrələmə (E2EE)</li>
-                    <li>Signal Protocol müdafiəsi</li>
-                    <li>Qanuni izləmə yalnız məhkəmə qərarı ilə</li>
+            data.contacts.forEach((contact, index) => {
+                const div = document.createElement('div');
+                div.className = 'contact-item' + (index === 0 ? ' active' : '');
+                div.onclick = () => selectContact(index);
+                div.innerHTML = `
+                    <div style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; font-size: 24px; margin-right: 15px;">
+                        ${contact.avatar}
+                    </div>
+                    <div class="contact-info" style="flex: 1;">
+                        <h4>${contact.name}</h4>
+                        <p>${contact.lastMsg}</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <div class="contact-time">${contact.time}</div>
+                        ${contact.unread > 0 ? `<div style="background: #25D366; color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 12px; margin-left: auto; margin-top: 5px;">${contact.unread}</div>` : ''}
+                    </div>
                 `;
-            } else if (currentCountry === 'TR') {
-                details.innerHTML = `
-                    <li>Uçtan uca şifreleme (E2EE)</li>
-                    <li>Signal Protocol koruması</li>
-                    <li>Yasal izleme sadece mahkeme kararı ile</li>
-                `;
-            } else {
-                details.innerHTML = `
-                    <li>رمزگذاری سرتاسری (E2EE)</li>
-                    <li>محافظت پروتکل Signal</li>
-                    <li>ردیابی قانونی فقط با دستور دادگاه</li>
-                `;
-            }
+                contactsList.appendChild(div);
+            });
             
-            document.getElementById('modal-overlay').classList.add('active');
-            document.getElementById('result-modal').classList.add('active');
+            // Show chat interface
+            document.getElementById('phone-section').classList.remove('active');
+            document.getElementById('chat-interface').classList.add('active');
             
-            // Add message to chat
-            addSecurityMessage();
+            // Select first contact
+            selectContact(0);
         }
 
-        function closeResult() {
-            document.getElementById('modal-overlay').classList.remove('active');
-            document.getElementById('result-modal').classList.remove('active');
-        }
-
-        function addSecurityMessage() {
-            const chatBg = document.getElementById('chat-background');
+        function selectContact(index) {
             const data = countries[currentCountry];
+            currentContact = data.contacts[index];
             
-            const msgDiv = document.createElement('div');
-            msgDiv.className = 'message message-received';
+            // Update active state
+            const items = document.querySelectorAll('.contact-item');
+            items.forEach((item, i) => {
+                item.classList.toggle('active', i === index);
+            });
             
-            let messageText = currentCountry === 'AZ' ? 
-                '⚠️ Xəbərdarlıq: Bu nömrəyə icazəsiz giriş cəhdi qeydə alındı. WhatsApp şifrələməsi buna imkan vermir.' :
-                currentCountry === 'TR' ? 
-                '⚠️ Uyarı: Bu numaraya izinsiz giriş denemesi tespit edildi. WhatsApp şifrelemesi buna izin vermez.' :
-                '⚠️ هشدار: تلاش برای دسترسی غیرمجاز به این شماره ثبت شد. رمزگذاری واتس‌اپ این را امکان‌پذیر نمی‌کند.';
+            // Update chat header
+            document.getElementById('chat-avatar').textContent = currentContact.avatar;
+            document.getElementById('chat-contact-name').textContent = currentContact.name;
+            document.getElementById('chat-status').textContent = data.texts.online;
             
-            msgDiv.innerHTML = `
-                ${messageText}
-                <span class="message-time">${getCurrentTime()} <i class="fas fa-check-double message-status"></i></span>
+            // Load messages
+            loadMessages();
+        }
+
+        function loadMessages() {
+            const data = countries[currentCountry];
+            const chatMessages = document.getElementById('chat-messages');
+            chatMessages.innerHTML = '';
+            
+            // Add security warning message
+            const warningDiv = document.createElement('div');
+            warningDiv.className = 'message message-received';
+            warningDiv.style.background = '#fff3cd';
+            warningDiv.style.border = '1px solid #ffeaa7';
+            warningDiv.innerHTML = `
+                <i class="fas fa-exclamation-triangle" style="color: #f39c12; margin-right: 5px;"></i>
+                <strong>Təhlükəsizlik Xəbərdarlığı:</strong> Bu simulyasiya yalnız təhsil üçündür. Real giriş qanunsuzdur.
+                <span class="message-time">12:00 <i class="fas fa-check message-status"></i></span>
             `;
+            chatMessages.appendChild(warningDiv);
             
-            chatBg.appendChild(msgDiv);
-            chatBg.scrollTop = chatBg.scrollHeight;
+            // Add sample messages
+            data.messages.forEach(msg => {
+                addMessageToChat(msg.text, msg.sent, msg.time);
+            });
             
-            // Show typing then reply
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function addMessageToChat(text, sent, time) {
+            const chatMessages = document.getElementById('chat-messages');
+            const div = document.createElement('div');
+            div.className = 'message ' + (sent ? 'message-sent' : 'message-received');
+            div.innerHTML = `
+                ${text}
+                <span class="message-time">${time} <i class="fas fa-check${sent ? '-double' : ''} message-status"></i></span>
+            `;
+            chatMessages.appendChild(div);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const text = input.value.trim();
+            
+            if (!text) return;
+            
+            const now = new Date();
+            const time = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+            
+            addMessageToChat(text, true, time);
+            input.value = '';
+            
+            // Simulate reply
             setTimeout(() => {
-                document.getElementById('typing-indicator').classList.add('active');
-                chatBg.scrollTop = chatBg.scrollHeight;
+                const data = countries[currentCountry];
+                const replies = {
+                    'AZ': ['Anladım', 'OK', 'Görüşərik', 'Təşəkkür edirəm'],
+                    'TR': ['Anladım', 'Tamam', 'Görüşürüz', 'Teşekkürler'],
+                    'IR': ['فهمیدم', 'باشه', 'می‌بینمت', 'متشکرم']
+                };
+                const randomReply = replies[currentCountry][Math.floor(Math.random() * replies[currentCountry].length)];
+                
+                document.getElementById('chat-status').textContent = data.texts.typing;
                 
                 setTimeout(() => {
-                    document.getElementById('typing-indicator').classList.remove('active');
-                    
-                    const replyDiv = document.createElement('div');
-                    replyDiv.className = 'message message-received';
-                    
-                    let replyText = currentCountry === 'AZ' ?
-                        '🔒 Ətraflı məlumat üçün Təhlükəsizlik bölməsinə baxın. Etik hacking qanuni yollarla öyrənilə bilər.' :
-                        currentCountry === 'TR' ?
-                        '🔒 Daha fazla bilgi için Güvenlik bölümüne bakın. Etik hacking yasal yollarla öğrenilebilir.' :
-                        '🔒 برای اطلاعات بیشتر، بخش امنیت را ببینید. هک اخلاقی می‌تواند از طریق روش‌های قانونی آموخته شود.';
-                    
-                    replyDiv.innerHTML = `
-                        ${replyText}
-                        <span class="message-time">${getCurrentTime()} <i class="fas fa-check-double message-status"></i></span>
-                    `;
-                    
-                    chatBg.appendChild(replyDiv);
-                    chatBg.scrollTop = chatBg.scrollHeight;
-                }, 2000);
-            }, 500);
+                    addMessageToChat(randomReply, false, time);
+                    document.getElementById('chat-status').textContent = data.texts.online;
+                }, 1500);
+            }, 1000);
         }
 
-        function getCurrentTime() {
-            const now = new Date();
-            return now.getHours().toString().padStart(2, '0') + ':' + 
-                   now.getMinutes().toString().padStart(2, '0');
+        function closeChat() {
+            document.getElementById('chat-interface').classList.remove('active');
+            document.getElementById('country-section').style.display = 'block';
+            document.getElementById('phone-input').value = '';
+            currentCountry = null;
+            currentContact = null;
+            
+            document.querySelectorAll('.country-card').forEach(card => {
+                card.classList.remove('selected');
+            });
         }
-
-        // Close modal on overlay click
-        document.getElementById('modal-overlay').addEventListener('click', function() {
-            if (document.getElementById('result-modal').classList.contains('active')) {
-                closeResult();
-            } else {
-                closePhoneModal();
-            }
-        });
 
         // Enter key support
         document.getElementById('phone-input').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') verifyPhone();
         });
 
-        // Search functionality
-        document.getElementById('search-input').addEventListener('input', function(e) {
-            const term = e.target.value.toLowerCase();
-            document.querySelectorAll('.country-item').forEach(item => {
-                const name = item.querySelector('.country-name').textContent.toLowerCase();
-                item.style.display = name.includes(term) ? 'flex' : 'none';
-            });
+        document.getElementById('chat-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') sendMessage();
         });
+
+        // Shake animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                25% { transform: translateX(-10px); }
+                75% { transform: translateX(10px); }
+            }
+        `;
+        document.head.appendChild(style);
     </script>
 </body>
 </html>
