@@ -3,752 +3,1085 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kiber Təhlükəsizlik Simulyatoru | CyberSec Simulator</title>
+    <title>WhatsApp Security Simulator</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Segoe+UI:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --primary: #00ff41;
-            --secondary: #008F11;
-            --bg-dark: #0d1117;
-            --terminal-bg: #000000;
+            --wa-dark-green: #075E54;
+            --wa-teal: #128C7E;
+            --wa-light-green: #25D366;
+            --wa-bubble: #DCF8C6;
+            --wa-bg: #ECE5DD;
+            --wa-blue: #34B7F1;
+            --wa-gray: #F0F2F5;
+            --wa-text: #111B21;
+            --wa-secondary: #667781;
         }
-        
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
-            font-family: 'Fira Code', monospace;
-            background: var(--bg-dark);
-            color: var(--primary);
-            overflow-x: hidden;
-        }
-        
-        /* Matrix Rain Effect */
-        #matrix-canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            opacity: 0.15;
-        }
-        
-        /* Scanline Effect */
-        .scanline {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(
-                to bottom,
-                rgba(255,255,255,0),
-                rgba(255,255,255,0) 50%,
-                rgba(0,0,0,0.2) 50%,
-                rgba(0,0,0,0.2)
-            );
-            background-size: 100% 4px;
-            pointer-events: none;
-            z-index: 1000;
-            animation: scanline 10s linear infinite;
-        }
-        
-        @keyframes scanline {
-            0% { transform: translateY(0); }
-            100% { transform: translateY(10px); }
-        }
-        
-        /* Glitch Effect */
-        .glitch {
-            position: relative;
-            animation: glitch 3s infinite;
-        }
-        
-        @keyframes glitch {
-            0%, 100% { text-shadow: 2px 0 #ff0000, -2px 0 #00ffff; }
-            25% { text-shadow: -2px 0 #ff0000, 2px 0 #00ffff; }
-            50% { text-shadow: 2px 0 #ff0000, -2px 0 #00ffff; }
-            75% { text-shadow: -2px 0 #ff0000, 2px 0 #00ffff; }
-        }
-        
-        /* Terminal Window */
-        .terminal {
-            background: rgba(0, 0, 0, 0.9);
-            border: 2px solid var(--primary);
-            box-shadow: 0 0 20px rgba(0, 255, 65, 0.3), inset 0 0 20px rgba(0, 255, 65, 0.1);
-            border-radius: 8px;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .terminal::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 30px;
-            background: linear-gradient(90deg, var(--secondary), var(--primary));
-            opacity: 0.3;
-        }
-        
-        .terminal-header {
-            position: relative;
-            z-index: 10;
-            padding: 8px 16px;
-            background: rgba(0, 255, 65, 0.1);
-            border-bottom: 1px solid var(--primary);
+            font-family: 'Segoe UI', 'Roboto', sans-serif;
+            background: #dadbd3;
+            min-height: 100vh;
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
-        }
-        
-        .terminal-body {
             padding: 20px;
-            min-height: 400px;
-            font-size: 14px;
-            line-height: 1.6;
         }
-        
-        .typing-text {
-            border-right: 2px solid var(--primary);
-            animation: blink 1s infinite;
-        }
-        
-        @keyframes blink {
-            0%, 50% { border-color: var(--primary); }
-            51%, 100% { border-color: transparent; }
-        }
-        
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 10px;
-        }
-        
-        ::-webkit-scrollbar-track {
-            background: #000;
-        }
-        
-        ::-webkit-scrollbar-thumb {
-            background: var(--primary);
-            border-radius: 5px;
-        }
-        
-        /* Button Effects */
-        .cyber-btn {
-            background: transparent;
-            border: 2px solid var(--primary);
-            color: var(--primary);
-            padding: 12px 24px;
-            font-family: 'Share Tech Mono', monospace;
-            font-size: 16px;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-        
-        .cyber-btn:hover {
-            background: var(--primary);
-            color: #000;
-            box-shadow: 0 0 30px var(--primary);
-        }
-        
-        .cyber-btn::before {
+
+        /* Background Pattern */
+        body::before {
             content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-            transition: left 0.5s;
-        }
-        
-        .cyber-btn:hover::before {
-            left: 100%;
-        }
-        
-        /* Warning Banner */
-        .warning-banner {
-            background: repeating-linear-gradient(
-                45deg,
-                #ff0000,
-                #ff0000 10px,
-                #cc0000 10px,
-                #cc0000 20px
-            );
-            color: white;
-            padding: 10px;
-            text-align: center;
-            font-weight: bold;
-            animation: slide 20s linear infinite;
-            border: 2px solid #ff0000;
-        }
-        
-        @keyframes slide {
-            0% { background-position: 0 0; }
-            100% { background-position: 50px 50px; }
-        }
-        
-        /* Country Selector */
-        .country-card {
-            background: rgba(0, 255, 65, 0.05);
-            border: 1px solid var(--primary);
-            padding: 20px;
-            cursor: pointer;
-            transition: all 0.3s;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .country-card:hover {
-            background: rgba(0, 255, 65, 0.2);
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0, 255, 65, 0.3);
-        }
-        
-        .country-card.selected {
-            background: rgba(0, 255, 65, 0.3);
-            border-color: #fff;
-            box-shadow: 0 0 30px var(--primary);
-        }
-        
-        /* Progress Bar */
-        .progress-container {
-            width: 100%;
-            height: 30px;
-            background: #000;
-            border: 1px solid var(--primary);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, var(--secondary), var(--primary));
-            width: 0%;
-            transition: width 0.1s;
-            position: relative;
-        }
-        
-        .progress-bar::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-            animation: shimmer 2s infinite;
-        }
-        
-        @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
-        
-        /* Hex Background */
-        .hex-bg {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-image: 
-                linear-gradient(30deg, #00ff41 12%, transparent 12.5%, transparent 87%, #00ff41 87.5%, #00ff41),
-                linear-gradient(150deg, #00ff41 12%, transparent 12.5%, transparent 87%, #00ff41 87.5%, #00ff41),
-                linear-gradient(30deg, #00ff41 12%, transparent 12.5%, transparent 87%, #00ff41 87.5%, #00ff41),
-                linear-gradient(150deg, #00ff41 12%, transparent 12.5%, transparent 87%, #00ff41 87.5%, #00ff41),
-                linear-gradient(60deg, #00ff4177 25%, transparent 25.5%, transparent 75%, #00ff4177 75%, #00ff4177),
-                linear-gradient(60deg, #00ff4177 25%, transparent 25.5%, transparent 75%, #00ff4177 75%, #00ff4177);
-            background-size: 80px 140px;
-            background-position: 0 0, 0 0, 40px 70px, 40px 70px, 0 0, 40px 70px;
-            opacity: 0.03;
-            z-index: -2;
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23075e54' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E");
+            z-index: -1;
         }
-        
-        /* Fake Data Display */
-        .data-stream {
-            font-size: 12px;
-            color: #00ff41;
-            opacity: 0.7;
-            font-family: 'Fira Code', monospace;
-        }
-        
-        .access-denied {
-            color: #ff0040;
-            text-shadow: 0 0 10px #ff0040;
-            animation: pulse 1s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        
-        /* Phone Input Styling */
-        .phone-input {
-            background: #000;
-            border: 2px solid var(--primary);
-            color: var(--primary);
-            padding: 15px;
-            font-size: 18px;
-            font-family: 'Fira Code', monospace;
+
+        /* Main Container */
+        .app-container {
             width: 100%;
-            outline: none;
-            transition: all 0.3s;
-        }
-        
-        .phone-input:focus {
-            box-shadow: 0 0 20px rgba(0, 255, 65, 0.5);
-            border-color: #fff;
-        }
-        
-        .hidden { display: none; }
-        
-        /* Educational Modal */
-        .edu-modal {
-            background: rgba(0, 0, 0, 0.95);
-            border: 3px solid #ff0040;
-            padding: 30px;
-            max-width: 600px;
-            margin: 20px auto;
+            max-width: 1200px;
+            height: 90vh;
+            background: white;
+            box-shadow: 0 17px 50px 0 rgba(0,0,0,0.19), 0 12px 15px 0 rgba(0,0,0,0.24);
+            border-radius: 10px;
+            overflow: hidden;
+            display: flex;
             position: relative;
         }
-        
-        .edu-modal h2 {
-            color: #ff0040;
+
+        /* Sidebar */
+        .sidebar {
+            width: 35%;
+            background: white;
+            border-right: 1px solid #e9edef;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: var(--wa-dark-green);
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: white;
+            height: 60px;
+        }
+
+        .header-icons {
+            display: flex;
+            gap: 20px;
+        }
+
+        .header-icons i {
+            cursor: pointer;
+            font-size: 18px;
+            opacity: 0.9;
+            transition: opacity 0.2s;
+        }
+
+        .header-icons i:hover {
+            opacity: 1;
+        }
+
+        /* Search/Input Area */
+        .search-container {
+            background: var(--wa-gray);
+            padding: 10px 16px;
+            border-bottom: 1px solid #e9edef;
+        }
+
+        .search-box {
+            background: white;
+            border-radius: 8px;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+
+        .search-box i {
+            color: var(--wa-secondary);
+            font-size: 14px;
+        }
+
+        .search-box input {
+            border: none;
+            outline: none;
+            flex: 1;
+            font-size: 14px;
+            color: var(--wa-text);
+        }
+
+        .search-box input::placeholder {
+            color: var(--wa-secondary);
+        }
+
+        /* Country List */
+        .country-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .country-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+            border-bottom: 1px solid #f0f2f5;
+        }
+
+        .country-item:hover {
+            background: #f5f6f6;
+        }
+
+        .country-item.active {
+            background: #f0f2f5;
+        }
+
+        .country-flag {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            margin-right: 12px;
+            background: var(--wa-gray);
+        }
+
+        .country-info {
+            flex: 1;
+        }
+
+        .country-name {
+            font-weight: 500;
+            color: var(--wa-text);
+            font-size: 16px;
+        }
+
+        .country-code {
+            color: var(--wa-secondary);
+            font-size: 13px;
+            margin-top: 2px;
+        }
+
+        /* Main Chat Area */
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: var(--wa-bg);
+            position: relative;
+        }
+
+        .chat-header {
+            background: var(--wa-gray);
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #e9edef;
+            height: 60px;
+        }
+
+        .chat-header-info {
+            flex: 1;
+            margin-left: 12px;
+        }
+
+        .chat-header-name {
+            font-weight: 500;
+            color: var(--wa-text);
+            font-size: 16px;
+        }
+
+        .chat-header-status {
+            color: var(--wa-secondary);
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--wa-light-green);
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        /* Chat Background Pattern */
+        .chat-background {
+            flex: 1;
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23075e54' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E");
+            position: relative;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Messages */
+        .message {
+            max-width: 70%;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            position: relative;
+            font-size: 14.2px;
+            line-height: 19px;
+            box-shadow: 0 1px 0.5px rgba(0,0,0,0.13);
+        }
+
+        .message-received {
+            background: white;
+            align-self: flex-start;
+            border-top-left-radius: 0;
+        }
+
+        .message-sent {
+            background: var(--wa-bubble);
+            align-self: flex-end;
+            border-top-right-radius: 0;
+        }
+
+        .message-time {
+            font-size: 11px;
+            color: var(--wa-secondary);
+            float: right;
+            margin-left: 8px;
+            margin-top: 4px;
+        }
+
+        .message-status {
+            color: var(--wa-blue);
+            margin-left: 3px;
+            font-size: 12px;
+        }
+
+        /* Input Area */
+        .input-area {
+            background: var(--wa-gray);
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-top: 1px solid #e9edef;
+        }
+
+        .input-icons {
+            color: var(--wa-secondary);
+            font-size: 20px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .input-icons:hover {
+            color: var(--wa-secondary);
+        }
+
+        .message-input {
+            flex: 1;
+            background: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 12px;
+            font-size: 15px;
+            outline: none;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+        }
+
+        .send-btn {
+            width: 40px;
+            height: 40px;
+            background: var(--wa-teal);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .send-btn:hover {
+            background: var(--wa-dark-green);
+        }
+
+        /* Phone Input Modal */
+        .phone-modal {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 17px 50px 0 rgba(0,0,0,0.25);
+            z-index: 1000;
+            width: 90%;
+            max-width: 400px;
+            display: none;
+        }
+
+        .phone-modal.active {
+            display: block;
+        }
+
+        .modal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 999;
+            display: none;
+        }
+
+        .modal-overlay.active {
+            display: block;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--wa-text);
             margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .phone-input-container {
+            margin-bottom: 20px;
+        }
+
+        .phone-label {
+            display: block;
+            color: var(--wa-secondary);
+            font-size: 13px;
+            margin-bottom: 8px;
             text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .phone-input-wrapper {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            border: 2px solid #e9edef;
+            border-radius: 8px;
+            padding: 12px;
+            transition: border-color 0.2s;
+        }
+
+        .phone-input-wrapper:focus-within {
+            border-color: var(--wa-teal);
+        }
+
+        .country-select {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding-right: 10px;
+            border-right: 1px solid #e9edef;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .phone-input-field {
+            border: none;
+            outline: none;
+            flex: 1;
+            font-size: 16px;
+            color: var(--wa-text);
+        }
+
+        .verify-btn {
+            width: 100%;
+            background: var(--wa-light-green);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .verify-btn:hover {
+            background: #1faa5c;
+        }
+
+        .verify-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* Security Warning */
+        .security-notice {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: #856404;
+            display: flex;
+            align-items: start;
+            gap: 10px;
+        }
+
+        .security-notice i {
+            color: #f39c12;
+            margin-top: 2px;
+        }
+
+        /* Loading Animation */
+        .loading-container {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 1001;
+        }
+
+        .loading-container.active {
+            display: block;
+        }
+
+        .whatsapp-loader {
+            width: 60px;
+            height: 60px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--wa-light-green);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: var(--wa-secondary);
+            font-size: 14px;
+        }
+
+        /* Error Message */
+        .error-message {
+            color: #e74c3c;
+            font-size: 13px;
+            margin-top: 8px;
+            display: none;
+        }
+
+        .error-message.active {
+            display: block;
+        }
+
+        /* Result Modal */
+        .result-modal {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 17px 50px 0 rgba(0,0,0,0.3);
+            z-index: 1002;
+            width: 90%;
+            max-width: 450px;
+            text-align: center;
+            display: none;
+        }
+
+        .result-modal.active {
+            display: block;
+        }
+
+        .result-icon {
+            width: 80px;
+            height: 80px;
+            background: #fee2e2;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 40px;
+            color: #dc2626;
+        }
+
+        .result-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #dc2626;
+            margin-bottom: 12px;
+        }
+
+        .result-desc {
+            color: var(--wa-secondary);
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 24px;
+        }
+
+        .result-details {
+            background: #f9fafb;
+            border-radius: 8px;
+            padding: 16px;
+            text-align: left;
+            margin-bottom: 24px;
+            font-size: 13px;
+            color: var(--wa-text);
+        }
+
+        .result-details li {
+            margin-bottom: 8px;
+            padding-left: 8px;
+            border-left: 3px solid var(--wa-light-green);
+        }
+
+        .close-btn {
+            background: var(--wa-gray);
+            color: var(--wa-text);
+            border: none;
+            padding: 12px 32px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .close-btn:hover {
+            background: #e5e7eb;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .app-container {
+                height: 100vh;
+                border-radius: 0;
+            }
+            
+            .sidebar {
+                width: 100%;
+            }
+            
+            .chat-area {
+                display: none;
+            }
+            
+            .chat-area.active {
+                display: flex;
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                z-index: 100;
+            }
+        }
+
+        /* Lock Icon Animation */
+        .lock-animation {
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        /* Typing Indicator */
+        .typing-indicator {
+            display: none;
+            background: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            border-top-left-radius: 0;
+            align-self: flex-start;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 0.5px rgba(0,0,0,0.13);
+        }
+
+        .typing-indicator.active {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--wa-secondary);
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-10px); }
         }
     </style>
 </head>
 <body>
-    <canvas id="matrix-canvas"></canvas>
-    <div class="hex-bg"></div>
-    <div class="scanline"></div>
-    
-    <!-- Warning Banner -->
-    <div class="warning-banner">
-        ⚠️ TƏHLÜKƏSİZLİK TƏLİMATI: Bu alət yalnız kiber təhlükəsizlik təhsili üçün nəzərdə tutulub | REAL HACKING QANUNSUZDUR ⚠️
-    </div>
 
-    <div class="container mx-auto px-4 py-8 max-w-6xl">
-        <!-- Header -->
-        <header class="text-center mb-12">
-            <h1 class="text-5xl md:text-7xl font-bold mb-4 glitch" data-text="CYBERSEC SIMULATOR">
-                CYBERSEC SIMULATOR
-            </h1>
-            <p class="text-xl text-green-400 opacity-80">Kiber Təhlükəsizlik Təlim Platforması v2.0</p>
-        </header>
-
-        <!-- Educational Notice -->
-        <div class="edu-modal mb-8">
-            <h2 class="text-2xl font-bold">🛡️ Təhlükəsizlik Xəbərdarlığı</h2>
-            <p class="mb-4 text-gray-300">
-                Bu simulyator <strong>yalnız təhsil məqsədləri</strong> üçün yaradılıb. Real şəxslərin məlumatlarına icazəsiz giriş:
-            </p>
-            <ul class="list-disc list-inside text-red-400 mb-4 space-y-2">
-                <li>Qanunsuzdur (Cybercrime Laws)</li>
-                <li>Etikasızdır</li>
-                <li>Ciddi cinayət cəzalarına səbəb ola bilər</li>
-            </ul>
-            <p class="text-green-400">✅ İstifadə et: Təhlükəsizlik testləri, təhsil, etik hacking</p>
-        </div>
-
-        <!-- Country Selection -->
-        <div class="mb-8">
-            <h2 class="text-2xl mb-6 text-center">🌍 Hədəf Region Seçimi (Simulyasiya)</h2>
-            <div class="grid md:grid-cols-3 gap-6">
-                <div class="country-card rounded-lg" onclick="selectCountry('AZ')" id="card-AZ">
-                    <div class="text-4xl mb-2">🇦🇿</div>
-                    <h3 class="text-xl font-bold">Azərbaycan</h3>
-                    <p class="text-sm opacity-70">+994 XXX XX XX</p>
-                    <p class="text-xs mt-2 text-green-400">Dil: Azərbaycan dili</p>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="header">
+                <div class="font-semibold text-lg">WhatsApp Simulator</div>
+                <div class="header-icons">
+                    <i class="fas fa-circle-notch" title="Status"></i>
+                    <i class="fas fa-comment-alt" title="New chat"></i>
+                    <i class="fas fa-ellipsis-v" title="Menu"></i>
                 </div>
-                <div class="country-card rounded-lg" onclick="selectCountry('TR')" id="card-TR">
-                    <div class="text-4xl mb-2">🇹🇷</div>
-                    <h3 class="text-xl font-bold">Türkiyə</h3>
-                    <p class="text-sm opacity-70">+90 XXX XXX XXXX</p>
-                    <p class="text-xs mt-2 text-green-400">Dil: Türkçe</p>
+            </div>
+
+            <div class="search-container">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search or start new chat" id="search-input">
                 </div>
-                <div class="country-card rounded-lg" onclick="selectCountry('IR')" id="card-IR">
-                    <div class="text-4xl mb-2">🇮🇷</div>
-                    <h3 class="text-xl font-bold">İran</h3>
-                    <p class="text-sm opacity-70">+98 XXX XXX XXXX</p>
-                    <p class="text-xs mt-2 text-green-400">Dil: فارسی</p>
+            </div>
+
+            <div class="country-list" id="country-list">
+                <div class="country-item active" onclick="selectCountry('AZ')">
+                    <div class="country-flag">🇦🇿</div>
+                    <div class="country-info">
+                        <div class="country-name">Azərbaycan</div>
+                        <div class="country-code">+994</div>
+                    </div>
+                </div>
+                <div class="country-item" onclick="selectCountry('TR')">
+                    <div class="country-flag">🇹🇷</div>
+                    <div class="country-info">
+                        <div class="country-name">Türkiyə</div>
+                        <div class="country-code">+90</div>
+                    </div>
+                </div>
+                <div class="country-item" onclick="selectCountry('IR')">
+                    <div class="country-flag">🇮🇷</div>
+                    <div class="country-info">
+                        <div class="country-name">İran</div>
+                        <div class="country-code">+98</div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Phone Input Section -->
-        <div class="terminal mb-8" id="input-section">
-            <div class="terminal-header">
-                <span>root@cybersec:~# initialize_scan</span>
-                <span class="text-xs">[ENCRYPTED]</span>
+        <!-- Chat Area -->
+        <div class="chat-area" id="chat-area">
+            <div class="chat-header">
+                <div class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-xl">
+                    🔒
+                </div>
+                <div class="chat-header-info">
+                    <div class="chat-header-name" id="chat-name">Kiber Təhlükəsizlik Botu</div>
+                    <div class="chat-header-status">
+                        <span class="status-dot"></span>
+                        <span id="status-text">onlayn</span>
+                    </div>
+                </div>
+                <div class="header-icons text-gray-600">
+                    <i class="fas fa-search mr-4"></i>
+                    <i class="fas fa-paperclip mr-4"></i>
+                    <i class="fas fa-ellipsis-v"></i>
+                </div>
             </div>
-            <div class="terminal-body">
-                <div id="language-text" class="mb-4 text-lg text-yellow-400">
-                    Ölkə seçin / Ülke seçin / کشور را انتخاب کنید
+
+            <div class="chat-background" id="chat-background">
+                <div class="message message-received">
+                    👋 Salam! Bu WhatsApp Təhlükəsizlik Təlim Botudur.
+                    <span class="message-time">12:00 <i class="fas fa-check message-status"></i></span>
                 </div>
                 
-                <div class="mb-6">
-                    <label class="block mb-2 text-sm uppercase tracking-widest">Telefon Nömrəsi / Telefon Numarası / شماره تلفن</label>
-                    <input type="text" id="phone-input" class="phone-input rounded" placeholder="+994 XX XXX XX XX" readonly>
+                <div class="message message-received" id="intro-message">
+                    Zəhmət olmasa, öyrənmək istədiyiniz ölkəni seçin:
+                    <span class="message-time">12:00 <i class="fas fa-check message-status"></i></span>
                 </div>
 
-                <div class="flex gap-4 flex-wrap">
-                    <button class="cyber-btn rounded" onclick="startSimulation()">
-                        <span id="btn-text">SİMULYASİYANI BAŞLAT</span>
-                    </button>
-                    <button class="cyber-btn rounded" onclick="showSecurityInfo()" style="border-color: #ff0040; color: #ff0040;">
-                        TƏHLÜKƏSİZLİK İNFO
-                    </button>
+                <div class="typing-indicator" id="typing-indicator">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
                 </div>
+            </div>
 
-                <div id="error-msg" class="mt-4 text-red-500 hidden"></div>
+            <div class="input-area">
+                <i class="fas fa-smile input-icons"></i>
+                <i class="fas fa-paperclip input-icons"></i>
+                <input type="text" class="message-input" placeholder="Type a message" id="message-input" readonly>
+                <button class="send-btn" onclick="openPhoneModal()">
+                    <i class="fas fa-phone"></i>
+                </button>
             </div>
         </div>
 
-        <!-- Simulation Progress -->
-        <div id="simulation-section" class="hidden terminal mb-8">
-            <div class="terminal-header">
-                <span id="sim-title">SİMULYASİYA PROSESI</span>
-                <span class="animate-pulse">● REC</span>
-            </div>
-            <div class="terminal-body">
-                <div class="progress-container rounded mb-4">
-                    <div class="progress-bar" id="progress-bar"></div>
+        <!-- Modal Overlay -->
+        <div class="modal-overlay" id="modal-overlay"></div>
+
+        <!-- Phone Input Modal -->
+        <div class="phone-modal" id="phone-modal">
+            <div class="security-notice">
+                <i class="fas fa-exclamation-triangle"></i>
+                <div>
+                    <strong>Təhlükəsizlik Xəbərdarlığı:</strong> Bu yalnız təhsil simulyasiyasıdır. Real məlumatlara icazəsiz giriş qanunsuzdur.
                 </div>
-                <div id="status-text" class="mb-4 typing-text"></div>
-                <div id="code-stream" class="data-stream h-32 overflow-hidden"></div>
             </div>
+            
+            <div class="modal-title" id="modal-title">Telefon Nömrəsi Daxil Edin</div>
+            
+            <div class="phone-input-container">
+                <label class="phone-label" id="phone-label">Telefon Nömrəsi</label>
+                <div class="phone-input-wrapper">
+                    <div class="country-select" id="country-display">
+                        🇦🇿 <span>+994</span> <i class="fas fa-chevron-down text-xs ml-1"></i>
+                    </div>
+                    <input type="tel" class="phone-input-field" id="phone-input" placeholder="XX XXX XX XX" maxlength="12">
+                </div>
+                <div class="error-message" id="error-message">Zəhmət olmasa, düzgün nömrə daxil edin</div>
+            </div>
+
+            <button class="verify-btn" id="verify-btn" onclick="verifyPhone()">
+                Nömrəni Yoxla
+            </button>
         </div>
 
-        <!-- Results Section -->
-        <div id="results-section" class="hidden mb-8">
-            <div class="terminal border-red-500" style="border-color: #ff0040;">
-                <div class="terminal-header" style="background: rgba(255, 0, 64, 0.2); border-color: #ff0040;">
-                    <span class="text-red-400">⚠️ GİRİŞ RƏDD EDİLDİ / ERİŞİM ENGELLENDİ / دسترسی مسدود شد</span>
-                </div>
-                <div class="terminal-body text-center py-12">
-                    <div class="text-6xl mb-6">🔒</div>
-                    <h2 class="text-3xl access-denied mb-4" id="result-title">GİRİŞ QADAĞANDIR</h2>
-                    <p class="text-xl text-gray-400 mb-6" id="result-message">
-                        Bu əməliyyat qanunsuzdur və həyata keçirilə bilməz.<br>
-                        Bu cür əməliyyatlar cinayət məsuliyyəti yaradır.
-                    </p>
-                    <div class="bg-black p-6 rounded border border-red-500 text-left max-w-2xl mx-auto">
-                        <h3 class="text-red-400 mb-4">🛡️ Niyə bu mümkün deyil?</h3>
-                        <ul class="space-y-2 text-sm text-gray-300" id="security-list">
-                            <li>• End-to-end şifrələmə (Signal Protocol)</li>
-                            <li>• Metadata protection</li>
-                            <li>• Qanuni izləmə yalnız məhkəmə qərarı ilə</li>
-                        </ul>
-                    </div>
-                    <button class="cyber-btn mt-8 rounded" onclick="resetSimulator()" style="border-color: #00ff41;">
-                        YENİDƏN BAŞLA
-                    </button>
-                </div>
-            </div>
+        <!-- Loading -->
+        <div class="loading-container" id="loading-container">
+            <div class="whatsapp-loader"></div>
+            <div class="loading-text" id="loading-text">Bağlantı yoxlanılır...</div>
         </div>
 
-        <!-- Security Education Panel -->
-        <div class="grid md:grid-cols-2 gap-6 mt-12">
-            <div class="terminal">
-                <div class="terminal-header">
-                    <span>ETİK HACKING PRİNSİPLƏRİ</span>
-                </div>
-                <div class="terminal-body">
-                    <ul class="space-y-3 text-sm">
-                        <li class="flex items-start">
-                            <span class="text-green-400 mr-2">✓</span>
-                            <span><strong>İcazə:</strong> Həmişə sahibindən yazılı icazə al</span>
-                        </li>
-                        <li class="flex items-start">
-                            <span class="text-green-400 mr-2">✓</span>
-                            <span><strong>Qanun:</strong> Yerli qanunlara riayət et</span>
-                        </li>
-                        <li class="flex items-start">
-                            <span class="text-green-400 mr-2">✓</span>
-                            <span><strong>Məxfilik:</strong> Tapılan zəiflikləri gizli saxla</span>
-                        </li>
-                        <li class="flex items-start">
-                            <span class="text-green-400 mr-2">✓</span>
-                            <span><strong>Dəqiqlik:</span> Dəqiq və tam hesabat ver</span>
-                        </li>
-                    </ul>
-                </div>
+        <!-- Result Modal -->
+        <div class="result-modal" id="result-modal">
+            <div class="result-icon">
+                <i class="fas fa-lock"></i>
             </div>
-
-            <div class="terminal">
-                <div class="terminal-header">
-                    <span>QANUNİ CƏZALAR (AZ/TR/IR)</span>
-                </div>
-                <div class="terminal-body text-sm">
-                    <div class="mb-3 p-2 bg-red-900 bg-opacity-20 border-l-2 border-red-500">
-                        <strong>AZ:</strong> Kiber cinayətlər 2-7 il həbs cəzası
-                    </div>
-                    <div class="mb-3 p-2 bg-red-900 bg-opacity-20 border-l-2 border-red-500">
-                        <strong>TR:</strong> Bilişim suçları 1-5 il hapis cezası
-                    </div>
-                    <div class="p-2 bg-red-900 bg-opacity-20 border-l-2 border-red-500">
-                        <strong>IR:</strong> Cyber crimes - heavy penalties
-                    </div>
-                </div>
+            <div class="result-title" id="result-title">Giriş Qadağandır!</div>
+            <div class="result-desc" id="result-desc">
+                Bu əməliyyat qanunsuzdur. WhatsApp uçtan-uça şifrələmə istifadə edir.
             </div>
+            <ul class="result-details" id="result-details">
+                <li>End-to-end şifrələmə (E2EE)</li>
+                <li>Signal Protocol müdafiəsi</li>
+                <li>Qanuni izləmə yalnız məhkəmə qərarı ilə</li>
+            </ul>
+            <button class="close-btn" onclick="closeResult()">Başa Düşdüm</button>
         </div>
-
-        <!-- Footer -->
-        <footer class="text-center mt-12 pt-8 border-t border-green-800">
-            <p class="text-sm opacity-60">
-                © 2024 CyberSec Education Platform | 
-                <a href="#" class="text-green-400 hover:underline">Responsible Disclosure</a> | 
-                <a href="#" class="text-green-400 hover:underline">Bug Bounty Etiketi</a>
-            </p>
-        </footer>
     </div>
 
     <script>
-        // Matrix Rain Effect
-        const canvas = document.getElementById('matrix-canvas');
-        const ctx = canvas.getContext('2d');
-
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-
-        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*';
-        const fontSize = 14;
-        const columns = canvas.width / fontSize;
-        const drops = [];
-
-        for (let i = 0; i < columns; i++) {
-            drops[i] = 1;
-        }
-
-        function drawMatrix() {
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            ctx.fillStyle = '#0F0';
-            ctx.font = fontSize + 'px monospace';
-
-            for (let i = 0; i < drops.length; i++) {
-                const text = chars[Math.floor(Math.random() * chars.length)];
-                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-
-                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-                    drops[i] = 0;
-                }
-                drops[i]++;
-            }
-        }
-
-        setInterval(drawMatrix, 35);
-
-        window.addEventListener('resize', () => {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        });
-
-        // Country Data
         const countries = {
             'AZ': {
                 name: 'Azərbaycan',
+                flag: '🇦🇿',
                 code: '+994',
-                placeholder: '+994 XX XXX XX XX',
-                language: 'Azərbaycan dili',
-                btnText: 'SİMULYASİYANI BAŞLAT',
-                error: 'Zəhmət olmasa, doğru nömrə formatı daxil edin',
-                resultTitle: 'GİRİŞ QADAĞANDIR',
-                resultMsg: 'Bu əməliyyat qanunsuzdur və həyata keçirilə bilməz.<br>Bu cür əməliyyatlar cinayət məsuliyyəti yaradır.',
-                securityList: [
-                    '• End-to-end şifrələmə (Signal Protocol)',
-                    '• Metadata protection',
-                    '• Qanuni izləmə yalnız məhkəmə qərarı ilə'
-                ]
+                placeholder: 'XX XXX XX XX',
+                lang: 'az',
+                texts: {
+                    modalTitle: 'Telefon Nömrəsi Daxil Edin',
+                    phoneLabel: 'Telefon Nömrəsi',
+                    verifyBtn: 'Nömrəni Yoxla',
+                    errorMsg: 'Zəhmət olmasa, düzgün nömrə daxil edin',
+                    loadingText: 'Bağlantı yoxlanılır...',
+                    resultTitle: 'Giriş Qadağandır!',
+                    resultDesc: 'Bu əməliyyat qanunsuzdur. WhatsApp uçtan-uça şifrələmə istifadə edir.',
+                    status: 'onlayn',
+                    introMsg: 'Zəhmət olmasa, öyrənmək istədiyiniz ölkəni seçin:',
+                    chatName: 'Kiber Təhlükəsizlik Botu'
+                }
             },
             'TR': {
                 name: 'Türkiyə',
+                flag: '🇹🇷',
                 code: '+90',
-                placeholder: '+90 XXX XXX XXXX',
-                language: 'Türkçe',
-                btnText: 'SİMULASYONU BAŞLAT',
-                error: 'Lütfen doğru telefon numarası formatını girin',
-                resultTitle: 'ERİŞİM ENGELLENDİ',
-                resultMsg: 'Bu işlem yasa dışıdır ve gerçekleştirilemez.<br>Bu tür işlemler cezai sorumluluk doğurur.',
-                securityList: [
-                    '• Uçtan uca şifreleme (Signal Protocol)',
-                    '• Metadata koruması',
-                    '• Yasal izleme sadece mahkeme kararı ile'
-                ]
+                placeholder: 'XXX XXX XXXX',
+                lang: 'tr',
+                texts: {
+                    modalTitle: 'Telefon Numarası Girin',
+                    phoneLabel: 'Telefon Numarası',
+                    verifyBtn: 'Numarayı Doğrula',
+                    errorMsg: 'Lütfen doğru numara girin',
+                    loadingText: 'Bağlantı kontrol ediliyor...',
+                    resultTitle: 'Erişim Engellendi!',
+                    resultDesc: 'Bu işlem yasa dışıdır. WhatsApp uçtan uça şifreleme kullanır.',
+                    status: 'çevrimiçi',
+                    introMsg: 'Lütfen öğrenmek istediğiniz ülkeyi seçin:',
+                    chatName: 'Siber Güvenlik Botu'
+                }
             },
             'IR': {
                 name: 'İran',
+                flag: '🇮🇷',
                 code: '+98',
-                placeholder: '+98 XXX XXX XXXX',
-                language: 'فارسی',
-                btnText: 'شبیه‌سازی را شروع کنید',
-                error: 'لطفاً فرمت شماره تلفن صحیح را وارد کنید',
-                resultTitle: 'دسترسی مسدود شد',
-                resultMsg: 'این عمل غیرقانونی است و قابل اجرا نیست.<br>این نوع عملیات مسئولیت کیفری ایجاد می کند.',
-                securityList: [
-                    '• رمزگذاری سرتاسری (Signal Protocol)',
-                    '• محافظت از ابرداده',
-                    '• ردیابی قانونی فقط با دستور دادگاه'
-                ]
+                placeholder: 'XXX XXX XXXX',
+                lang: 'fa',
+                texts: {
+                    modalTitle: 'شماره تلفن را وارد کنید',
+                    phoneLabel: 'شماره تلفن',
+                    verifyBtn: 'تأیید شماره',
+                    errorMsg: 'لطفاً شماره صحیح وارد کنید',
+                    loadingText: 'در حال بررسی اتصال...',
+                    resultTitle: 'دسترسی مسدود شد!',
+                    resultDesc: 'این عمل غیرقانونی است. واتس‌اپ از رمزگذاری سرتاسری استفاده می‌کند.',
+                    status: 'آنلاین',
+                    introMsg: 'لطفاً کشور مورد نظر خود را انتخاب کنید:',
+                    chatName: 'ربات امنیت سایبری'
+                }
             }
         };
 
-        let selectedCountry = null;
+        let currentCountry = 'AZ';
+        let phoneNumber = '';
 
         function selectCountry(code) {
-            selectedCountry = code;
-            
-            // Update UI
-            document.querySelectorAll('.country-card').forEach(card => {
-                card.classList.remove('selected');
-            });
-            document.getElementById(`card-${code}`).classList.add('selected');
-            
+            currentCountry = code;
             const data = countries[code];
+            
+            // Update active state
+            document.querySelectorAll('.country-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+            
+            // Update chat
+            updateChatLanguage(data);
+            
+            // Show phone modal automatically
+            setTimeout(() => openPhoneModal(), 300);
+        }
+
+        function updateChatLanguage(data) {
+            document.getElementById('chat-name').textContent = data.texts.chatName;
+            document.getElementById('status-text').textContent = data.texts.status;
+            document.getElementById('intro-message').innerHTML = `
+                ${data.texts.introMsg}
+                <span class="message-time">12:00 <i class="fas fa-check message-status"></i></span>
+            `;
+        }
+
+        function openPhoneModal() {
+            const data = countries[currentCountry];
+            
+            // Update modal content
+            document.getElementById('modal-title').textContent = data.texts.modalTitle;
+            document.getElementById('phone-label').textContent = data.texts.phoneLabel;
+            document.getElementById('verify-btn').textContent = data.texts.verifyBtn;
+            document.getElementById('error-message').textContent = data.texts.errorMsg;
+            document.getElementById('country-display').innerHTML = 
+                `${data.flag} <span>${data.code}</span> <i class="fas fa-chevron-down text-xs ml-1"></i>`;
             document.getElementById('phone-input').placeholder = data.placeholder;
-            document.getElementById('phone-input').value = data.code + ' ';
-            document.getElementById('btn-text').textContent = data.btnText;
-            document.getElementById('language-text').textContent = 
-                code === 'AZ' ? 'Azərbaycan seçildi. Nömrəni daxil edin:' :
-                code === 'TR' ? 'Türkiye seçildi. Numarayı girin:' :
-                'ایران انتخاب شد. شماره را وارد کنید:';
+            document.getElementById('phone-input').value = '';
+            
+            // Show modal
+            document.getElementById('modal-overlay').classList.add('active');
+            document.getElementById('phone-modal').classList.add('active');
+            document.getElementById('error-message').classList.remove('active');
             
             // Focus input
-            document.getElementById('phone-input').focus();
+            setTimeout(() => document.getElementById('phone-input').focus(), 100);
         }
 
-        function startSimulation() {
-            if (!selectedCountry) {
-                alert('Zəhmət olmasa, əvvəlcə ölkə seçin / Lütfen önce ülke seçin / لطفاً ابتدا کشور را انتخاب کنید');
-                return;
-            }
-
-            const phoneInput = document.getElementById('phone-input').value;
-            if (phoneInput.length < 10) {
-                document.getElementById('error-msg').textContent = countries[selectedCountry].error;
-                document.getElementById('error-msg').classList.remove('hidden');
-                return;
-            }
-
-            document.getElementById('error-msg').classList.add('hidden');
-            document.getElementById('input-section').classList.add('hidden');
-            document.getElementById('simulation-section').classList.remove('hidden');
-
-            runSimulation();
+        function closePhoneModal() {
+            document.getElementById('modal-overlay').classList.remove('active');
+            document.getElementById('phone-modal').classList.remove('active');
         }
 
-        function runSimulation() {
-            const steps = [
-                'Initializing connection...',
-                'Bypassing firewall...',
-                'Decrypting handshake...',
-                'Accessing metadata...',
-                '⚠️ SECURITY BREACH DETECTED',
-                '⚠️ ACCESS DENIED - ETHICAL PROTOCOL VIOLATION',
-                '⚠️ LEGAL ALERT TRIGGERED'
-            ];
-
-            const data = countries[selectedCountry];
-            document.getElementById('sim-title').textContent = 
-                selectedCountry === 'AZ' ? 'SİMULYASİYA PROSESI' :
-                selectedCountry === 'TR' ? 'SİMULASYON İŞLEMİ' :
-                'فرآیند شبیه‌سازی';
-
-            let progress = 0;
-            let stepIndex = 0;
-
-            const interval = setInterval(() => {
-                progress += Math.random() * 15;
-                if (progress > 100) progress = 100;
-                
-                document.getElementById('progress-bar').style.width = progress + '%';
-                
-                if (progress > (stepIndex + 1) * (100 / steps.length) && stepIndex < steps.length) {
-                    document.getElementById('status-text').textContent = steps[stepIndex];
-                    stepIndex++;
-                }
-
-                // Add fake code
-                const codeStream = document.getElementById('code-stream');
-                const hex = Math.random().toString(16).substr(2, 8).toUpperCase();
-                const ip = `${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}`;
-                codeStream.innerHTML = `> 0x${hex} :: ${ip} :: ENCRYPTED_PACKET<br>` + codeStream.innerHTML;
-                if (codeStream.innerHTML.length > 500) {
-                    codeStream.innerHTML = codeStream.innerHTML.substring(0, 500);
-                }
-
-                if (progress >= 100) {
-                    clearInterval(interval);
-                    setTimeout(showResults, 1000);
-                }
-            }, 200);
-        }
-
-        function showResults() {
-            document.getElementById('simulation-section').classList.add('hidden');
-            document.getElementById('results-section').classList.remove('hidden');
-            
-            const data = countries[selectedCountry];
-            document.getElementById('result-title').textContent = data.resultTitle;
-            document.getElementById('result-message').innerHTML = data.resultMsg;
-            
-            const list = document.getElementById('security-list');
-            list.innerHTML = '';
-            data.securityList.forEach(item => {
-                const li = document.createElement('li');
-                li.textContent = item;
-                list.appendChild(li);
-            });
-        }
-
-        function showSecurityInfo() {
-            alert(`🔒 TƏHLÜKƏSİZLİK MƏLUMATI:
-
-WhatsApp Təhlükəsizlik Xüsusiyyətləri:
-• Uçtan-uca şifrələmə (E2EE)
-• Signal Protocol istifadəsi
-• Perfect Forward Secrecy
-• Metadata minimallaşdırma
-
-Qanuni Yollar:
-1. Bug Bounty proqramları
-2. Etik hacking sertifikatları (CEH, OSCP)
-3. Məhkəmə qərarı ilə istintaq
-
-Unutmayın: Real hücumlar cinayətdir!`);
-        }
-
-        function resetSimulator() {
-            document.getElementById('results-section').classList.add('hidden');
-            document.getElementById('input-section').classList.remove('hidden');
-            document.getElementById('phone-input').value = selectedCountry ? countries[selectedCountry].code + ' ' : '';
-            document.getElementById('progress-bar').style.width = '0%';
-            document.getElementById('status-text').textContent = '';
-            document.getElementById('code-stream').innerHTML = '';
-        }
-
-        // Initialize
+        // Phone input formatting
         document.getElementById('phone-input').addEventListener('input', function(e) {
-            if (!selectedCountry) return;
-            const code = countries[selectedCountry].code;
-            if (!e.target.value.startsWith(code)) {
-                e.target.value = code + ' ';
+            let value = e.target.value.replace(/\D/g, '');
+            
+            // Format according to country
+            if (currentCountry === 'AZ') {
+                // Format: XX XXX XX XX
+                if (value.length > 2) value = value.slice(0,2) + ' ' + value.slice(2);
+                if (value.length > 6) value = value.slice(0,6) + ' ' + value.slice(6);
+                if (value.length > 9) value = value.slice(0,9) + ' ' + value.slice(9);
+            } else {
+                // Format: XXX XXX XXXX
+                if (value.length > 3) value = value.slice(0,3) + ' ' + value.slice(3);
+                if (value.length > 7) value = value.slice(0,7) + ' ' + value.slice(7);
             }
+            
+            e.target.value = value;
+            document.getElementById('error-message').classList.remove('active');
+        });
+
+        function verifyPhone() {
+            const input = document.getElementById('phone-input');
+            const rawNumber = input.value.replace(/\s/g, '');
+            const data = countries[currentCountry];
+            
+            // Validation
+            let minLength = currentCountry === 'AZ' ? 9 : 10;
+            
+            if (rawNumber.length < minLength) {
+                document.getElementById('error-message').classList.add('active');
+                input.parentElement.classList.add('lock-animation');
+                setTimeout(() => input.parentElement.classList.remove('lock-animation'), 500);
+                return;
+            }
+            
+            phoneNumber = data.code + ' ' + input.value;
+            closePhoneModal();
+            
+            // Show loading
+            document.getElementById('loading-text').textContent = data.texts.loadingText;
+            document.getElementById('loading-container').classList.add('active');
+            
+            // Simulate process
+            setTimeout(() => {
+                document.getElementById('loading-container').classList.remove('active');
+                showResult();
+            }, 3000);
+        }
+
+        function showResult() {
+            const data = countries[currentCountry];
+            
+            // Update result content
+            document.getElementById('result-title').textContent = data.texts.resultTitle;
+            document.getElementById('result-desc').textContent = data.texts.resultDesc;
+            
+            // Update details based on language
+            const details = document.getElementById('result-details');
+            if (currentCountry === 'AZ') {
+                details.innerHTML = `
+                    <li>End-to-end şifrələmə (E2EE)</li>
+                    <li>Signal Protocol müdafiəsi</li>
+                    <li>Qanuni izləmə yalnız məhkəmə qərarı ilə</li>
+                `;
+            } else if (currentCountry === 'TR') {
+                details.innerHTML = `
+                    <li>Uçtan uca şifreleme (E2EE)</li>
+                    <li>Signal Protocol koruması</li>
+                    <li>Yasal izleme sadece mahkeme kararı ile</li>
+                `;
+            } else {
+                details.innerHTML = `
+                    <li>رمزگذاری سرتاسری (E2EE)</li>
+                    <li>محافظت پروتکل Signal</li>
+                    <li>ردیابی قانونی فقط با دستور دادگاه</li>
+                `;
+            }
+            
+            document.getElementById('modal-overlay').classList.add('active');
+            document.getElementById('result-modal').classList.add('active');
+            
+            // Add message to chat
+            addSecurityMessage();
+        }
+
+        function closeResult() {
+            document.getElementById('modal-overlay').classList.remove('active');
+            document.getElementById('result-modal').classList.remove('active');
+        }
+
+        function addSecurityMessage() {
+            const chatBg = document.getElementById('chat-background');
+            const data = countries[currentCountry];
+            
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'message message-received';
+            
+            let messageText = currentCountry === 'AZ' ? 
+                '⚠️ Xəbərdarlıq: Bu nömrəyə icazəsiz giriş cəhdi qeydə alındı. WhatsApp şifrələməsi buna imkan vermir.' :
+                currentCountry === 'TR' ? 
+                '⚠️ Uyarı: Bu numaraya izinsiz giriş denemesi tespit edildi. WhatsApp şifrelemesi buna izin vermez.' :
+                '⚠️ هشدار: تلاش برای دسترسی غیرمجاز به این شماره ثبت شد. رمزگذاری واتس‌اپ این را امکان‌پذیر نمی‌کند.';
+            
+            msgDiv.innerHTML = `
+                ${messageText}
+                <span class="message-time">${getCurrentTime()} <i class="fas fa-check-double message-status"></i></span>
+            `;
+            
+            chatBg.appendChild(msgDiv);
+            chatBg.scrollTop = chatBg.scrollHeight;
+            
+            // Show typing then reply
+            setTimeout(() => {
+                document.getElementById('typing-indicator').classList.add('active');
+                chatBg.scrollTop = chatBg.scrollHeight;
+                
+                setTimeout(() => {
+                    document.getElementById('typing-indicator').classList.remove('active');
+                    
+                    const replyDiv = document.createElement('div');
+                    replyDiv.className = 'message message-received';
+                    
+                    let replyText = currentCountry === 'AZ' ?
+                        '🔒 Ətraflı məlumat üçün Təhlükəsizlik bölməsinə baxın. Etik hacking qanuni yollarla öyrənilə bilər.' :
+                        currentCountry === 'TR' ?
+                        '🔒 Daha fazla bilgi için Güvenlik bölümüne bakın. Etik hacking yasal yollarla öğrenilebilir.' :
+                        '🔒 برای اطلاعات بیشتر، بخش امنیت را ببینید. هک اخلاقی می‌تواند از طریق روش‌های قانونی آموخته شود.';
+                    
+                    replyDiv.innerHTML = `
+                        ${replyText}
+                        <span class="message-time">${getCurrentTime()} <i class="fas fa-check-double message-status"></i></span>
+                    `;
+                    
+                    chatBg.appendChild(replyDiv);
+                    chatBg.scrollTop = chatBg.scrollHeight;
+                }, 2000);
+            }, 500);
+        }
+
+        function getCurrentTime() {
+            const now = new Date();
+            return now.getHours().toString().padStart(2, '0') + ':' + 
+                   now.getMinutes().toString().padStart(2, '0');
+        }
+
+        // Close modal on overlay click
+        document.getElementById('modal-overlay').addEventListener('click', function() {
+            if (document.getElementById('result-modal').classList.contains('active')) {
+                closeResult();
+            } else {
+                closePhoneModal();
+            }
+        });
+
+        // Enter key support
+        document.getElementById('phone-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') verifyPhone();
+        });
+
+        // Search functionality
+        document.getElementById('search-input').addEventListener('input', function(e) {
+            const term = e.target.value.toLowerCase();
+            document.querySelectorAll('.country-item').forEach(item => {
+                const name = item.querySelector('.country-name').textContent.toLowerCase();
+                item.style.display = name.includes(term) ? 'flex' : 'none';
+            });
         });
     </script>
 </body>
