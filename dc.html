@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Doğruluq və ya Cəsarət - Full Version</title>
+    <title>Doğruluq və ya Cəsarət - Full Chat Edition</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap');
 
@@ -14,72 +14,62 @@
             display: flex; justify-content: center; align-items: center; height: 100vh;
         }
 
+        /* Çat Paneli */
+        #chat-container {
+            position: absolute; right: 20px; bottom: 20px; width: 280px; height: 350px;
+            background: rgba(0, 0, 0, 0.7); border-radius: 15px; display: none;
+            flex-direction: column; border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px); z-index: 200;
+        }
+        #chat-messages { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 5px; }
+        .chat-msg { background: rgba(255, 255, 255, 0.1); padding: 5px 10px; border-radius: 8px; font-size: 0.8rem; }
+        .chat-msg b { color: #ff416c; }
+        #chat-input-area { display: flex; padding: 10px; gap: 5px; }
+        #chat-input { flex: 1; padding: 8px; border-radius: 5px; border: none; outline: none; }
+        #chat-send { background: #ff416c; border: none; color: white; border-radius: 5px; cursor: pointer; padding: 0 10px; }
+
+        /* Taymer */
         #timer-container {
-            position: absolute; top: 30px; left: 50%;
-            transform: translateX(-50%); text-align: center;
-            display: none; z-index: 100;
+            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+            text-align: center; display: none; z-index: 100;
         }
-        #timer-display {
-            font-size: 4rem; color: #ff4b2b; font-weight: bold;
-            text-shadow: 0 0 20px rgba(255, 75, 43, 0.6);
-        }
+        #timer-display { font-size: 3.5rem; color: #ff4b2b; font-weight: bold; }
 
+        /* Giriş Ekranı */
         #login-screen {
-            background: rgba(0, 0, 0, 0.6); padding: 40px; border-radius: 30px;
-            text-align: center; backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(0, 0, 0, 0.6); padding: 40px; border-radius: 30px; text-align: center;
+            backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1);
         }
-
-        input {
-            padding: 15px; border-radius: 12px; border: none; margin: 10px;
-            width: 260px; font-size: 1rem; outline: none; background: #fff; color: #333;
-        }
-
-        button {
-            padding: 15px 40px; border-radius: 12px; border: none;
-            background: linear-gradient(45deg, #ff416c, #ff4b2b); color: white;
-            cursor: pointer; font-weight: bold; transition: 0.3s;
-        }
-
-        #game-area { display: none; flex-direction: column; align-items: center; }
+        input { padding: 12px; border-radius: 10px; margin: 10px; width: 250px; border: none; }
+        button { padding: 12px 30px; border-radius: 10px; background: linear-gradient(45deg, #ff416c, #ff4b2b); color: #fff; border: none; cursor: pointer; font-weight: bold; }
         
-        .table-container { position: relative; width: 500px; height: 500px; display: flex; justify-content: center; align-items: center; }
-        .table { width: 400px; height: 400px; background: radial-gradient(circle, #2c3e50, #000); border-radius: 50%; position: relative; border: 12px solid #1a1a1a; }
-
+        #game-area { display: none; align-items: center; width: 100%; height: 100%; justify-content: center; flex-direction: column; }
+        .table-container { position: relative; width: 450px; height: 450px; }
+        .table { width: 100%; height: 100%; background: radial-gradient(circle, #2c3e50, #000); border-radius: 50%; border: 10px solid #1a1a1a; position: relative; }
+        
         .bottle {
             width: 100px; height: 280px; background: url('bottle.png') no-repeat center center;
             background-size: contain; position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%); transform-origin: center center;
-            transition: transform 4s cubic-bezier(0.15, 0, 0.15, 1); z-index: 50;
+            transform: translate(-50%, -50%); transition: transform 4s cubic-bezier(0.15, 0, 0.15, 1); z-index: 50;
         }
 
         .player {
-            position: absolute; width: 85px; height: 85px; background: #ff416c;
-            border-radius: 50%; display: flex; justify-content: center; align-items: center;
-            font-size: 0.85rem; font-weight: bold; transform: translate(-50%, -50%);
-            border: 3px solid #fff; transition: 0.5s; z-index: 10; text-align: center;
+            position: absolute; width: 80px; height: 80px; background: #ff416c; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center; font-size: 0.8rem; font-weight: bold;
+            transform: translate(-50%, -50%); border: 2px solid #fff; transition: 0.5s; text-align: center;
         }
-        .player.active { background: #f5af19; scale: 1.2; box-shadow: 0 0 30px #f5af19; }
+        .player.active { background: #f5af19; scale: 1.2; box-shadow: 0 0 20px #f5af19; }
 
-        .modal {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); justify-content: center; align-items: center; z-index: 1000;
-        }
-        .modal-content { background: #fff; color: #222; padding: 40px; border-radius: 25px; width: 450px; text-align: center; }
-        
-        #spin-btn { font-size: 1.5rem; margin-top: 20px; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: #fff; color: #222; padding: 30px; border-radius: 20px; width: 400px; text-align: center; }
     </style>
 </head>
 <body>
 
     <audio id="bg-music" loop><source src="mmm.mp3" type="audio/mpeg"></audio>
-    <audio id="spin-sound"><source src="https://www.soundjay.com/misc/sounds/spinning-wheel-1.mp3" type="audio/mpeg"></audio>
-
-    <div id="timer-container">
-        <div id="timer-display">30</div>
-    </div>
 
     <div id="login-screen">
-        <h1>BOTTLE GAME</h1>
+        <h1>BOTTLE & CHAT</h1>
         <input type="text" id="username" placeholder="Adınız" maxlength="12">
         <input type="text" id="room-id" placeholder="Otaq Kodu" maxlength="6">
         <br>
@@ -87,16 +77,27 @@
     </div>
 
     <div id="game-area">
+        <div id="timer-container"><div id="timer-display">30</div></div>
+        
         <div class="table-container">
             <div class="table" id="table"></div>
             <div class="bottle" id="bottle"></div>
         </div>
-        <button id="spin-btn" onclick="spinBottleAction()" style="display:none;">🍾 FIRLAT</button>
+
+        <button id="spin-btn" onclick="spinBottleAction()" style="display:none; margin-top: 30px;">🍾 FIRLAT</button>
+
+        <div id="chat-container">
+            <div id="chat-messages"></div>
+            <div id="chat-input-area">
+                <input type="text" id="chat-input" placeholder="Yaz..." onkeypress="if(event.key==='Enter') sendMessage()">
+                <button id="chat-send" onclick="sendMessage()">➤</button>
+            </div>
+        </div>
     </div>
 
     <div id="choice-modal" class="modal">
         <div>
-            <h1 style="color:white">Seçimini et!</h1>
+            <h1 style="color:white">Sənsən! Seç:</h1>
             <button onclick="makeChoice('truth')" style="background:#00b09b; margin:10px;">DOĞRULUQ</button>
             <button onclick="makeChoice('dare')" style="background:#8e44ad; margin:10px;">CƏSARƏT</button>
         </div>
@@ -105,20 +106,20 @@
     <div id="task-modal" class="modal">
         <div class="modal-content">
             <h2 id="task-title" style="color:#ff416c"></h2>
-            <p id="task-text" style="font-size: 1.3rem; font-weight: bold;"></p>
-            <div style="background:#f4f4f4; padding:15px; border-radius:10px; margin: 20px 0;">
-                <span id="live-answer" style="font-size: 1.2rem; color: #333;">...</span>
+            <p id="task-text" style="font-size: 1.2rem; font-weight: bold;"></p>
+            <div style="background:#f4f4f4; padding:10px; border-radius:10px; margin: 15px 0;">
+                <span id="live-answer" style="color: #333; font-weight: bold;">...</span>
             </div>
             <div id="input-zone" style="display:none;">
-                <input type="text" id="my-answer" oninput="syncTyping(this.value)" placeholder="Cavabını yaz...">
-                <button onclick="completeTurn()" style="width:100%; margin-top:10px;">GÖNDƏR</button>
+                <input type="text" id="my-answer" oninput="syncTyping(this.value)" placeholder="Cavabın...">
+                <button onclick="completeTurn()" style="width:100%; margin-top:5px;">BİTİR</button>
             </div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-        import { getDatabase, ref, set, onValue, update, onDisconnect } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+        import { getDatabase, ref, set, onValue, update, onDisconnect, push, limitToLast, query } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCM5WdZNSj9oFipNI-J3csHpOIvK8PjoLU",
@@ -133,90 +134,96 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // --- 100 DOĞRULUQ SUALLARI ---
         const truthQuestions = [
-            "Ən böyük qorxun nədir?", "Heç kiməsə xəyanət etmisən?", "Telefonunda gizlətdiyin son şəkil nədir?", "Kimi gizlicə sevirsən?", "Son yalanın nə idi?", 
-            "Heç mağazadan nəsə oğurlamısan?", "Ən utancverici xatirən nədir?", "Heç sevgilinə yalan danışmısan?", "Buradakı kimdən xoşun gəlmir?", "Uşaqlıqda etdiyin ən böyük səhv?",
-            "Heç kiminsə diş fırçasını istifadə etmisən?", "Güzgüyə baxanda ilk nə düşünürsən?", "Heç polislə problemin olub?", "Ən pis vərdişin nədir?", "Səni ən çox nə ağladır?",
-            "Heç kiminsə mesajlarını gizlicə oxumusan?", "Yatanda xoruldayırsan?", "Ən çox kimə paxıllıq edirsən?", "İdeal sevgilin necə olmalıdır?", "Heç bir gündə iki nəfərlə görüşmüsən?",
-            "Aldığın ən pis hədiyyə nə olub?", "Heç burnunu qurdalayıb kiməsə sürtmüsən?", "Məktəbdə ən çox nifrət etdiyin müəllim kim idi?", "Heç kiməsə böhtan atmısan?", "Ən çox nədən qorxursan?",
-            "Heç valideynlərinin pulqabısından pul götürmüsən?", "Səni ən çox nə əsəbiləşdirir?", "Heç ayaqyolunda mahnı oxumusan?", "Ən sevdiyin söyüş hansıdır?", "Heç saxta profilin olub?",
-            "Kiminlə adaya düşmək istərdin?", "Heç lift-də qaz buraxmısan?", "Görünməz olsan ilk nə edərdin?", "Keçmiş sevgilinə hələ də nifrət edirsən?", "Ən son nəyə görə ağlamısan?",
-            "Heç kiminsə evində nəyisə sındırıb gizlətmisən?", "Özündə ən çox bəyəndiyin şey nədir?", "Heç kiməsə qarşı qərəzli olmusan?", "Ən axmaq ləqəbin nə olub?", "Səncə buradakı ən yaraşıqlı/gözəl kimdir?",
-            "Heç heyvanla danışmısan?", "Həyatında etdiyin ən cəsur hərəkət?", "Keçmişə qayıtsaydın nəyi dəyişərdin?", "Heç qonşunun qapısını döyüb qaçmısan?", "Ən sevdiyin uşaqlıq cizgi filmi?",
-            "Heç kimin yeməyinə tüpürmüsən?", "Burnunu qurdalayırsan?", "Səncə pul xoşbəxtlik gətirir?", "Heç kimin sirrini yaymısan?", "Ən böyük peşmanlığın nədir?",
-            "Heç öz toyunda qaçmağı düşünmüsən?", "Ən sevdiyin məşhur kimdir?", "Heç kiməsə yumruq atmısan?", "İndiyə qədər dediyin ən böyük yalan?", "Heç sevgilinə xəyanət etməyi düşünmüsən?",
-            "Gecə yarı nə düşünürsən?", "Heç kiməsə nifrət etmisən?", "Ən son kimə mesaj yazmısan?", "Heç imtahanda köçürmüsən?", "Ən pis geyim tərzin necə olub?",
-            "Heç kiminsə şəklinə baxıb ağlamısan?", "Bədənində ən bəyənmədiyin yer?", "Heç qəribə bir şey yemisən?", "Uğursuz ilk görüşün necə olub?", "Heç birini izləmisən (stalk)?",
-            "Ən çox hansı fəsli sevirsən?", "Heç kiməsə həsəd aparmısan?", "Ən böyük xəyalın nədir?", "Səhər oyananda ilk nə edirsən?", "Heç kimin ad gününü unutmusan?",
-            "Səncə yadplanetlilər var?", "Heç sevdiyin adamın qabağında yıxılmısan?", "Ən sevdiyin yemək nədir?", "Heç kiməsə pislik etmisən?", "Özünə yalan danışırsan?",
-            "Heç kimin telefonunu gizlicə qurcalamısan?", "Ən sevdiyin rəng?", "Heç dənizdə işəmisən?", "Səncə dünya necə yaranıb?", "Heç bir şeyi sındırıb günahı başqasına atmısan?",
-            "Ən son nə vaxt duş almısan?", "Gündə neçə dəfə güzgüyə baxırsan?", "Heç məktəbdən qaçmısan?", "Ən sevdiyin mahnı?", "Heç kiminsə geyimi ilə lağ etmisən?",
-            "Bura gəlməzdən əvvəl nə edirdin?", "Heç kiməsə hədiyyə alıb sonra özün istifadə etmisən?", "Səncə eşq nədir?", "Heç kimin ayaqqabısını iyləmisən?", "Ən çox hansı ölkəyə getmək istərdin?",
-            "Heç qaranlıqdan qorxursan?", "Səncə buradakı kim ən çox yalan danışır?", "Heç kiməsə borc verib geri ala bilməmisən?", "Ən son yediyin yemək?", "Heç kimin adını səhv demisən?",
-            "Həyatının ən xoşbəxt günü hansı idi?", "Heç kimə qəlbini sındırdığın üçün üzr istəmisən?", "Ən sevdiyin heyvan?", "Heç yuxuda ağlamısan?", "Səncə bu oyun bitəndə nə olacaq?"
+            "Ən böyük qorxun nədir?", "Heç vaxt kiməsə xəyanət etmisən?", "Telefonunda gizlətdiyin son şəkil nədir?", "Buradakı kimdən xoşun gəlir?", "Uşaqlıqda etdiyin ən utancverici hərəkət?",
+            "Heç sevmədiyin halda kiməsə 'səni sevirəm' demisən?", "Ən son nə vaxt ağlamısan?", "Whatsapp-da ən son kimə mesaj yazmısan?", "Keçmiş sevgilin haqqında nə düşünürsən?", "Görünməz olsan ilk nə edərdin?",
+            "Özündə bəyənmədiyin 3 xüsusiyyət?", "Heç mağazadan nəsə oğurlamısan?", "Valideynlərinə dediyin ən böyük yalan?", "Buradakı kimin geyim tərzini bəyənmirsən?", "Telefonunun 10-cu şəklini göstər.",
+            "Cinsiyyətini dəyişsəydin ilk nə edərdin?", "İctimai yerdə bərkdən qaz buraxmısan?", "Ən axmaq ləqəbin?", "Duşda mahnı oxuyursan?", "Dostunun sevgilisinə aşiq olmusan?",
+            "Ən son nə vaxt yalan danışmısan?", "Brauzer tarixçəni göstərə bilərsən?", "Başqasının diş fırçasını istifadə etmisən?", "Buradan biri ilə evlənməli olsan kimi seçərdin?", "Sərxoş olub etdiyin ən axmaq şey?",
+            "Heç polislə problemin olub?", "Burada kimin ən çox yalan danışdığını düşünürsən?", "Həyatında ən çox peşman olduğun an?", "Aldığın ən pis hədiyyə?", "Kiminsə yeməyinə tüpürmüsən?",
+            "Tək qalanda burnunu qurdalayırsan?", "Yuxuda danışırsan?", "Ən çox kimə paxıllıq edirsən?", "Valideynlərindən xəbərsiz pul götürmüsən?", "Öləcəyini bilsən son zəngi kimə edərdin?",
+            "Bədənində ən bəyəndiyin yer?", "İlk öpüşün necə olub?", "Saxta profilin var?", "Müəllimini bəyənmisən?", "İmtahanda köçürmə etmisən?",
+            "Yolda pul tapsan götürərsən?", "Ən iyrənc vərdişin?", "Heç vanna otağında işiyibsən?", "Hansı məşhura aşiqsən?", "Telefonundakı son silinmiş mesaj nə idi?",
+            "Buradakı kiminlə heç vaxt yola getməzsən?", "Ən son nə vaxt duş almısan?", "Gündə neçə dəfə güzgüyə baxırsan?", "Özünə yalan danışırsan?", "Kiminsə sirrini yaymısan?",
+            "Keçmiş sevgilini bloklamısan?", "Kimisə stalk edirsən?", "1 milyonun olsa ilk nə alarsan?", "Ən son nəyə görə gülmüsən?", "Heyvanlarla danışırsan?",
+            "Uşaqlıq oyuncağın nə idi?", "Yatağının altında canavar olduğunu düşünmüsən?", "Ən son oxuduğun kitab?", "Kinoda ağlamısan?", "Eyni alt paltarını iki gün geyinmisən?",
+            "Ayaq barmaqlarının şəklini çəkmisən?", "Kiminsə mesajlarını gizlicə oxumusan?", "Heyvan olsaydın hansı olardın?", "Lift-də qaz buraxıb başqasının üstünə atmısan?", "Ən böyük xəyalın?",
+            "Buradakı ən ağıllı kimdir?", "Kiminsə ad gününü unutmusan?", "Keçmişə qayıtsan nəyi dəyişərdin?", "Ən çox nədən utanarsan?", "Sevmədiyin yeməyi məcburi yemisən?",
+            "Səni ən tez nə əsəbiləşdirir?", "Kiməsə yumruq atmısan?", "Gələcəyi görmək istərdin?", "Cibində hal-hazırda nə qədər pul var?", "Nəqliyyatda yatmısan?",
+            "Ən pis geyim tərzin necə olub?", "Saçını rənglətmək istəmisən?", "Yadplanetlilərə inanırsan?", "Ruh çağırmısan?", "Hansı fəsli sevirsən?",
+            "Diş həkimindən qorxursan?", "Səhər oyananda ilk işin?", "Yatmazdan əvvəl nə düşünürsən?", "Kimisə döymək istəmisən?", "Ən sevdiyin söyüş?",
+            "Kiminsə şəklinə baxıb ağlamısan?", "Toyunda hansı mahnı çalınsın?", "Xəyanəti bağışlayarsan?", "Ən son yediyin şey?", "Səni ən yaxşı kim başa düşür?",
+            "İntihar barədə düşünmüsən?", "Adını dəyişsən nə qoyardın?", "Məktəbdən qaçmısan?", "Pul xoşbəxtlikdir?", "Ən sevdiyin rəng?",
+            "Kiminsə evində nəyisə sındırmısan?", "Dünya düzdür yoxsa yumru?", "Ən böyük uğursuzluğun?", "Heç kimə paxıllıq etmisən?", "İdeal partnyorun necədir?"
         ];
 
-        // --- CƏSARƏT TAPŞIRIQLARI ---
-        const dareTasks = [
-            "10 dəfə otur-dur et", "Mahnı oxu", "Limon ye (və ya xəyalən)", "Qəribə rəqs et", "Pəncərədən 'Mən dəliyəm' qışqır",
-            "Ağzına su al və 1 dəqiqə gülmə", "Yanındakı oyunçunun əlini öp", "Hər kəsə komik bir hekayə danış", "1 dəqiqə tək ayaq üstə dur",
-            "Ən çirkin üz ifadəni al və selfi çək", "Hər kəsə çay/su gətir", "1 dəqiqə ərzində heç nə danışma", "İt kimi hür", "Meymun hərəkətləri et"
-        ];
+        const dareTasks = ["10 dəfə otur-dur", "Mahnı oxu", "Qəribə rəqs et", "Pəncərədən qışqır", "Ağzına su al gülmə", "Yanındakını qucaqla"];
 
         let myId = 'p_' + Math.random().toString(36).substr(2, 5);
         let roomId, myName, players = [], lastRot = 0;
 
-        window.joinGame = async () => {
+        window.joinGame = () => {
             myName = document.getElementById('username').value.trim();
             roomId = document.getElementById('room-id').value.trim();
-            if(!myName || !roomId) return alert("Doldurun!");
+            if(!myName || !roomId) return alert("Boş buraxmayın!");
 
             document.getElementById('bg-music').play().catch(()=>{});
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('game-area').style.display = 'flex';
+            document.getElementById('chat-container').style.display = 'flex';
 
             set(ref(db, `rooms/${roomId}/players/${myId}`), { id: myId, name: myName, time: Date.now() });
             onDisconnect(ref(db, `rooms/${roomId}/players/${myId}`)).remove();
 
             listenRoom();
+            listenChat();
         };
 
         function listenRoom() {
             onValue(ref(db, `rooms/${roomId}`), (snap) => {
                 const data = snap.val(); if(!data) return;
-                
-                if(data.players) { 
-                    players = Object.values(data.players).sort((a,b) => a.time - b.time); 
-                    renderPlayers(); 
-                }
-                
-                if(data.rotation !== undefined && data.rotation !== lastRot) {
+                if(data.players) { players = Object.values(data.players).sort((a,b) => a.time - b.time); renderPlayers(); }
+                if(data.rotation !== undefined) {
                     lastRot = data.rotation;
-                    document.getElementById('spin-sound').play();
                     document.getElementById('bottle').style.transform = `translate(-50%, -50%) rotate(${lastRot}deg)`;
                 }
-
                 const timerCont = document.getElementById('timer-container');
                 if(data.status === 'doing' && data.timeLeft !== undefined) {
                     timerCont.style.display = 'block';
                     document.getElementById('timer-display').innerText = data.timeLeft;
-                    if(data.timeLeft <= 0 && data.activePlayer === myId) completeTurn("Vaxt bitdi!");
-                } else {
-                    timerCont.style.display = 'none';
-                }
-
+                    if(data.timeLeft <= 0 && data.activePlayer === myId) completeTurn();
+                } else { timerCont.style.display = 'none'; }
                 updateUI(data);
             });
         }
+
+        function listenChat() {
+            const chatRef = query(ref(db, `rooms/${roomId}/chat`), limitToLast(15));
+            onValue(chatRef, (snap) => {
+                const messagesDiv = document.getElementById('chat-messages');
+                messagesDiv.innerHTML = "";
+                snap.forEach((child) => {
+                    const m = child.val();
+                    messagesDiv.innerHTML += `<div class="chat-msg"><b>${m.user}:</b> ${m.text}</div>`;
+                });
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            });
+        }
+
+        window.sendMessage = () => {
+            const input = document.getElementById('chat-input');
+            if(!input.value.trim()) return;
+            push(ref(db, `rooms/${roomId}/chat`), { user: myName, text: input.value });
+            input.value = "";
+        };
 
         function renderPlayers() {
             const table = document.getElementById('table'); table.innerHTML = "";
             players.forEach((p, i) => {
                 const angle = (i * (360/players.length)) - 90;
                 const rad = angle * (Math.PI/180);
-                const x = 200 + 220 * Math.cos(rad);
-                const y = 200 + 220 * Math.sin(rad);
+                const x = 225 + 230 * Math.cos(rad);
+                const y = 225 + 230 * Math.sin(rad);
                 const el = document.createElement('div');
                 el.className = 'player'; el.id = 'ui-' + p.id;
                 el.innerText = p.name; el.style.left = x + 'px'; el.style.top = y + 'px';
@@ -229,52 +236,36 @@
             document.getElementById('spin-btn').style.display = (status === 'waiting') ? 'block' : 'none';
             document.getElementById('choice-modal').style.display = (status === 'selected' && data.activePlayer === myId) ? 'flex' : 'none';
             document.getElementById('task-modal').style.display = (status === 'doing') ? 'flex' : 'none';
-            
             if(status === 'doing') {
                 document.getElementById('task-title').innerText = data.type === 'truth' ? "DOĞRULUQ" : "CƏSARƏT";
                 document.getElementById('task-text').innerText = data.text;
                 document.getElementById('live-answer').innerText = data.currentAnswer || "...";
                 document.getElementById('input-zone').style.display = (data.activePlayer === myId) ? 'block' : 'none';
             }
-            
             document.querySelectorAll('.player').forEach(p => p.classList.remove('active'));
             if(data.activePlayer) document.getElementById('ui-' + data.activePlayer)?.classList.add('active');
         }
 
         window.spinBottleAction = () => {
-            if(players.length < 2) return alert("Ən azı 2 nəfər!");
+            if(players.length < 2) return alert("Azı 2 nəfər!");
             const winnerIdx = Math.floor(Math.random() * players.length);
             const newRot = lastRot + 1800 + (winnerIdx * (360/players.length) - (lastRot % 360));
             update(ref(db, `rooms/${roomId}`), { rotation: newRot, status: 'spinning', activePlayer: null });
-            setTimeout(() => {
-                update(ref(db, `rooms/${roomId}`), { status: 'selected', activePlayer: players[winnerIdx].id });
-            }, 4000);
+            setTimeout(() => update(ref(db, `rooms/${roomId}`), { status: 'selected', activePlayer: players[winnerIdx].id }), 4000);
         };
 
         window.makeChoice = (type) => {
             const arr = type === 'truth' ? truthQuestions : dareTasks;
-            const text = arr[Math.floor(Math.random() * arr.length)];
-            
-            update(ref(db, `rooms/${roomId}`), { 
-                status: 'doing', type, text, currentAnswer: "", timeLeft: 30 
-            });
-
+            update(ref(db, `rooms/${roomId}`), { status: 'doing', type, text: arr[Math.floor(Math.random()*arr.length)], currentAnswer: "", timeLeft: 30 });
             let time = 30;
             const interval = setInterval(() => {
-                time--;
-                update(ref(db, `rooms/${roomId}`), { timeLeft: time });
-                if (time <= 0 || document.getElementById('task-modal').style.display === 'none') {
-                    clearInterval(interval);
-                }
+                time--; update(ref(db, `rooms/${roomId}`), { timeLeft: time });
+                if (time <= 0 || document.getElementById('task-modal').style.display === 'none') clearInterval(interval);
             }, 1000);
         };
 
         window.syncTyping = (val) => update(ref(db, `rooms/${roomId}`), { currentAnswer: val });
-
-        window.completeTurn = () => {
-            update(ref(db, `rooms/${roomId}`), { status: 'waiting', activePlayer: null, timeLeft: null });
-            document.getElementById('my-answer').value = "";
-        };
+        window.completeTurn = () => update(ref(db, `rooms/${roomId}`), { status: 'waiting', activePlayer: null, timeLeft: null });
     </script>
 </body>
 </html>
