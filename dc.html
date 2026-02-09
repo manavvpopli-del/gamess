@@ -3,38 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Doğruluq və ya Cəsarət - Pro Plus</title>
+    <title>Doğruluq və ya Cəsarət - Timer Edition</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap');
 
         body {
             font-family: 'Poppins', sans-serif;
-            background: #0f0c29;
-            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            background: radial-gradient(circle, #0f0c29, #302b63, #24243e);
             color: #fff; margin: 0; overflow: hidden;
             display: flex; justify-content: center; align-items: center; height: 100vh;
         }
 
-        /* Tarixçə Bölməsi */
-        #game-log {
-            position: absolute; left: 20px; top: 20px; width: 250px; height: 80vh;
-            background: rgba(0,0,0,0.5); border-radius: 15px; padding: 15px;
-            font-size: 0.85rem; overflow-y: auto; border: 1px solid rgba(255,255,255,0.1);
-            backdrop-filter: blur(10px);
+        /* Taymer - Ekranın Yuxarısında */
+        #timer-container {
+            position: absolute; top: 30px; left: 50%;
+            transform: translateX(-50%); text-align: center;
+            display: none; z-index: 100;
         }
-        .log-entry { margin-bottom: 10px; padding: 5px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .log-name { color: #ff416c; font-weight: bold; }
+        #timer-display {
+            font-size: 4rem; color: #ff4b2b; font-weight: bold;
+            text-shadow: 0 0 20px rgba(255, 75, 43, 0.6);
+        }
+        .timer-label { font-size: 0.9rem; letter-spacing: 2px; color: #aaa; }
 
         /* Giriş Ekranı */
         #login-screen {
-            background: rgba(255, 255, 255, 0.05); padding: 40px; border-radius: 30px;
+            background: rgba(0, 0, 0, 0.6); padding: 40px; border-radius: 30px;
             text-align: center; backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1);
-            z-index: 100;
         }
 
         input {
             padding: 15px; border-radius: 12px; border: none; margin: 10px;
-            width: 260px; font-size: 1rem; outline: none; background: rgba(255,255,255,0.9);
+            width: 260px; font-size: 1rem; outline: none; background: #fff; color: #333;
         }
 
         button {
@@ -57,15 +57,12 @@
         }
 
         .player {
-            position: absolute; width: 80px; height: 80px; background: #ff416c;
+            position: absolute; width: 85px; height: 85px; background: #ff416c;
             border-radius: 50%; display: flex; justify-content: center; align-items: center;
-            font-size: 0.8rem; font-weight: bold; transform: translate(-50%, -50%);
-            border: 3px solid #fff; transition: 0.5s; z-index: 10;
+            font-size: 0.85rem; font-weight: bold; transform: translate(-50%, -50%);
+            border: 3px solid #fff; transition: 0.5s; z-index: 10; text-align: center;
         }
-        .player.active { background: #f5af19; transform: translate(-50%, -50%) scale(1.2); box-shadow: 0 0 30px #f5af19; }
-
-        /* Taymer */
-        #timer-display { font-size: 2.5rem; color: #ff4b2b; font-weight: bold; margin-top: 10px; display: none; }
+        .player.active { background: #f5af19; scale: 1.2; box-shadow: 0 0 30px #f5af19; }
 
         /* Modal */
         .modal {
@@ -73,18 +70,22 @@
             background: rgba(0,0,0,0.9); justify-content: center; align-items: center; z-index: 1000;
         }
         .modal-content { background: #fff; color: #222; padding: 40px; border-radius: 25px; width: 450px; text-align: center; }
+        
+        #spin-btn { font-size: 1.5rem; margin-top: 20px; }
     </style>
 </head>
 <body>
 
     <audio id="bg-music" loop><source src="mmm.mp3" type="audio/mpeg"></audio>
     <audio id="spin-sound"><source src="https://www.soundjay.com/misc/sounds/spinning-wheel-1.mp3" type="audio/mpeg"></audio>
-    <audio id="stop-sound"><source src="https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3" type="audio/mpeg"></audio>
 
-    <div id="game-log"><strong>Oyun Tarixçəsi:</strong><br><br></div>
+    <div id="timer-container">
+        <div class="timer-label">VAXT BİTİR</div>
+        <div id="timer-display">30</div>
+    </div>
 
     <div id="login-screen">
-        <h1>BOTTLE GAME PRO</h1>
+        <h1>BOTTLE GAME</h1>
         <input type="text" id="username" placeholder="Adınız" maxlength="12">
         <input type="text" id="room-id" placeholder="Otaq Kodu" maxlength="6">
         <br>
@@ -92,17 +93,16 @@
     </div>
 
     <div id="game-area">
-        <div id="timer-display">30</div>
         <div class="table-container">
             <div class="table" id="table"></div>
             <div class="bottle" id="bottle"></div>
         </div>
-        <button id="spin-btn" onclick="spinBottleAction()" style="display:none; margin-top: 30px;">🍾 FIRLAT</button>
+        <button id="spin-btn" onclick="spinBottleAction()" style="display:none;">🍾 FIRLAT</button>
     </div>
 
     <div id="choice-modal" class="modal">
         <div>
-            <h1 style="color:white">Sıra Səndədir!</h1>
+            <h1 style="color:white">Seçimini et!</h1>
             <button onclick="makeChoice('truth')" style="background:#00b09b; margin:10px;">DOĞRULUQ</button>
             <button onclick="makeChoice('dare')" style="background:#8e44ad; margin:10px;">CƏSARƏT</button>
         </div>
@@ -110,21 +110,22 @@
 
     <div id="task-modal" class="modal">
         <div class="modal-content">
-            <h2 id="task-title"></h2>
-            <p id="task-text" style="font-size: 1.3rem;"></p>
-            <div style="background:#f4f4f4; padding:15px; border-radius:10px;">
-                <strong>Cavab:</strong> <span id="live-answer">...</span>
+            <h2 id="task-title" style="color:#ff416c">SUAL</h2>
+            <p id="task-text" style="font-size: 1.4rem; font-weight: bold;"></p>
+            <div style="background:#f4f4f4; padding:15px; border-radius:10px; margin: 20px 0;">
+                <small>CANLI CAVAB:</small><br>
+                <span id="live-answer" style="font-size: 1.2rem; color: #333;">...</span>
             </div>
-            <div id="input-zone" style="display:none; margin-top:20px;">
-                <input type="text" id="my-answer" oninput="syncTyping(this.value)" placeholder="Bura yaz..." style="width:100%; box-sizing:border-box;">
-                <button onclick="completeTurn()" style="width:100%; margin-top:10px;">BİTİR</button>
+            <div id="input-zone" style="display:none;">
+                <input type="text" id="my-answer" oninput="syncTyping(this.value)" placeholder="Cavabını yaz..." style="width:100%; border: 2px solid #ddd;">
+                <button onclick="completeTurn()" style="width:100%; margin-top:10px;">GÖNDƏR</button>
             </div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-        import { getDatabase, ref, set, onValue, update, onDisconnect, push } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+        import { getDatabase, ref, set, onValue, update, onDisconnect } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCM5WdZNSj9oFipNI-J3csHpOIvK8PjoLU",
@@ -139,16 +140,16 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        const truthQuestions = ["Ən böyük qorxun nədir?", "Heç vaxt kiməsə xəyanət etmisən?", "Telefonunda gizlətdiyin son şəkil nədir?", "Son yalanın nə olub?", "Kimi gizlicə sevirsən?"];
-        const dareTasks = ["10 dəfə otur-dur", "Mahnı oxu", "Pəncərədən qışqır", "Gülməli rəqs et"];
+        const truthQuestions = ["Ən böyük qorxun nədir?", "Heç vaxt kiməsə xəyanət etmisən?", "Telefonunda gizlətdiyin son şəkil nədir?", "Son yalanın nə idi?", "Kimi gizlicə sevirsən?"];
+        const dareTasks = ["10 dəfə otur-dur", "Mahnı oxu", "Limon ye", "Qəribə rəqs et"];
 
         let myId = 'p_' + Math.random().toString(36).substr(2, 5);
-        let roomId, myName, players = [], lastRot = 0, timerInterval;
+        let roomId, myName, players = [], lastRot = 0;
 
         window.joinGame = async () => {
             myName = document.getElementById('username').value.trim();
             roomId = document.getElementById('room-id').value.trim();
-            if(!myName || !roomId) return alert("Doldurun!");
+            if(!myName || !roomId) return alert("Məlumatları daxil edin!");
 
             document.getElementById('bg-music').play().catch(()=>{});
             document.getElementById('login-screen').style.display = 'none';
@@ -164,7 +165,10 @@
             onValue(ref(db, `rooms/${roomId}`), (snap) => {
                 const data = snap.val(); if(!data) return;
                 
-                if(data.players) { players = Object.values(data.players).sort((a,b) => a.time - b.time); renderPlayers(); }
+                if(data.players) { 
+                    players = Object.values(data.players).sort((a,b) => a.time - b.time); 
+                    renderPlayers(); 
+                }
                 
                 if(data.rotation !== undefined && data.rotation !== lastRot) {
                     lastRot = data.rotation;
@@ -172,10 +176,16 @@
                     document.getElementById('bottle').style.transform = `translate(-50%, -50%) rotate(${lastRot}deg)`;
                 }
 
-                if(data.status === 'selected') document.getElementById('stop-sound').play();
+                // Taymer məntiqi
+                const timerCont = document.getElementById('timer-container');
+                if(data.status === 'doing' && data.timeLeft !== undefined) {
+                    timerCont.style.display = 'block';
+                    document.getElementById('timer-display').innerText = data.timeLeft;
+                    if(data.timeLeft <= 0 && data.activePlayer === myId) completeTurn("Vaxt bitdi!");
+                } else {
+                    timerCont.style.display = 'none';
+                }
 
-                handleTimer(data);
-                updateHistory(data.history);
                 updateUI(data);
             });
         }
@@ -194,26 +204,6 @@
             });
         }
 
-        function handleTimer(data) {
-            const timerEl = document.getElementById('timer-display');
-            if(data.status === 'doing') {
-                timerEl.style.display = 'block';
-                timerEl.innerText = data.timeLeft || 30;
-            } else {
-                timerEl.style.display = 'none';
-            }
-        }
-
-        function updateHistory(history) {
-            const log = document.getElementById('game-log');
-            log.innerHTML = "<strong>Oyun Tarixçəsi:</strong><br><br>";
-            if(history) {
-                Object.values(history).reverse().forEach(h => {
-                    log.innerHTML += `<div class="log-entry"><span class="log-name">${h.user}</span>: ${h.ans}</div>`;
-                });
-            }
-        }
-
         function updateUI(data) {
             const status = data.status || 'waiting';
             document.getElementById('spin-btn').style.display = (status === 'waiting') ? 'block' : 'none';
@@ -221,47 +211,49 @@
             document.getElementById('task-modal').style.display = (status === 'doing') ? 'flex' : 'none';
             
             if(status === 'doing') {
+                document.getElementById('task-title').innerText = data.type === 'truth' ? "DOĞRULUQ" : "CƏSARƏT";
                 document.getElementById('task-text').innerText = data.text;
                 document.getElementById('live-answer').innerText = data.currentAnswer || "...";
                 document.getElementById('input-zone').style.display = (data.activePlayer === myId) ? 'block' : 'none';
             }
+            
+            document.querySelectorAll('.player').forEach(p => p.classList.remove('active'));
+            if(data.activePlayer) document.getElementById('ui-' + data.activePlayer)?.classList.add('active');
         }
 
         window.spinBottleAction = () => {
+            if(players.length < 2) return alert("Ən azı 2 nəfər!");
             const winnerIdx = Math.floor(Math.random() * players.length);
             const newRot = lastRot + 1800 + (winnerIdx * (360/players.length) - (lastRot % 360));
-            update(ref(db, `rooms/${roomId}`), { rotation: newRot, status: 'spinning' });
+            update(ref(db, `rooms/${roomId}`), { rotation: newRot, status: 'spinning', activePlayer: null });
             setTimeout(() => {
                 update(ref(db, `rooms/${roomId}`), { status: 'selected', activePlayer: players[winnerIdx].id });
             }, 4000);
         };
 
         window.makeChoice = (type) => {
-            const text = (type === 'truth' ? truthQuestions : dareTasks)[Math.floor(Math.random()*5)];
-            update(ref(db, `rooms/${roomId}`), { status: 'doing', type, text, currentAnswer: "", timeLeft: 30 });
+            const arr = type === 'truth' ? truthQuestions : dareTasks;
+            const text = arr[Math.floor(Math.random() * arr.length)];
             
-            // Taymer Başlatma (Yalnız seçilən oyunçuda işləyir və bazanı yeniləyir)
+            update(ref(db, `rooms/${roomId}`), { 
+                status: 'doing', type, text, currentAnswer: "", timeLeft: 30 
+            });
+
+            // Taymer Başladılması
             let time = 30;
-            clearInterval(timerInterval);
-            timerInterval = setInterval(() => {
+            const interval = setInterval(() => {
                 time--;
                 update(ref(db, `rooms/${roomId}`), { timeLeft: time });
-                if(time <= 0) {
-                    clearInterval(timerInterval);
-                    completeTurn("Vaxt bitdi!");
+                if (time <= 0 || document.getElementById('task-modal').style.display === 'none') {
+                    clearInterval(interval);
                 }
             }, 1000);
         };
 
         window.syncTyping = (val) => update(ref(db, `rooms/${roomId}`), { currentAnswer: val });
 
-        window.completeTurn = (manualAns) => {
-            clearInterval(timerInterval);
-            const ans = manualAns || document.getElementById('my-answer').value || "Cavab vermədi";
-            const histRef = ref(db, `rooms/${roomId}/history`);
-            push(histRef, { user: myName, ans: ans });
-
-            update(ref(db, `rooms/${roomId}`), { status: 'waiting', activePlayer: null, timeLeft: 30 });
+        window.completeTurn = (msg) => {
+            update(ref(db, `rooms/${roomId}`), { status: 'waiting', activePlayer: null, timeLeft: null });
             document.getElementById('my-answer').value = "";
         };
     </script>
