@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Doğruluq və ya Cəsarət - Full Chat Edition</title>
+    <title>Doğruluq və ya Cəsarət - Toggle Chat</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap');
 
@@ -14,50 +14,44 @@
             display: flex; justify-content: center; align-items: center; height: 100vh;
         }
 
+        /* Çat Düyməsi (Toggle) */
+        #chat-toggle {
+            position: absolute; right: 20px; bottom: 20px; width: 60px; height: 60px;
+            background: #ff416c; border-radius: 50%; display: none; justify-content: center;
+            align-items: center; cursor: pointer; z-index: 300; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            font-size: 1.5rem; transition: 0.3s;
+        }
+        #chat-toggle.has-new { animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 65, 108, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(255, 65, 108, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 65, 108, 0); } }
+
         /* Çat Paneli */
         #chat-container {
-            position: absolute; right: 20px; bottom: 20px; width: 280px; height: 350px;
-            background: rgba(0, 0, 0, 0.7); border-radius: 15px; display: none;
-            flex-direction: column; border: 1px solid rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px); z-index: 200;
+            position: absolute; right: 20px; bottom: 90px; width: 300px; height: 400px;
+            background: rgba(0, 0, 0, 0.85); border-radius: 20px; display: none;
+            flex-direction: column; border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px); z-index: 250; transition: 0.3s;
         }
-        #chat-messages { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 5px; }
-        .chat-msg { background: rgba(255, 255, 255, 0.1); padding: 5px 10px; border-radius: 8px; font-size: 0.8rem; }
+        #chat-messages { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 8px; }
+        .chat-msg { background: rgba(255, 255, 255, 0.1); padding: 8px 12px; border-radius: 12px; font-size: 0.85rem; word-break: break-all; }
         .chat-msg b { color: #ff416c; }
-        #chat-input-area { display: flex; padding: 10px; gap: 5px; }
-        #chat-input { flex: 1; padding: 8px; border-radius: 5px; border: none; outline: none; }
-        #chat-send { background: #ff416c; border: none; color: white; border-radius: 5px; cursor: pointer; padding: 0 10px; }
+        #chat-input-area { display: flex; padding: 10px; border-top: 1px solid rgba(255,255,255,0.1); gap: 5px; }
+        #chat-input { flex: 1; padding: 8px; border-radius: 8px; border: none; outline: none; }
+        #chat-send { background: #ff416c; border: none; color: white; border-radius: 8px; cursor: pointer; padding: 0 15px; }
 
-        /* Taymer */
-        #timer-container {
-            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
-            text-align: center; display: none; z-index: 100;
-        }
+        /* Oyun Sahəsi */
+        #timer-container { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); text-align: center; display: none; z-index: 100; }
         #timer-display { font-size: 3.5rem; color: #ff4b2b; font-weight: bold; }
 
-        /* Giriş Ekranı */
-        #login-screen {
-            background: rgba(0, 0, 0, 0.6); padding: 40px; border-radius: 30px; text-align: center;
-            backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1);
-        }
+        #login-screen { background: rgba(0, 0, 0, 0.6); padding: 40px; border-radius: 30px; text-align: center; backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); }
         input { padding: 12px; border-radius: 10px; margin: 10px; width: 250px; border: none; }
         button { padding: 12px 30px; border-radius: 10px; background: linear-gradient(45deg, #ff416c, #ff4b2b); color: #fff; border: none; cursor: pointer; font-weight: bold; }
         
         #game-area { display: none; align-items: center; width: 100%; height: 100%; justify-content: center; flex-direction: column; }
         .table-container { position: relative; width: 450px; height: 450px; }
         .table { width: 100%; height: 100%; background: radial-gradient(circle, #2c3e50, #000); border-radius: 50%; border: 10px solid #1a1a1a; position: relative; }
+        .bottle { width: 100px; height: 280px; background: url('bottle.png') no-repeat center center; background-size: contain; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); transition: transform 4s cubic-bezier(0.15, 0, 0.15, 1); z-index: 50; }
         
-        .bottle {
-            width: 100px; height: 280px; background: url('bottle.png') no-repeat center center;
-            background-size: contain; position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%); transition: transform 4s cubic-bezier(0.15, 0, 0.15, 1); z-index: 50;
-        }
-
-        .player {
-            position: absolute; width: 80px; height: 80px; background: #ff416c; border-radius: 50%;
-            display: flex; justify-content: center; align-items: center; font-size: 0.8rem; font-weight: bold;
-            transform: translate(-50%, -50%); border: 2px solid #fff; transition: 0.5s; text-align: center;
-        }
+        .player { position: absolute; width: 80px; height: 80px; background: #ff416c; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 0.8rem; font-weight: bold; transform: translate(-50%, -50%); border: 2px solid #fff; transition: 0.5s; text-align: center; }
         .player.active { background: #f5af19; scale: 1.2; box-shadow: 0 0 20px #f5af19; }
 
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); justify-content: center; align-items: center; z-index: 1000; }
@@ -86,10 +80,13 @@
 
         <button id="spin-btn" onclick="spinBottleAction()" style="display:none; margin-top: 30px;">🍾 FIRLAT</button>
 
+        <div id="chat-toggle" onclick="toggleChat()">💬</div>
+
         <div id="chat-container">
+            <div style="padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); font-weight: bold; text-align: center;">OTAQ ÇATI</div>
             <div id="chat-messages"></div>
             <div id="chat-input-area">
-                <input type="text" id="chat-input" placeholder="Yaz..." onkeypress="if(event.key==='Enter') sendMessage()">
+                <input type="text" id="chat-input" placeholder="Mesaj yaz..." onkeypress="if(event.key==='Enter') sendMessage()">
                 <button id="chat-send" onclick="sendMessage()">➤</button>
             </div>
         </div>
@@ -97,7 +94,7 @@
 
     <div id="choice-modal" class="modal">
         <div>
-            <h1 style="color:white">Sənsən! Seç:</h1>
+            <h1 style="color:white">Seçimini et:</h1>
             <button onclick="makeChoice('truth')" style="background:#00b09b; margin:10px;">DOĞRULUQ</button>
             <button onclick="makeChoice('dare')" style="background:#8e44ad; margin:10px;">CƏSARƏT</button>
         </div>
@@ -107,9 +104,7 @@
         <div class="modal-content">
             <h2 id="task-title" style="color:#ff416c"></h2>
             <p id="task-text" style="font-size: 1.2rem; font-weight: bold;"></p>
-            <div style="background:#f4f4f4; padding:10px; border-radius:10px; margin: 15px 0;">
-                <span id="live-answer" style="color: #333; font-weight: bold;">...</span>
-            </div>
+            <div style="background:#f4f4f4; padding:10px; border-radius:10px; margin: 15px 0;"><span id="live-answer" style="color:#333; font-weight:bold;">...</span></div>
             <div id="input-zone" style="display:none;">
                 <input type="text" id="my-answer" oninput="syncTyping(this.value)" placeholder="Cavabın...">
                 <button onclick="completeTurn()" style="width:100%; margin-top:5px;">BİTİR</button>
@@ -134,6 +129,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
+        // --- 100 SUAL ---
         const truthQuestions = [
             "Ən böyük qorxun nədir?", "Heç vaxt kiməsə xəyanət etmisən?", "Telefonunda gizlətdiyin son şəkil nədir?", "Buradakı kimdən xoşun gəlir?", "Uşaqlıqda etdiyin ən utancverici hərəkət?",
             "Heç sevmədiyin halda kiməsə 'səni sevirəm' demisən?", "Ən son nə vaxt ağlamısan?", "Whatsapp-da ən son kimə mesaj yazmısan?", "Keçmiş sevgilin haqqında nə düşünürsən?", "Görünməz olsan ilk nə edərdin?",
@@ -156,21 +152,20 @@
             "İntihar barədə düşünmüsən?", "Adını dəyişsən nə qoyardın?", "Məktəbdən qaçmısan?", "Pul xoşbəxtlikdir?", "Ən sevdiyin rəng?",
             "Kiminsə evində nəyisə sındırmısan?", "Dünya düzdür yoxsa yumru?", "Ən böyük uğursuzluğun?", "Heç kimə paxıllıq etmisən?", "İdeal partnyorun necədir?"
         ];
-
         const dareTasks = ["10 dəfə otur-dur", "Mahnı oxu", "Qəribə rəqs et", "Pəncərədən qışqır", "Ağzına su al gülmə", "Yanındakını qucaqla"];
 
         let myId = 'p_' + Math.random().toString(36).substr(2, 5);
-        let roomId, myName, players = [], lastRot = 0;
+        let roomId, myName, players = [], lastRot = 0, isChatOpen = false;
 
         window.joinGame = () => {
             myName = document.getElementById('username').value.trim();
             roomId = document.getElementById('room-id').value.trim();
-            if(!myName || !roomId) return alert("Boş buraxmayın!");
+            if(!myName || !roomId) return alert("Doldurun!");
 
             document.getElementById('bg-music').play().catch(()=>{});
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('game-area').style.display = 'flex';
-            document.getElementById('chat-container').style.display = 'flex';
+            document.getElementById('chat-toggle').style.display = 'flex';
 
             set(ref(db, `rooms/${roomId}/players/${myId}`), { id: myId, name: myName, time: Date.now() });
             onDisconnect(ref(db, `rooms/${roomId}/players/${myId}`)).remove();
@@ -179,6 +174,35 @@
             listenChat();
         };
 
+        window.toggleChat = () => {
+            isChatOpen = !isChatOpen;
+            document.getElementById('chat-container').style.display = isChatOpen ? 'flex' : 'none';
+            document.getElementById('chat-toggle').classList.remove('has-new');
+            if(isChatOpen) setTimeout(() => document.getElementById('chat-input').focus(), 100);
+        };
+
+        function listenChat() {
+            const chatRef = query(ref(db, `rooms/${roomId}/chat`), limitToLast(20));
+            onValue(chatRef, (snap) => {
+                const messagesDiv = document.getElementById('chat-messages');
+                messagesDiv.innerHTML = "";
+                snap.forEach((child) => {
+                    const m = child.val();
+                    messagesDiv.innerHTML += `<div class="chat-msg"><b>${m.user}:</b> ${m.text}</div>`;
+                });
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+                if(!isChatOpen) document.getElementById('chat-toggle').classList.add('has-new');
+            });
+        }
+
+        window.sendMessage = () => {
+            const input = document.getElementById('chat-input');
+            if(!input.value.trim()) return;
+            push(ref(db, `rooms/${roomId}/chat`), { user: myName, text: input.value });
+            input.value = "";
+        };
+
+        // Digər mexanizmlər (Render, UI Update, Spin və s.)
         function listenRoom() {
             onValue(ref(db, `rooms/${roomId}`), (snap) => {
                 const data = snap.val(); if(!data) return;
@@ -196,26 +220,6 @@
                 updateUI(data);
             });
         }
-
-        function listenChat() {
-            const chatRef = query(ref(db, `rooms/${roomId}/chat`), limitToLast(15));
-            onValue(chatRef, (snap) => {
-                const messagesDiv = document.getElementById('chat-messages');
-                messagesDiv.innerHTML = "";
-                snap.forEach((child) => {
-                    const m = child.val();
-                    messagesDiv.innerHTML += `<div class="chat-msg"><b>${m.user}:</b> ${m.text}</div>`;
-                });
-                messagesDiv.scrollTop = messagesDiv.scrollHeight;
-            });
-        }
-
-        window.sendMessage = () => {
-            const input = document.getElementById('chat-input');
-            if(!input.value.trim()) return;
-            push(ref(db, `rooms/${roomId}/chat`), { user: myName, text: input.value });
-            input.value = "";
-        };
 
         function renderPlayers() {
             const table = document.getElementById('table'); table.innerHTML = "";
