@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Doğruluq və ya Cəsarət - Timer Edition</title>
+    <title>Doğruluq və ya Cəsarət - Full Version</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap');
 
@@ -14,7 +14,6 @@
             display: flex; justify-content: center; align-items: center; height: 100vh;
         }
 
-        /* Taymer - Ekranın Yuxarısında */
         #timer-container {
             position: absolute; top: 30px; left: 50%;
             transform: translateX(-50%); text-align: center;
@@ -24,9 +23,7 @@
             font-size: 4rem; color: #ff4b2b; font-weight: bold;
             text-shadow: 0 0 20px rgba(255, 75, 43, 0.6);
         }
-        .timer-label { font-size: 0.9rem; letter-spacing: 2px; color: #aaa; }
 
-        /* Giriş Ekranı */
         #login-screen {
             background: rgba(0, 0, 0, 0.6); padding: 40px; border-radius: 30px;
             text-align: center; backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1);
@@ -43,7 +40,6 @@
             cursor: pointer; font-weight: bold; transition: 0.3s;
         }
 
-        /* Oyun Sahəsi */
         #game-area { display: none; flex-direction: column; align-items: center; }
         
         .table-container { position: relative; width: 500px; height: 500px; display: flex; justify-content: center; align-items: center; }
@@ -64,7 +60,6 @@
         }
         .player.active { background: #f5af19; scale: 1.2; box-shadow: 0 0 30px #f5af19; }
 
-        /* Modal */
         .modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.9); justify-content: center; align-items: center; z-index: 1000;
@@ -80,7 +75,6 @@
     <audio id="spin-sound"><source src="https://www.soundjay.com/misc/sounds/spinning-wheel-1.mp3" type="audio/mpeg"></audio>
 
     <div id="timer-container">
-        <div class="timer-label">VAXT BİTİR</div>
         <div id="timer-display">30</div>
     </div>
 
@@ -110,14 +104,13 @@
 
     <div id="task-modal" class="modal">
         <div class="modal-content">
-            <h2 id="task-title" style="color:#ff416c">SUAL</h2>
-            <p id="task-text" style="font-size: 1.4rem; font-weight: bold;"></p>
+            <h2 id="task-title" style="color:#ff416c"></h2>
+            <p id="task-text" style="font-size: 1.3rem; font-weight: bold;"></p>
             <div style="background:#f4f4f4; padding:15px; border-radius:10px; margin: 20px 0;">
-                <small>CANLI CAVAB:</small><br>
                 <span id="live-answer" style="font-size: 1.2rem; color: #333;">...</span>
             </div>
             <div id="input-zone" style="display:none;">
-                <input type="text" id="my-answer" oninput="syncTyping(this.value)" placeholder="Cavabını yaz..." style="width:100%; border: 2px solid #ddd;">
+                <input type="text" id="my-answer" oninput="syncTyping(this.value)" placeholder="Cavabını yaz...">
                 <button onclick="completeTurn()" style="width:100%; margin-top:10px;">GÖNDƏR</button>
             </div>
         </div>
@@ -140,8 +133,36 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        const truthQuestions = ["Ən böyük qorxun nədir?", "Heç vaxt kiməsə xəyanət etmisən?", "Telefonunda gizlətdiyin son şəkil nədir?", "Son yalanın nə idi?", "Kimi gizlicə sevirsən?"];
-        const dareTasks = ["10 dəfə otur-dur", "Mahnı oxu", "Limon ye", "Qəribə rəqs et"];
+        // --- 100 DOĞRULUQ SUALLARI ---
+        const truthQuestions = [
+            "Ən böyük qorxun nədir?", "Heç kiməsə xəyanət etmisən?", "Telefonunda gizlətdiyin son şəkil nədir?", "Kimi gizlicə sevirsən?", "Son yalanın nə idi?", 
+            "Heç mağazadan nəsə oğurlamısan?", "Ən utancverici xatirən nədir?", "Heç sevgilinə yalan danışmısan?", "Buradakı kimdən xoşun gəlmir?", "Uşaqlıqda etdiyin ən böyük səhv?",
+            "Heç kiminsə diş fırçasını istifadə etmisən?", "Güzgüyə baxanda ilk nə düşünürsən?", "Heç polislə problemin olub?", "Ən pis vərdişin nədir?", "Səni ən çox nə ağladır?",
+            "Heç kiminsə mesajlarını gizlicə oxumusan?", "Yatanda xoruldayırsan?", "Ən çox kimə paxıllıq edirsən?", "İdeal sevgilin necə olmalıdır?", "Heç bir gündə iki nəfərlə görüşmüsən?",
+            "Aldığın ən pis hədiyyə nə olub?", "Heç burnunu qurdalayıb kiməsə sürtmüsən?", "Məktəbdə ən çox nifrət etdiyin müəllim kim idi?", "Heç kiməsə böhtan atmısan?", "Ən çox nədən qorxursan?",
+            "Heç valideynlərinin pulqabısından pul götürmüsən?", "Səni ən çox nə əsəbiləşdirir?", "Heç ayaqyolunda mahnı oxumusan?", "Ən sevdiyin söyüş hansıdır?", "Heç saxta profilin olub?",
+            "Kiminlə adaya düşmək istərdin?", "Heç lift-də qaz buraxmısan?", "Görünməz olsan ilk nə edərdin?", "Keçmiş sevgilinə hələ də nifrət edirsən?", "Ən son nəyə görə ağlamısan?",
+            "Heç kiminsə evində nəyisə sındırıb gizlətmisən?", "Özündə ən çox bəyəndiyin şey nədir?", "Heç kiməsə qarşı qərəzli olmusan?", "Ən axmaq ləqəbin nə olub?", "Səncə buradakı ən yaraşıqlı/gözəl kimdir?",
+            "Heç heyvanla danışmısan?", "Həyatında etdiyin ən cəsur hərəkət?", "Keçmişə qayıtsaydın nəyi dəyişərdin?", "Heç qonşunun qapısını döyüb qaçmısan?", "Ən sevdiyin uşaqlıq cizgi filmi?",
+            "Heç kimin yeməyinə tüpürmüsən?", "Burnunu qurdalayırsan?", "Səncə pul xoşbəxtlik gətirir?", "Heç kimin sirrini yaymısan?", "Ən böyük peşmanlığın nədir?",
+            "Heç öz toyunda qaçmağı düşünmüsən?", "Ən sevdiyin məşhur kimdir?", "Heç kiməsə yumruq atmısan?", "İndiyə qədər dediyin ən böyük yalan?", "Heç sevgilinə xəyanət etməyi düşünmüsən?",
+            "Gecə yarı nə düşünürsən?", "Heç kiməsə nifrət etmisən?", "Ən son kimə mesaj yazmısan?", "Heç imtahanda köçürmüsən?", "Ən pis geyim tərzin necə olub?",
+            "Heç kiminsə şəklinə baxıb ağlamısan?", "Bədənində ən bəyənmədiyin yer?", "Heç qəribə bir şey yemisən?", "Uğursuz ilk görüşün necə olub?", "Heç birini izləmisən (stalk)?",
+            "Ən çox hansı fəsli sevirsən?", "Heç kiməsə həsəd aparmısan?", "Ən böyük xəyalın nədir?", "Səhər oyananda ilk nə edirsən?", "Heç kimin ad gününü unutmusan?",
+            "Səncə yadplanetlilər var?", "Heç sevdiyin adamın qabağında yıxılmısan?", "Ən sevdiyin yemək nədir?", "Heç kiməsə pislik etmisən?", "Özünə yalan danışırsan?",
+            "Heç kimin telefonunu gizlicə qurcalamısan?", "Ən sevdiyin rəng?", "Heç dənizdə işəmisən?", "Səncə dünya necə yaranıb?", "Heç bir şeyi sındırıb günahı başqasına atmısan?",
+            "Ən son nə vaxt duş almısan?", "Gündə neçə dəfə güzgüyə baxırsan?", "Heç məktəbdən qaçmısan?", "Ən sevdiyin mahnı?", "Heç kiminsə geyimi ilə lağ etmisən?",
+            "Bura gəlməzdən əvvəl nə edirdin?", "Heç kiməsə hədiyyə alıb sonra özün istifadə etmisən?", "Səncə eşq nədir?", "Heç kimin ayaqqabısını iyləmisən?", "Ən çox hansı ölkəyə getmək istərdin?",
+            "Heç qaranlıqdan qorxursan?", "Səncə buradakı kim ən çox yalan danışır?", "Heç kiməsə borc verib geri ala bilməmisən?", "Ən son yediyin yemək?", "Heç kimin adını səhv demisən?",
+            "Həyatının ən xoşbəxt günü hansı idi?", "Heç kimə qəlbini sındırdığın üçün üzr istəmisən?", "Ən sevdiyin heyvan?", "Heç yuxuda ağlamısan?", "Səncə bu oyun bitəndə nə olacaq?"
+        ];
+
+        // --- CƏSARƏT TAPŞIRIQLARI ---
+        const dareTasks = [
+            "10 dəfə otur-dur et", "Mahnı oxu", "Limon ye (və ya xəyalən)", "Qəribə rəqs et", "Pəncərədən 'Mən dəliyəm' qışqır",
+            "Ağzına su al və 1 dəqiqə gülmə", "Yanındakı oyunçunun əlini öp", "Hər kəsə komik bir hekayə danış", "1 dəqiqə tək ayaq üstə dur",
+            "Ən çirkin üz ifadəni al və selfi çək", "Hər kəsə çay/su gətir", "1 dəqiqə ərzində heç nə danışma", "İt kimi hür", "Meymun hərəkətləri et"
+        ];
 
         let myId = 'p_' + Math.random().toString(36).substr(2, 5);
         let roomId, myName, players = [], lastRot = 0;
@@ -149,7 +170,7 @@
         window.joinGame = async () => {
             myName = document.getElementById('username').value.trim();
             roomId = document.getElementById('room-id').value.trim();
-            if(!myName || !roomId) return alert("Məlumatları daxil edin!");
+            if(!myName || !roomId) return alert("Doldurun!");
 
             document.getElementById('bg-music').play().catch(()=>{});
             document.getElementById('login-screen').style.display = 'none';
@@ -176,7 +197,6 @@
                     document.getElementById('bottle').style.transform = `translate(-50%, -50%) rotate(${lastRot}deg)`;
                 }
 
-                // Taymer məntiqi
                 const timerCont = document.getElementById('timer-container');
                 if(data.status === 'doing' && data.timeLeft !== undefined) {
                     timerCont.style.display = 'block';
@@ -239,7 +259,6 @@
                 status: 'doing', type, text, currentAnswer: "", timeLeft: 30 
             });
 
-            // Taymer Başladılması
             let time = 30;
             const interval = setInterval(() => {
                 time--;
@@ -252,7 +271,7 @@
 
         window.syncTyping = (val) => update(ref(db, `rooms/${roomId}`), { currentAnswer: val });
 
-        window.completeTurn = (msg) => {
+        window.completeTurn = () => {
             update(ref(db, `rooms/${roomId}`), { status: 'waiting', activePlayer: null, timeLeft: null });
             document.getElementById('my-answer').value = "";
         };
