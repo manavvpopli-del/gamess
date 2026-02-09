@@ -3,13 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Doğruluq və ya Cəsarət - Multiplayer</title>
+    <title>Doğruluq və ya Cəsarət - Pro</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap');
 
         body {
             font-family: 'Poppins', sans-serif;
-            background: #1a1a2e;
+            background: #0f0c29;  /* fallback for old browsers */
+            background: -webkit-linear-gradient(to right, #24243e, #302b63, #0f0c29);  /* Chrome 10-25, Safari 5.1-6 */
+            background: linear-gradient(to right, #24243e, #302b63, #0f0c29); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
             color: #fff;
             margin: 0;
             overflow: hidden;
@@ -21,35 +23,47 @@
 
         /* Giriş Ekranı */
         #login-screen {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 2rem;
-            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 3rem;
+            border-radius: 20px;
             text-align: center;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(15px);
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
             z-index: 100;
+            border: 1px solid rgba(255,255,255,0.1);
         }
 
+        h1 { margin-bottom: 20px; font-size: 2.5rem; text-transform: uppercase; letter-spacing: 2px; }
+
         input {
-            padding: 10px;
-            border-radius: 5px;
+            padding: 15px;
+            border-radius: 30px;
             border: none;
-            margin: 5px;
-            width: 200px;
+            margin: 10px;
+            width: 250px;
+            text-align: center;
+            font-size: 1rem;
+            outline: none;
+            background: rgba(255,255,255,0.9);
         }
 
         button {
-            padding: 10px 20px;
-            border-radius: 5px;
+            padding: 15px 40px;
+            border-radius: 30px;
             border: none;
-            background: #e94560;
+            background: linear-gradient(45deg, #ff416c, #ff4b2b);
             color: white;
             cursor: pointer;
             font-weight: bold;
+            font-size: 1.1rem;
             transition: 0.3s;
+            margin-top: 20px;
+            box-shadow: 0 5px 15px rgba(255, 75, 43, 0.4);
         }
 
         button:hover {
-            background: #ff2e63;
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(255, 75, 43, 0.6);
         }
 
         /* Oyun Sahəsi */
@@ -58,77 +72,87 @@
             position: relative;
             width: 100%;
             height: 100%;
-            display: flex; /* Dəyişdirildi JS ilə */
+            flex-direction: column;
             justify-content: center;
             align-items: center;
         }
 
         .table {
-            width: 300px;
-            height: 300px;
-            background: #16213e;
+            width: 320px;
+            height: 320px;
+            background: radial-gradient(circle, #2a2a2a 0%, #000000 100%);
             border-radius: 50%;
             position: relative;
-            border: 5px solid #0f3460;
-            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            border: 8px solid #444;
+            box-shadow: 0 0 60px rgba(0,0,0,0.8), inset 0 0 20px rgba(0,0,0,0.8);
         }
 
         .bottle-container {
             position: absolute;
             top: 50%;
             left: 50%;
-            width: 100px;
-            height: 100px;
-            transform: translate(-50%, -50%);
+            width: 0;
+            height: 0;
             z-index: 10;
         }
 
         .bottle {
-            width: 60px;
-            height: 200px;
-            background: url('https://cdn-icons-png.flaticon.com/512/3100/3100593.png') no-repeat center center; /* Butulka ikonu */
+            width: 80px;
+            height: 240px;
+            /* Yeni Butulka Şəkli */
+            background: url('https://purepng.com/public/uploads/large/purepng.com-green-glass-bottlebottleglass-bottlecontainergreen-bottle-1701528343725d99gs.png') no-repeat center center;
             background-size: contain;
             position: absolute;
             top: 50%;
             left: 50%;
             transform-origin: center center;
-            margin-top: -100px; /* Mərkəzləmə */
-            margin-left: -30px;
+            margin-top: -120px; /* Hündürlüyün yarısı */
+            margin-left: -40px; /* Enin yarısı */
             transition: transform 3s cubic-bezier(0.25, 0.1, 0.25, 1);
-            filter: drop-shadow(0 10px 10px rgba(0,0,0,0.5));
+            filter: drop-shadow(5px 10px 10px rgba(0,0,0,0.6));
         }
 
         .player {
             position: absolute;
-            width: 60px;
-            height: 60px;
-            background: #e94560;
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(45deg, #2193b0, #6dd5ed);
             border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 0.8rem;
+            font-size: 0.9rem;
             font-weight: bold;
             text-align: center;
             transform: translate(-50%, -50%);
-            box-shadow: 0 0 10px #e94560;
+            box-shadow: 0 0 15px rgba(33, 147, 176, 0.5);
+            border: 2px solid white;
             transition: all 0.3s;
+            overflow: hidden;
+            word-break: break-all;
+            padding: 5px;
         }
 
         .player.active {
-            background: #fcdab7;
-            color: #000;
-            box-shadow: 0 0 20px #fcdab7;
+            background: linear-gradient(45deg, #f12711, #f5af19);
+            transform: translate(-50%, -50%) scale(1.2);
+            box-shadow: 0 0 30px rgba(245, 175, 25, 0.8);
             z-index: 20;
+            border: 2px solid #fff;
         }
 
         /* İdarəetmə Paneli */
         .controls {
             position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
+            bottom: 40px;
             text-align: center;
+            width: 100%;
+        }
+        
+        #status-text {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.5);
         }
 
         /* Modal Pəncərə */
@@ -137,57 +161,74 @@
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85);
+            background: rgba(0,0,0,0.9);
             justify-content: center;
             align-items: center;
             flex-direction: column;
             z-index: 1000;
             text-align: center;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         .modal-content {
             background: #fff;
             color: #333;
-            padding: 30px;
+            padding: 40px;
             border-radius: 20px;
             max-width: 90%;
-            width: 400px;
-            box-shadow: 0 0 30px rgba(233, 69, 96, 0.5);
+            width: 500px;
+            box-shadow: 0 0 50px rgba(255, 255, 255, 0.2);
+            position: relative;
         }
 
         .choice-btn {
-            width: 150px;
-            margin: 10px;
-            padding: 15px;
-            font-size: 1.2rem;
-        }
-
-        .choice-truth { background: #3498db; }
-        .choice-dare { background: #e74c3c; }
-
-        .question-text {
-            font-size: 1.5rem;
-            margin-bottom: 20px;
-            font-weight: bold;
-            color: #2c3e50;
+            width: 160px;
+            margin: 15px;
+            padding: 20px;
+            font-size: 1.3rem;
+            border-radius: 15px;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.2s;
         }
         
-        #room-info {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            font-size: 0.9rem;
-            opacity: 0.7;
+        .choice-btn:hover { transform: scale(1.05); }
+        .choice-truth { background: linear-gradient(45deg, #00b09b, #96c93d); }
+        .choice-dare { background: linear-gradient(45deg, #8e2de2, #4a00e0); }
+
+        .question-text {
+            font-size: 1.6rem;
+            margin: 30px 0;
+            font-weight: bold;
+            color: #2c3e50;
+            line-height: 1.4;
+        }
+        
+        #task-type-title {
+            font-size: 2rem;
+            text-transform: uppercase;
+            color: #e74c3c;
+            letter-spacing: 3px;
         }
 
-        .music-control {
+        #room-info {
             position: absolute;
-            top: 10px;
-            right: 10px;
-            background: none;
-            border: 1px solid #fff;
-            font-size: 0.8rem;
+            top: 20px;
+            left: 20px;
+            font-size: 1rem;
+            background: rgba(0,0,0,0.5);
+            padding: 10px 20px;
+            border-radius: 20px;
         }
+
+        /* Gizli musiqi elementi */
+        audio { display: none; }
 
     </style>
 </head>
@@ -200,16 +241,15 @@
 
     <div id="login-screen">
         <h1>Doğruluq vs Cəsarət</h1>
-        <p>Otaq yaradın və ya qoşulun</p>
-        <input type="text" id="username" placeholder="Adınız" maxlength="10">
-        <input type="text" id="room-id" placeholder="Otaq Kodu (məs: 123)" maxlength="5">
-        <br><br>
-        <button onclick="joinGame()">Oyuna Başla</button>
+        <p>Otaq yaradın və ya mövcud otağa qoşulun</p>
+        <input type="text" id="username" placeholder="Adınız (məs: Əli)" maxlength="12">
+        <input type="text" id="room-id" placeholder="Otaq Kodu (məs: 555)" maxlength="6">
+        <br>
+        <button onclick="joinGame()">OYUNA BAŞLA</button>
     </div>
 
-    <div id="game-area" style="display: none;">
-        <div id="room-info">Otaq: <span id="display-room"></span> | Oyunçu: <span id="display-name"></span></div>
-        <button class="music-control" onclick="toggleMusic()">🎵 Musiqi</button>
+    <div id="game-area">
+        <div id="room-info">Otaq: <strong id="display-room">...</strong> | Oyunçu: <strong id="display-name">...</strong></div>
         
         <div class="table" id="table">
             <div class="bottle-container">
@@ -219,15 +259,15 @@
 
         <div class="controls">
             <h2 id="status-text">Digər oyunçular gözlənilir...</h2>
-            <button id="spin-btn" onclick="spinBottleAction()" style="display:none; font-size: 1.2rem;">🍾 Butulkanı Fırlat</button>
+            <button id="spin-btn" onclick="spinBottleAction()" style="display:none;">🍾 BUTULKANI FIRLAT</button>
         </div>
     </div>
 
     <div id="choice-modal" class="modal">
-        <h2 style="color:white; margin-bottom: 20px;">Seçimini Et!</h2>
+        <h2 style="color:white; font-size: 3rem; margin-bottom: 30px;">Seçimini Et!</h2>
         <div>
-            <button class="choice-btn choice-truth" onclick="makeChoice('truth')">Doğruluq</button>
-            <button class="choice-btn choice-dare" onclick="makeChoice('dare')">Cəsarət</button>
+            <button class="choice-btn choice-truth" onclick="makeChoice('truth')">DOĞRULUQ</button>
+            <button class="choice-btn choice-dare" onclick="makeChoice('dare')">CƏSARƏT</button>
         </div>
     </div>
 
@@ -235,13 +275,13 @@
         <div class="modal-content">
             <h3 id="task-type-title">SUAL</h3>
             <p class="question-text" id="task-text">...</p>
-            <button onclick="completeTurn()">Tamamladım</button>
+            <button onclick="completeTurn()">TAMAMLADIM</button>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-        import { getDatabase, ref, set, onValue, update, push, onDisconnect, remove } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+        import { getDatabase, ref, set, onValue, update, onDisconnect } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCM5WdZNSj9oFipNI-J3csHpOIvK8PjoLU",
@@ -257,25 +297,141 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // --- MƏLUMAT BAZASI (Suallar) ---
+        // --- 100 DOĞRULUQ SUALI ---
         const truthQuestions = [
-            "Ən böyük qorxun nədir?", "Heç vaxt kiməsə xəyanət etmisən?", "Telefonunda gizlətdiyin son şəkil nədir?",
-            "Buradakı oyunçulardan kiminlə adaya düşmək istərdin?", "Uşaqlığında etdiyin ən utancverici hərəkət?",
-            "Heç sevmədiyin halda kiməsə 'səni sevirəm' demisən?", "Ən son nə vaxt ağlamısan və niyə?",
-            "Whatsapp-da ən son kimə mesaj yazmısan?", "Keçmiş sevgilin haqqında nə düşünürsən?",
-            "Bir gün görünməz olsan ilk nə edərdin?", "Özündə bəyənmədiyin 3 xüsusiyyət?",
-            "Heç mağazadan oğurluq etmisən?", "Valideynlərinə dediyin ən böyük yalan nə olub?",
-            "Buradakı oyunçulardan kimin geyim tərzini bəyənmirsən?", "Telefonunun qalereyasındakı 10-cu şəkli göstər."
+            "Ən böyük qorxun nədir?", 
+            "Heç vaxt kiməsə xəyanət etmisən?", 
+            "Telefonunda gizlətdiyin son şəkil nədir?",
+            "Buradakı oyunçulardan kiminlə adaya düşmək istərdin?", 
+            "Uşaqlığında etdiyin ən utancverici hərəkət?",
+            "Heç sevmədiyin halda kiməsə 'səni sevirəm' demisən?", 
+            "Ən son nə vaxt ağlamısan və niyə?",
+            "Whatsapp-da ən son kimə mesaj yazmısan?", 
+            "Keçmiş sevgilin haqqında nə düşünürsən?",
+            "Bir gün görünməz olsan ilk nə edərdin?", 
+            "Özündə bəyənmədiyin 3 xüsusiyyət?",
+            "Heç mağazadan oğurluq etmisən?", 
+            "Valideynlərinə dediyin ən böyük yalan nə olub?",
+            "Buradakı oyunçulardan kimin geyim tərzini bəyənmirsən?", 
+            "Telefonunun qalereyasındakı 10-cu şəkli göstər.",
+            "Əgər cinsiyyətini dəyişsəydin, edəcəyin ilk şey nə olardı?",
+            "Heç ictimai yerdə bərkdən qaz buraxmısan?",
+            "Ən axmaq ləqəbin nə olub?",
+            "Duş qəbul edərkən mahnı oxuyursan?",
+            "Heç dostunun sevgilisinə aşiq olmusan?",
+            "Ən son nə vaxt yalan danışmısan?",
+            "Telefonunun brauzer tarixçəsini hamıya göstərə bilərsən?",
+            "Kiminsə diş fırçasını gizlicə istifadə etmisən?",
+            "Əgər bu otaqdan bir nəfəri evlənmək üçün seçməli olsan, kimi seçərdin?",
+            "Sərxoş olub etdiyin ən axmaq hərəkət?",
+            "Heç polislə problemin olub?",
+            "Buradakı kimin ən çox yalan danışdığını düşünürsən?",
+            "Həyatında ən çox peşman olduğun an?",
+            "İndiyə qədər aldığın ən pis hədiyyə?",
+            "Heç kiminsə yeməyinə tüpürmüsən?",
+            "Tək qalanda burnunu qurdalayırsan?",
+            "Yuxuda danışırsan və ya xoruldayırsan?",
+            "Ən çox kimə qibtə edirsən?",
+            "Heç valideynlərinin pulqabısından pul götürmüsən?",
+            "Əgər öləcəyini bilsəydin, son zəngini kimə edərdin?",
+            "Bədənində ən bəyəndiyin yer haradır?",
+            "İlk öpüşün necə olub?",
+            "Heç saxta profil açıb kimi isə izləmisən?",
+            "Müəllimini bəyənmisən?",
+            "İmtahanda köçürmə etmisən?",
+            "Yolda pul tapsan sahibini axtararsan yoxsa götürərsən?",
+            "Ən iyrənc vərdişin nədir?",
+            "Heç vanna otağında işiyibsan?",
+            "Hansı məşhura aşiqsən?",
+            "Telefonundakı ən son silinmiş mesaj nə idi?",
+            "Buradakı kiminlə heç vaxt yola getməzsən?",
+            "Ən son nə vaxt duş qəbul etmisən?",
+            "Gündə neçə dəfə güzgüyə baxırsan?",
+            "Özünə yalan danışdığın an olubmu?",
+            "Heç kiminsə sirrini başqasına demisən?",
+            "Keçmiş sevgilini bloklamısan?",
+            "Sosial şəbəkədə kimisə 'stalk' edirsən?",
+            "Əgər 1 milyon manatın olsa, ilk nə alarsan?",
+            "Ən son nəyə görə gülmüsən?",
+            "Heç heyvanlarla danışırsan?",
+            "Uşaq vaxtı ən sevdiyin oyuncaq nə idi?",
+            "Yatağının altında qorxulu bir şey olduğunu düşünürsən?",
+            "Ən son oxuduğun kitab?",
+            "Kinoda ağlamısan?",
+            "Heç eyni alt paltarını iki gün ardıcıl geyinmisən?",
+            "Ayaq barmaqlarının şəkillərini çəkmisən?",
+            "Heç kiminsə mesajlarını gizlicə oxumusan?",
+            "Əgər heyvan olsaydın, hansı olardın?",
+            "Heç lift-də qaz buraxıb başqasının üstünə atmısan?",
+            "Ən böyük xəyalın nədir?",
+            "Səncə buradakı ən ağıllı insan kimdir?",
+            "Heç kiminsə ad gününü unutmusan?",
+            "Əgər keçmişə qayıda bilsəydin, nəyi dəyişərdin?",
+            "Ən çox nədən utanarsan?",
+            "Heç sevmədiyin yeməyi qonaqlıqda məcbur yemisən?",
+            "Səni ən tez nə əsəbiləşdirir?",
+            "Heç kiməsə yumruq atmısan?",
+            "Gələcəyi görmək istərdin?",
+            "Cibində adətən nə qədər pul olur?",
+            "Heç avtobusda və ya metroda yatmısan?",
+            "Ən pis geyim tərzin necə olub?",
+            "Heç saçını rənglətmək istəmisən, amma cəsarət etməmisən?",
+            "Səncə yadplanetlilər var?",
+            "Heç ruh çağırmısan?",
+            "Ən çox hansı fəsili sevirsən və niyə?",
+            "Heç diş həkimindən qorxmusan?",
+            "Səhər yuxudan duranda ilk işin nə olur?",
+            "Yatmazdan əvvəl nə düşünürsən?",
+            "Heç kimisə döymək istəmisən?",
+            "Ən sevdiyin söyüş hansıdır?",
+            "Heç kiminsə şəklinə baxıb ağlamısan?",
+            "Öz toyunda hansı mahnının çalınmasını istərdin?",
+            "Heç sevgilinə xəyanət etməyi düşünmüsən?",
+            "Ən son yediyin yemək?",
+            "Səni bu həyatda ən çox kim başa düşür?",
+            "Heç intihar etməyi düşünmüsən?",
+            "Əgər adını dəyişsəydin, nə qoyardın?",
+            "Heç məktəbdən qaçmısan?",
+            "Səncə pul xoşbəxtlik gətirir?",
+            "Ən çox hansı rəngi sevirsən?",
+            "Heç kiminsə evində nəyisə sındırıb gizlətmisən?",
+            "Səncə dünya düzdür yoxsa yumru?",
+            "Ən böyük uğursuzluğun nə olub?",
+            "Heç kiməsə paxıllıq etmisən?",
+            "İdeal sevgilin necə olmalıdır?"
         ];
 
         const dareTasks = [
-            "Qrupdakı hər kəsə mahnı oxu.", "Yanındakı oyunçunu 1 dəqiqə qucaqla.", "Telefonunu götür və son zəng edənə 'Mən yadplanetliyəm' yaz.",
-            "50 dəfə oturub-dur (Squat).", "1 dəqiqə boyunca it kimi hür.", "İnstagram-da son postunun altına utancverici bir şərh yaz.",
-            "Pəncərəni aç və var gücünlə 'Mən dəliyəm!' qışqır.", "Qrupdakı bir nəfərin ayaqqabısını iylə.",
-            "1 dəqiqə heç gülmədən dur.", "Hər kəsə rəqs et.", "Ən çirkin üz ifadəni al və selfi çəkib hamıya göstər.",
-            "Yanındakı oyunçuya sənin makiyajını etməyə (və ya üzünə nəsə çəkməyə) icazə ver.",
-            "Bir stəkan suyu başına tök.", "Telefonunu yanındakı adama ver, istədiyi bir mesaja baxsın.",
-            "Zalda 'moonwalk' yerişi et."
+            "Qrupdakı hər kəsə mahnı oxu.", 
+            "Yanındakı oyunçunu 1 dəqiqə qucaqla.", 
+            "Telefonunu götür və son zəng edənə 'Mən yadplanetliyəm' yaz.",
+            "20 dəfə oturub-dur (Squat).", 
+            "1 dəqiqə boyunca it kimi hür.", 
+            "İnstagram-da son postunun altına utancverici bir şərh yaz.",
+            "Pəncərəni aç və var gücünlə 'Mən dəliyəm!' qışqır.", 
+            "Qrupdakı bir nəfərin ayaqqabısını iylə.",
+            "1 dəqiqə heç gülmədən dur.", 
+            "Hər kəsə rəqs et (Makarena və ya Lezginka).", 
+            "Ən çirkin üz ifadəni al və selfi çəkib hamıya göstər.",
+            "Yanındakı oyunçuya sənin üzünə qələmlə bığ çəkməyə icazə ver.",
+            "Bir stəkan suyu başına tök.", 
+            "Telefonunu yanındakı adama ver, istədiyi bir mesaja baxsın.",
+            "Zalda 'moonwalk' yerişi et.",
+            "Ağzına su al və qarşındakı adam səni güldürənə qədər saxla.",
+            "Döşəmədə sürünərək otağın o başına get.",
+            "Qrupdakı bir nəfəri belində daşı.",
+            "Gözlərini bağla və bir nəfərin üzünə toxunaraq kim olduğunu tap.",
+            "Telefonda kontaktlardan təsadüfi birinə zəng et və ona şeir de.",
+            "Özünü 1 dəqiqə ərzində toyuq kimi apar.",
+            "Qrupdan bir nəfərin corabını dişinlə çıxar.",
+            "5 dəqiqə boyunca yalnız suallarla danış.",
+            "Hamının qarşısında qarnını aç və göbəyini göstər.",
+            "Yanındakı adamın qulağını yala.",
+            "Stolun altına gir və oradan çıxana qədər danışma.",
+            "Özün haqqında pis bir şayiə uydur və hamıya danış.",
+            "Əlində xəyali bir gitara varmış kimi solo ifa et.",
+            "Telefonunda son çəkilmiş 3 şəkli hamıya göstər.",
+            "Bir qaşıq duz ye (və ya acı istiot)."
         ];
 
         // --- GLOBAL DƏYİŞƏNLƏR ---
@@ -286,7 +442,6 @@
         let myName = null;
         let players = [];
         let currentRotation = 0;
-        let isHost = false;
 
         // HTML elementləri
         const loginScreen = document.getElementById('login-screen');
@@ -296,21 +451,15 @@
         const spinBtn = document.getElementById('spin-btn');
         const statusText = document.getElementById('status-text');
         
-        // Musiqi
+        // Musiqi Elementi
         const bgMusic = document.getElementById('bg-music');
-        bgMusic.volume = 0.3;
+        bgMusic.volume = 0.5;
 
-        // Funksiyaları window obyektinə bağla (HTML-dən çağırmaq üçün)
+        // Export functions to window
         window.joinGame = joinGame;
         window.spinBottleAction = spinBottleAction;
         window.makeChoice = makeChoice;
         window.completeTurn = completeTurn;
-        window.toggleMusic = toggleMusic;
-
-        function toggleMusic() {
-            if (bgMusic.paused) bgMusic.play();
-            else bgMusic.pause();
-        }
 
         async function joinGame() {
             const nameInput = document.getElementById('username').value.trim();
@@ -321,21 +470,23 @@
                 return;
             }
 
+            // *** MUSİQİNİ OYNAT (İstifadəçi düyməyə basdığı üçün brauzer icazə verəcək) ***
+            try {
+                bgMusic.play().catch(e => console.log("Audio play error:", e));
+            } catch(e) {
+                console.log("Audio play failed");
+            }
+
             myName = nameInput;
             roomId = roomInput;
 
-            // UI dəyişikliyi
+            // UI update
             loginScreen.style.display = 'none';
             gameArea.style.display = 'flex';
             document.getElementById('display-room').innerText = roomId;
             document.getElementById('display-name').innerText = myName;
 
-            // Musiqini başlat (istifadəçi qarşılıqlı əlaqəsi olduğu üçün indi işləyəcək)
-            try {
-                bgMusic.play();
-            } catch(e) { console.log("Audio autoplay blocked"); }
-
-            // Oyunçunu əlavə et
+            // Join Firebase Room
             const playerRef = ref(db, `rooms/${roomId}/players/${myId}`);
             await set(playerRef, {
                 name: myName,
@@ -343,10 +494,10 @@
                 joinedAt: Date.now()
             });
             
-            // Çıxanda silinsin
+            // Remove on disconnect
             onDisconnect(playerRef).remove();
 
-            // Otaq dinləyiciləri
+            // Listeners
             listenToRoom();
         }
 
@@ -358,28 +509,27 @@
                 
                 if (!data) return;
 
-                // Oyunçuları yenilə
+                // Players
                 if (data.players) {
                     players = Object.values(data.players).sort((a, b) => a.joinedAt - b.joinedAt);
                     renderPlayers();
                 }
 
-                // Döndərmə bucağı yenilənibsə
+                // Rotation
                 if (data.rotation && data.rotation !== currentRotation) {
                     currentRotation = data.rotation;
                     rotateVisual(currentRotation);
                 }
 
-                // Oyun statusu
+                // Status Logic
                 handleGameStatus(data);
             });
         }
 
         function renderPlayers() {
-            // Köhnə oyunçuları təmizlə
             document.querySelectorAll('.player').forEach(el => el.remove());
 
-            const radius = 190; // Masanın ətrafı
+            const radius = 200; // Masadan məsafə
             const centerX = table.offsetWidth / 2;
             const centerY = table.offsetHeight / 2;
             const step = 360 / players.length;
@@ -389,7 +539,6 @@
                 el.className = 'player';
                 el.innerText = player.name;
                 
-                // Dairəvi yerləşdirmə riyaziyyatı (offset -90 dərəcə yuxarıdan başlamaq üçün)
                 const angle = (step * index) - 90; 
                 const radian = angle * (Math.PI / 180);
                 
@@ -402,10 +551,6 @@
 
                 table.appendChild(el);
             });
-
-            // İlk gələn oyunçu "Host" sayılır və fırlatmaq haqqı ondadır (ilk dövrədə)
-            // Daha yaxşı məntiq: Əgər status 'waiting'dirsə, hər kəs görə bilər və ya növbəli
-            // Sadəlik üçün: Status 'waiting' olanda düymə görünür.
         }
 
         function rotateVisual(deg) {
@@ -420,7 +565,7 @@
             const taskModal = document.getElementById('task-modal');
             const activePlayerId = data.activePlayer;
 
-            // Reset UI
+            // Reset States
             spinBtnEl.style.display = 'none';
             choiceModal.style.display = 'none';
             taskModal.style.display = 'none';
@@ -434,13 +579,11 @@
                 statusTextEl.innerText = "Butulka fırlanır...";
             } 
             else if (status === 'selected') {
-                // Qalibi tapmaq
                 const winner = players.find(p => p.id === activePlayerId);
                 if (winner) {
                     statusTextEl.innerText = `Seçildi: ${winner.name}`;
                     document.getElementById(`player-ui-${winner.id}`).classList.add('active');
 
-                    // Əgər mənəmsə, seçim göstər
                     if (winner.id === myId) {
                         choiceModal.style.display = 'flex';
                     } else {
@@ -453,18 +596,16 @@
                 if (winner) {
                      document.getElementById(`player-ui-${winner.id}`).classList.add('active');
                      
-                     // Tapşırığı hamıya göstər
                      taskModal.style.display = 'flex';
-                     document.getElementById('task-type-title').innerText = data.currentType === 'truth' ? "DOĞRULUQ SUALI" : "CƏSARƏT TAPŞIRIĞI";
+                     document.getElementById('task-type-title').innerText = data.currentType === 'truth' ? "DOĞRULUQ" : "CƏSARƏT";
                      document.getElementById('task-text').innerText = data.currentText;
 
-                     // "Tamamladım" düyməsi yalnız aktiv oyunçuya görünsün
                      const doneBtn = taskModal.querySelector('button');
                      if (activePlayerId === myId) {
                          doneBtn.style.display = 'inline-block';
                      } else {
                          doneBtn.style.display = 'none';
-                         statusTextEl.innerText = `${winner.name} cavab verir/yerinə yetirir...`;
+                         statusTextEl.innerText = `${winner.name} icra edir...`;
                      }
                 }
             }
@@ -476,60 +617,21 @@
                 return;
             }
 
-            // Database status update: Spinning
             update(ref(db, `rooms/${roomId}`), { status: 'spinning' });
 
-            // Random bucaq (əlavə 720-1440 dərəcə fırlansın)
             const randomRot = Math.floor(Math.random() * 720) + 720;
             const newRotation = currentRotation + randomRot;
-
-            // İndi qalibi hesablayaq ki, DB-ə yazaq
-            // Butulkanın ucu şəkildə yuxarı baxır (0 dərəcə).
-            // CSS rotasiyası saat əqrəbi istiqamətindədir.
-            // Bucağı normallaşdır (0-360)
-            const normalizedAngle = newRotation % 360;
-            
-            // Oyunçu seqmentləri
             const segmentSize = 360 / players.length;
-            
-            // Riyazi hesab: 0 dərəcə yuxarıdır (index 0).
-            // Amma CSS-də 0 dərəcə yuxarıdır, artdıqca sağa gedir.
-            // Oyunçular da saat əqrəbi üzrə düzülüb.
-            // Butulkanın göstərdiyi bucağa uyğun seqmenti tapmaq:
-            
-            // Məsələn: 2 oyunçu. 0 və 180. Seqment 180.
-            // Butulka 90dadırsa? 0-cı oyunçuya yaxındır yoxsa 1? 
-            // Sadəlik üçün: Tam seqmenti bölürük.
-            // Offset nəzərə alınmalıdır. Butulka 0 olanda 1-ci oyunçuya baxır.
-            
-            let winningIndex = Math.floor(((normalizedAngle + (segmentSize/2)) % 360) / segmentSize);
-            
-            // Index array-dən kənara çıxsa düzəlt
-            if (winningIndex >= players.length) winningIndex = 0;
-            
-            // Bəzən tərs ola bilir, oyunçu düzülüşündən asılı olaraq. 
-            // Şəkil fırlanır, oyunçular sabitdir.
-            // Sadə index məntiqi (dəqiq hesablamasız da təxmini işləyir):
-            // (360 - (angle % 360)) / segmentSize  -> Təxminən.
-            
-            // Gəlin dəqiq hesablayaq: Butulkanın ucu hara baxır?
-            // Butulka saat əqrəbi ilə fırlanır.
-            // Oyunçu 0: -90 (və ya 270) dərəcədədir (Top Center).
-            // Bu kodu sadələşdirmək üçün qalibi random seçib butulkanı ona tərəf fırladaq?
-            // Xeyr, fizika daha maraqlıdır. 
-            // Təxmini qalib:
-            const winningPlayer = players[ Math.floor(Math.random() * players.length) ];
 
-            // İndi bucağı həmin oyunçuya görə düzəldək ki, düz üstündə dayansın
-            // Oyunçunun bucağı:
+            // Random qalib seçirik
+            const winningPlayer = players[ Math.floor(Math.random() * players.length) ];
             const playerIndex = players.findIndex(p => p.id === winningPlayer.id);
-            const targetAngle = (playerIndex * segmentSize); 
-            // 0-cı oyunçu -90 dərəcədədir əslində CSS-də top:0, left:50%
-            // Bizim 'bottle' default 0 dərəcəsi şaquli yuxarıdır.
-            // Deməli targetAngle tam oyunçunun üstüdür.
             
-            // Fırlanmanı elə hesablayaq ki, targetAngle-da dayansın + extra spins
-            const extraSpins = 5 * 360; 
+            // Oyunçunun bucağı
+            const targetAngle = (playerIndex * segmentSize); 
+            
+            // Tam oyunçunun üstündə dayansın
+            const extraSpins = 4 * 360; 
             const finalRot = currentRotation + extraSpins + (targetAngle - (currentRotation % 360));
 
             update(ref(db, `rooms/${roomId}`), {
@@ -537,7 +639,6 @@
                 status: 'spinning'
             });
 
-            // 3 saniyə sonra nəticəni elan et (CSS transition müddəti)
             setTimeout(() => {
                 update(ref(db, `rooms/${roomId}`), {
                     status: 'selected',
@@ -550,13 +651,9 @@
             let text = "";
             let dataArr = [];
 
-            if (type === 'truth') {
-                dataArr = truthQuestions;
-            } else {
-                dataArr = dareTasks;
-            }
+            if (type === 'truth') dataArr = truthQuestions;
+            else dataArr = dareTasks;
 
-            // Təkrarlanmayan random seçimi üçün index
             const randIndex = Math.floor(Math.random() * dataArr.length);
             text = dataArr[randIndex];
 
@@ -575,7 +672,6 @@
                 currentType: null
             });
         }
-
     </script>
 </body>
 </html>
