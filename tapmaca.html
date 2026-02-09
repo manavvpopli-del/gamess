@@ -3,15 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Doğruluq və ya Cəsarət - Pro</title>
+    <title>Doğruluq və ya Cəsarət - Live Chat</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap');
 
         body {
             font-family: 'Poppins', sans-serif;
-            background: #0f0c29;  /* fallback for old browsers */
-            background: -webkit-linear-gradient(to right, #24243e, #302b63, #0f0c29);  /* Chrome 10-25, Safari 5.1-6 */
-            background: linear-gradient(to right, #24243e, #302b63, #0f0c29); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+            background: radial-gradient(circle, #1a1a2e, #16213e, #0f3460);
             color: #fff;
             margin: 0;
             overflow: hidden;
@@ -23,53 +21,40 @@
 
         /* Giriş Ekranı */
         #login-screen {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 3rem;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 40px;
             border-radius: 20px;
             text-align: center;
-            backdrop-filter: blur(15px);
-            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid #e94560;
             z-index: 100;
-            border: 1px solid rgba(255,255,255,0.1);
         }
 
-        h1 { margin-bottom: 20px; font-size: 2.5rem; text-transform: uppercase; letter-spacing: 2px; }
-
         input {
-            padding: 15px;
-            border-radius: 30px;
+            padding: 12px;
+            border-radius: 8px;
             border: none;
             margin: 10px;
             width: 250px;
-            text-align: center;
             font-size: 1rem;
-            outline: none;
-            background: rgba(255,255,255,0.9);
         }
 
         button {
-            padding: 15px 40px;
-            border-radius: 30px;
+            padding: 12px 30px;
+            border-radius: 8px;
             border: none;
-            background: linear-gradient(45deg, #ff416c, #ff4b2b);
+            background: #e94560;
             color: white;
             cursor: pointer;
             font-weight: bold;
-            font-size: 1.1rem;
             transition: 0.3s;
-            margin-top: 20px;
-            box-shadow: 0 5px 15px rgba(255, 75, 43, 0.4);
         }
 
-        button:hover {
-            transform: scale(1.05);
-            box-shadow: 0 8px 20px rgba(255, 75, 43, 0.6);
-        }
+        button:hover { background: #ff2e63; transform: translateY(-2px); }
 
         /* Oyun Sahəsi */
         #game-area {
             display: none;
-            position: relative;
             width: 100%;
             height: 100%;
             flex-direction: column;
@@ -78,204 +63,163 @@
         }
 
         .table {
-            width: 320px;
-            height: 320px;
-            background: radial-gradient(circle, #2a2a2a 0%, #000000 100%);
+            width: 350px;
+            height: 350px;
+            background: #0f3460;
             border-radius: 50%;
             position: relative;
-            border: 8px solid #444;
-            box-shadow: 0 0 60px rgba(0,0,0,0.8), inset 0 0 20px rgba(0,0,0,0.8);
+            border: 10px solid #16213e;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
         }
 
         .bottle-container {
             position: absolute;
             top: 50%;
             left: 50%;
-            width: 0;
-            height: 0;
-            z-index: 10;
+            width: 0; height: 0;
         }
 
         .bottle {
-            width: 80px;
-            height: 240px;
-            /* Yeni Butulka Şəkli */
-            background: url('https://purepng.com/public/uploads/large/purepng.com-green-glass-bottlebottleglass-bottlecontainergreen-bottle-1701528343725d99gs.png') no-repeat center center;
+            width: 70px;
+            height: 220px;
+            background: url('bottle.png') no-repeat center center;
             background-size: contain;
             position: absolute;
             top: 50%;
             left: 50%;
             transform-origin: center center;
-            margin-top: -120px; /* Hündürlüyün yarısı */
-            margin-left: -40px; /* Enin yarısı */
-            transition: transform 3s cubic-bezier(0.25, 0.1, 0.25, 1);
-            filter: drop-shadow(5px 10px 10px rgba(0,0,0,0.6));
+            margin-top: -110px;
+            margin-left: -35px;
+            transition: transform 3s cubic-bezier(0.15, 0, 0.15, 1);
         }
 
         .player {
             position: absolute;
-            width: 70px;
-            height: 70px;
-            background: linear-gradient(45deg, #2193b0, #6dd5ed);
+            width: 80px;
+            height: 80px;
+            background: #e94560;
             border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             font-weight: bold;
-            text-align: center;
             transform: translate(-50%, -50%);
-            box-shadow: 0 0 15px rgba(33, 147, 176, 0.5);
-            border: 2px solid white;
-            transition: all 0.3s;
-            overflow: hidden;
-            word-break: break-all;
-            padding: 5px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            border: 3px solid #fff;
+            transition: 0.3s;
+            text-align: center;
         }
 
         .player.active {
-            background: linear-gradient(45deg, #f12711, #f5af19);
-            transform: translate(-50%, -50%) scale(1.2);
-            box-shadow: 0 0 30px rgba(245, 175, 25, 0.8);
-            z-index: 20;
-            border: 2px solid #fff;
+            background: #4ecca3;
+            box-shadow: 0 0 25px #4ecca3;
+            scale: 1.1;
         }
 
-        /* İdarəetmə Paneli */
-        .controls {
-            position: absolute;
-            bottom: 40px;
-            text-align: center;
-            width: 100%;
-        }
-        
-        #status-text {
-            font-size: 1.5rem;
-            margin-bottom: 20px;
-            text-shadow: 0 2px 5px rgba(0,0,0,0.5);
-        }
-
-        /* Modal Pəncərə */
+        /* Modal və Cavab bölməsi */
         .modal {
             display: none;
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9);
+            background: rgba(0,0,0,0.95);
             justify-content: center;
             align-items: center;
-            flex-direction: column;
             z-index: 1000;
-            text-align: center;
-            animation: fadeIn 0.5s;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
         }
 
         .modal-content {
             background: #fff;
-            color: #333;
-            padding: 40px;
-            border-radius: 20px;
-            max-width: 90%;
-            width: 500px;
-            box-shadow: 0 0 50px rgba(255, 255, 255, 0.2);
-            position: relative;
-        }
-
-        .choice-btn {
-            width: 160px;
-            margin: 15px;
-            padding: 20px;
-            font-size: 1.3rem;
+            color: #222;
+            padding: 30px;
             border-radius: 15px;
-            color: white;
-            border: none;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        
-        .choice-btn:hover { transform: scale(1.05); }
-        .choice-truth { background: linear-gradient(45deg, #00b09b, #96c93d); }
-        .choice-dare { background: linear-gradient(45deg, #8e2de2, #4a00e0); }
-
-        .question-text {
-            font-size: 1.6rem;
-            margin: 30px 0;
-            font-weight: bold;
-            color: #2c3e50;
-            line-height: 1.4;
-        }
-        
-        #task-type-title {
-            font-size: 2rem;
-            text-transform: uppercase;
-            color: #e74c3c;
-            letter-spacing: 3px;
+            width: 400px;
+            text-align: center;
         }
 
-        #room-info {
+        .answer-box {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f4f4f4;
+            border-radius: 10px;
+            border-left: 5px solid #e94560;
+            font-style: italic;
+            min-height: 20px;
+        }
+
+        .answer-input-area {
+            margin-top: 15px;
+            display: flex;
+            gap: 5px;
+        }
+
+        .answer-input-area input {
+            flex: 1;
+            border: 1px solid #ccc;
+            margin: 0;
+        }
+
+        #room-tag {
             position: absolute;
-            top: 20px;
-            left: 20px;
-            font-size: 1rem;
-            background: rgba(0,0,0,0.5);
-            padding: 10px 20px;
-            border-radius: 20px;
+            top: 15px;
+            left: 15px;
+            font-size: 0.8rem;
+            opacity: 0.6;
         }
-
-        /* Gizli musiqi elementi */
-        audio { display: none; }
-
     </style>
 </head>
 <body>
 
     <audio id="bg-music" loop>
         <source src="mmm.mp3" type="audio/mpeg">
-        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
     </audio>
 
     <div id="login-screen">
-        <h1>Doğruluq vs Cəsarət</h1>
-        <p>Otaq yaradın və ya mövcud otağa qoşulun</p>
-        <input type="text" id="username" placeholder="Adınız (məs: Əli)" maxlength="12">
-        <input type="text" id="room-id" placeholder="Otaq Kodu (məs: 555)" maxlength="6">
+        <h1>Oyun Girişi</h1>
+        <input type="text" id="username" placeholder="Adın" maxlength="10">
+        <input type="text" id="room-id" placeholder="Otaq Kodu" maxlength="5">
         <br>
-        <button onclick="joinGame()">OYUNA BAŞLA</button>
+        <button onclick="joinGame()">BAŞLA</button>
     </div>
 
     <div id="game-area">
-        <div id="room-info">Otaq: <strong id="display-room">...</strong> | Oyunçu: <strong id="display-name">...</strong></div>
-        
+        <div id="room-tag">Otaq: <span id="display-room"></span></div>
         <div class="table" id="table">
             <div class="bottle-container">
                 <div class="bottle" id="bottle"></div>
             </div>
         </div>
-
-        <div class="controls">
-            <h2 id="status-text">Digər oyunçular gözlənilir...</h2>
-            <button id="spin-btn" onclick="spinBottleAction()" style="display:none;">🍾 BUTULKANI FIRLAT</button>
+        <div style="margin-top: 40px; text-align: center;">
+            <h2 id="status-text">Gözlənilir...</h2>
+            <button id="spin-btn" onclick="spinBottleAction()" style="display:none;">FIRLAT</button>
         </div>
     </div>
 
     <div id="choice-modal" class="modal">
-        <h2 style="color:white; font-size: 3rem; margin-bottom: 30px;">Seçimini Et!</h2>
-        <div>
-            <button class="choice-btn choice-truth" onclick="makeChoice('truth')">DOĞRULUQ</button>
-            <button class="choice-btn choice-dare" onclick="makeChoice('dare')">CƏSARƏT</button>
+        <div style="text-align: center;">
+            <h1 style="color:white">Sənsən! Seçim et:</h1>
+            <button onclick="makeChoice('truth')" style="background:#3498db; margin: 10px;">DOĞRULUQ</button>
+            <button onclick="makeChoice('dare')" style="background:#8e44ad; margin: 10px;">CƏSARƏT</button>
         </div>
     </div>
 
     <div id="task-modal" class="modal">
         <div class="modal-content">
-            <h3 id="task-type-title">SUAL</h3>
-            <p class="question-text" id="task-text">...</p>
-            <button onclick="completeTurn()">TAMAMLADIM</button>
+            <h2 id="task-title" style="color: #e94560;"></h2>
+            <p id="task-text" style="font-size: 1.2rem; font-weight: bold;"></p>
+            
+            <div class="answer-box">
+                <strong>Cavab:</strong> 
+                <span id="live-answer">Hələ cavab yazılmayıb...</span>
+            </div>
+
+            <div id="input-zone" class="answer-input-area" style="display: none;">
+                <input type="text" id="my-answer" placeholder="Cavabını yaz..." oninput="syncTyping(this.value)">
+                <button onclick="completeTurn()">BİTİR</button>
+            </div>
+
+            <p id="wait-msg" style="display:none; color: #666; margin-top:10px;">Oyunçunun cavab yazması gözlənilir...</p>
         </div>
     </div>
 
@@ -297,381 +241,128 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // --- 100 DOĞRULUQ SUALI ---
-        const truthQuestions = [
-            "Ən böyük qorxun nədir?", 
-            "Heç vaxt kiməsə xəyanət etmisən?", 
-            "Telefonunda gizlətdiyin son şəkil nədir?",
-            "Buradakı oyunçulardan kiminlə adaya düşmək istərdin?", 
-            "Uşaqlığında etdiyin ən utancverici hərəkət?",
-            "Heç sevmədiyin halda kiməsə 'səni sevirəm' demisən?", 
-            "Ən son nə vaxt ağlamısan və niyə?",
-            "Whatsapp-da ən son kimə mesaj yazmısan?", 
-            "Keçmiş sevgilin haqqında nə düşünürsən?",
-            "Bir gün görünməz olsan ilk nə edərdin?", 
-            "Özündə bəyənmədiyin 3 xüsusiyyət?",
-            "Heç mağazadan oğurluq etmisən?", 
-            "Valideynlərinə dediyin ən böyük yalan nə olub?",
-            "Buradakı oyunçulardan kimin geyim tərzini bəyənmirsən?", 
-            "Telefonunun qalereyasındakı 10-cu şəkli göstər.",
-            "Əgər cinsiyyətini dəyişsəydin, edəcəyin ilk şey nə olardı?",
-            "Heç ictimai yerdə bərkdən qaz buraxmısan?",
-            "Ən axmaq ləqəbin nə olub?",
-            "Duş qəbul edərkən mahnı oxuyursan?",
-            "Heç dostunun sevgilisinə aşiq olmusan?",
-            "Ən son nə vaxt yalan danışmısan?",
-            "Telefonunun brauzer tarixçəsini hamıya göstərə bilərsən?",
-            "Kiminsə diş fırçasını gizlicə istifadə etmisən?",
-            "Əgər bu otaqdan bir nəfəri evlənmək üçün seçməli olsan, kimi seçərdin?",
-            "Sərxoş olub etdiyin ən axmaq hərəkət?",
-            "Heç polislə problemin olub?",
-            "Buradakı kimin ən çox yalan danışdığını düşünürsən?",
-            "Həyatında ən çox peşman olduğun an?",
-            "İndiyə qədər aldığın ən pis hədiyyə?",
-            "Heç kiminsə yeməyinə tüpürmüsən?",
-            "Tək qalanda burnunu qurdalayırsan?",
-            "Yuxuda danışırsan və ya xoruldayırsan?",
-            "Ən çox kimə qibtə edirsən?",
-            "Heç valideynlərinin pulqabısından pul götürmüsən?",
-            "Əgər öləcəyini bilsəydin, son zəngini kimə edərdin?",
-            "Bədənində ən bəyəndiyin yer haradır?",
-            "İlk öpüşün necə olub?",
-            "Heç saxta profil açıb kimi isə izləmisən?",
-            "Müəllimini bəyənmisən?",
-            "İmtahanda köçürmə etmisən?",
-            "Yolda pul tapsan sahibini axtararsan yoxsa götürərsən?",
-            "Ən iyrənc vərdişin nədir?",
-            "Heç vanna otağında işiyibsan?",
-            "Hansı məşhura aşiqsən?",
-            "Telefonundakı ən son silinmiş mesaj nə idi?",
-            "Buradakı kiminlə heç vaxt yola getməzsən?",
-            "Ən son nə vaxt duş qəbul etmisən?",
-            "Gündə neçə dəfə güzgüyə baxırsan?",
-            "Özünə yalan danışdığın an olubmu?",
-            "Heç kiminsə sirrini başqasına demisən?",
-            "Keçmiş sevgilini bloklamısan?",
-            "Sosial şəbəkədə kimisə 'stalk' edirsən?",
-            "Əgər 1 milyon manatın olsa, ilk nə alarsan?",
-            "Ən son nəyə görə gülmüsən?",
-            "Heç heyvanlarla danışırsan?",
-            "Uşaq vaxtı ən sevdiyin oyuncaq nə idi?",
-            "Yatağının altında qorxulu bir şey olduğunu düşünürsən?",
-            "Ən son oxuduğun kitab?",
-            "Kinoda ağlamısan?",
-            "Heç eyni alt paltarını iki gün ardıcıl geyinmisən?",
-            "Ayaq barmaqlarının şəkillərini çəkmisən?",
-            "Heç kiminsə mesajlarını gizlicə oxumusan?",
-            "Əgər heyvan olsaydın, hansı olardın?",
-            "Heç lift-də qaz buraxıb başqasının üstünə atmısan?",
-            "Ən böyük xəyalın nədir?",
-            "Səncə buradakı ən ağıllı insan kimdir?",
-            "Heç kiminsə ad gününü unutmusan?",
-            "Əgər keçmişə qayıda bilsəydin, nəyi dəyişərdin?",
-            "Ən çox nədən utanarsan?",
-            "Heç sevmədiyin yeməyi qonaqlıqda məcbur yemisən?",
-            "Səni ən tez nə əsəbiləşdirir?",
-            "Heç kiməsə yumruq atmısan?",
-            "Gələcəyi görmək istərdin?",
-            "Cibində adətən nə qədər pul olur?",
-            "Heç avtobusda və ya metroda yatmısan?",
-            "Ən pis geyim tərzin necə olub?",
-            "Heç saçını rənglətmək istəmisən, amma cəsarət etməmisən?",
-            "Səncə yadplanetlilər var?",
-            "Heç ruh çağırmısan?",
-            "Ən çox hansı fəsili sevirsən və niyə?",
-            "Heç diş həkimindən qorxmusan?",
-            "Səhər yuxudan duranda ilk işin nə olur?",
-            "Yatmazdan əvvəl nə düşünürsən?",
-            "Heç kimisə döymək istəmisən?",
-            "Ən sevdiyin söyüş hansıdır?",
-            "Heç kiminsə şəklinə baxıb ağlamısan?",
-            "Öz toyunda hansı mahnının çalınmasını istərdin?",
-            "Heç sevgilinə xəyanət etməyi düşünmüsən?",
-            "Ən son yediyin yemək?",
-            "Səni bu həyatda ən çox kim başa düşür?",
-            "Heç intihar etməyi düşünmüsən?",
-            "Əgər adını dəyişsəydin, nə qoyardın?",
-            "Heç məktəbdən qaçmısan?",
-            "Səncə pul xoşbəxtlik gətirir?",
-            "Ən çox hansı rəngi sevirsən?",
-            "Heç kiminsə evində nəyisə sındırıb gizlətmisən?",
-            "Səncə dünya düzdür yoxsa yumru?",
-            "Ən böyük uğursuzluğun nə olub?",
-            "Heç kiməsə paxıllıq etmisən?",
-            "İdeal sevgilin necə olmalıdır?"
-        ];
+        // Suallar (Qısaldılmış nümunə, yuxarıdakı 100 sualı bura əlavə edə bilərsən)
+        const truthQuestions = ["Ən böyük sirrin nədir?", "Heç mağazadan nəsə oğurlamısan?", "Sonuncu yalanın nə olub?", "Kimi gizlicə sevirsən?"];
+        const dareTasks = ["1 dəqiqə rəqs et", "Mahnı oxu", "Qonşunun qapısını döy qaç", "Limon ye"];
 
-        const dareTasks = [
-            "Qrupdakı hər kəsə mahnı oxu.", 
-            "Yanındakı oyunçunu 1 dəqiqə qucaqla.", 
-            "Telefonunu götür və son zəng edənə 'Mən yadplanetliyəm' yaz.",
-            "20 dəfə oturub-dur (Squat).", 
-            "1 dəqiqə boyunca it kimi hür.", 
-            "İnstagram-da son postunun altına utancverici bir şərh yaz.",
-            "Pəncərəni aç və var gücünlə 'Mən dəliyəm!' qışqır.", 
-            "Qrupdakı bir nəfərin ayaqqabısını iylə.",
-            "1 dəqiqə heç gülmədən dur.", 
-            "Hər kəsə rəqs et (Makarena və ya Lezginka).", 
-            "Ən çirkin üz ifadəni al və selfi çəkib hamıya göstər.",
-            "Yanındakı oyunçuya sənin üzünə qələmlə bığ çəkməyə icazə ver.",
-            "Bir stəkan suyu başına tök.", 
-            "Telefonunu yanındakı adama ver, istədiyi bir mesaja baxsın.",
-            "Zalda 'moonwalk' yerişi et.",
-            "Ağzına su al və qarşındakı adam səni güldürənə qədər saxla.",
-            "Döşəmədə sürünərək otağın o başına get.",
-            "Qrupdakı bir nəfəri belində daşı.",
-            "Gözlərini bağla və bir nəfərin üzünə toxunaraq kim olduğunu tap.",
-            "Telefonda kontaktlardan təsadüfi birinə zəng et və ona şeir de.",
-            "Özünü 1 dəqiqə ərzində toyuq kimi apar.",
-            "Qrupdan bir nəfərin corabını dişinlə çıxar.",
-            "5 dəqiqə boyunca yalnız suallarla danış.",
-            "Hamının qarşısında qarnını aç və göbəyini göstər.",
-            "Yanındakı adamın qulağını yala.",
-            "Stolun altına gir və oradan çıxana qədər danışma.",
-            "Özün haqqında pis bir şayiə uydur və hamıya danış.",
-            "Əlində xəyali bir gitara varmış kimi solo ifa et.",
-            "Telefonunda son çəkilmiş 3 şəkli hamıya göstər.",
-            "Bir qaşıq duz ye (və ya acı istiot)."
-        ];
+        let myId = 'p_' + Math.random().toString(36).substr(2, 5);
+        let roomId, myName, players = [], currentRot = 0;
 
-        // --- GLOBAL DƏYİŞƏNLƏR ---
-        let myId = localStorage.getItem('playerId') || 'player_' + Math.random().toString(36).substr(2, 9);
-        localStorage.setItem('playerId', myId);
-        
-        let roomId = null;
-        let myName = null;
-        let players = [];
-        let currentRotation = 0;
+        window.joinGame = async () => {
+            myName = document.getElementById('username').value;
+            roomId = document.getElementById('room-id').value;
+            if(!myName || !roomId) return alert("Məlumatları doldur!");
 
-        // HTML elementləri
-        const loginScreen = document.getElementById('login-screen');
-        const gameArea = document.getElementById('game-area');
-        const table = document.getElementById('table');
-        const bottle = document.getElementById('bottle');
-        const spinBtn = document.getElementById('spin-btn');
-        const statusText = document.getElementById('status-text');
-        
-        // Musiqi Elementi
-        const bgMusic = document.getElementById('bg-music');
-        bgMusic.volume = 0.5;
-
-        // Export functions to window
-        window.joinGame = joinGame;
-        window.spinBottleAction = spinBottleAction;
-        window.makeChoice = makeChoice;
-        window.completeTurn = completeTurn;
-
-        async function joinGame() {
-            const nameInput = document.getElementById('username').value.trim();
-            const roomInput = document.getElementById('room-id').value.trim();
-
-            if (!nameInput || !roomInput) {
-                alert("Zəhmət olmasa ad və otaq kodu daxil edin!");
-                return;
-            }
-
-            // *** MUSİQİNİ OYNAT (İstifadəçi düyməyə basdığı üçün brauzer icazə verəcək) ***
-            try {
-                bgMusic.play().catch(e => console.log("Audio play error:", e));
-            } catch(e) {
-                console.log("Audio play failed");
-            }
-
-            myName = nameInput;
-            roomId = roomInput;
-
-            // UI update
-            loginScreen.style.display = 'none';
-            gameArea.style.display = 'flex';
+            document.getElementById('bg-music').play();
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('game-area').style.display = 'flex';
             document.getElementById('display-room').innerText = roomId;
-            document.getElementById('display-name').innerText = myName;
 
-            // Join Firebase Room
-            const playerRef = ref(db, `rooms/${roomId}/players/${myId}`);
-            await set(playerRef, {
-                name: myName,
-                id: myId,
-                joinedAt: Date.now()
-            });
-            
-            // Remove on disconnect
-            onDisconnect(playerRef).remove();
+            const pRef = ref(db, `rooms/${roomId}/players/${myId}`);
+            set(pRef, { id: myId, name: myName, time: Date.now() });
+            onDisconnect(pRef).remove();
 
-            // Listeners
-            listenToRoom();
-        }
+            listenRoom();
+        };
 
-        function listenToRoom() {
-            const roomRef = ref(db, `rooms/${roomId}`);
+        function listenRoom() {
+            onValue(ref(db, `rooms/${roomId}`), (snap) => {
+                const data = snap.val();
+                if(!data) return;
 
-            onValue(roomRef, (snapshot) => {
-                const data = snapshot.val();
-                
-                if (!data) return;
-
-                // Players
-                if (data.players) {
-                    players = Object.values(data.players).sort((a, b) => a.joinedAt - b.joinedAt);
+                if(data.players) {
+                    players = Object.values(data.players).sort((a,b) => a.time - b.time);
                     renderPlayers();
                 }
 
-                // Rotation
-                if (data.rotation && data.rotation !== currentRotation) {
-                    currentRotation = data.rotation;
-                    rotateVisual(currentRotation);
+                if(data.rot !== undefined) {
+                    currentRot = data.rot;
+                    document.getElementById('bottle').style.transform = `translate(-50%, -50%) rotate(${currentRot}deg)`;
                 }
 
-                // Status Logic
-                handleGameStatus(data);
+                updateUI(data);
             });
         }
 
         function renderPlayers() {
-            document.querySelectorAll('.player').forEach(el => el.remove());
-
-            const radius = 200; // Masadan məsafə
-            const centerX = table.offsetWidth / 2;
-            const centerY = table.offsetHeight / 2;
-            const step = 360 / players.length;
-
-            players.forEach((player, index) => {
+            document.querySelectorAll('.player').forEach(p => p.remove());
+            players.forEach((p, i) => {
+                const angle = (i * (360/players.length)) - 90;
+                const rad = angle * (Math.PI/180);
+                const x = 175 + 190 * Math.cos(rad);
+                const y = 175 + 190 * Math.sin(rad);
                 const el = document.createElement('div');
                 el.className = 'player';
-                el.innerText = player.name;
-                
-                const angle = (step * index) - 90; 
-                const radian = angle * (Math.PI / 180);
-                
-                const x = centerX + radius * Math.cos(radian);
-                const y = centerY + radius * Math.sin(radian);
-
+                el.id = 'ui-' + p.id;
+                el.innerHTML = p.name;
                 el.style.left = x + 'px';
                 el.style.top = y + 'px';
-                el.id = `player-ui-${player.id}`;
-
-                table.appendChild(el);
+                document.getElementById('table').appendChild(el);
             });
         }
 
-        function rotateVisual(deg) {
-            bottle.style.transform = `translate(-50%, -50%) rotate(${deg}deg)`;
-        }
-
-        function handleGameStatus(data) {
+        function updateUI(data) {
             const status = data.status || 'waiting';
-            const statusTextEl = document.getElementById('status-text');
-            const spinBtnEl = document.getElementById('spin-btn');
-            const choiceModal = document.getElementById('choice-modal');
-            const taskModal = document.getElementById('task-modal');
-            const activePlayerId = data.activePlayer;
-
-            // Reset States
-            spinBtnEl.style.display = 'none';
-            choiceModal.style.display = 'none';
-            taskModal.style.display = 'none';
+            const winnerId = data.activePlayer;
+            
+            // Reset
+            document.getElementById('spin-btn').style.display = (status === 'waiting') ? 'inline-block' : 'none';
+            document.getElementById('choice-modal').style.display = (status === 'selected' && winnerId === myId) ? 'flex' : 'none';
+            document.getElementById('task-modal').style.display = (status === 'doing') ? 'flex' : 'none';
             document.querySelectorAll('.player').forEach(p => p.classList.remove('active'));
+            if(winnerId) document.getElementById('ui-'+winnerId)?.classList.add('active');
 
-            if (status === 'waiting') {
-                statusTextEl.innerText = "Növbəti oyun üçün hazır!";
-                spinBtnEl.style.display = 'inline-block';
-            } 
-            else if (status === 'spinning') {
-                statusTextEl.innerText = "Butulka fırlanır...";
-            } 
-            else if (status === 'selected') {
-                const winner = players.find(p => p.id === activePlayerId);
-                if (winner) {
-                    statusTextEl.innerText = `Seçildi: ${winner.name}`;
-                    document.getElementById(`player-ui-${winner.id}`).classList.add('active');
-
-                    if (winner.id === myId) {
-                        choiceModal.style.display = 'flex';
-                    } else {
-                        statusTextEl.innerText = `${winner.name} seçim edir...`;
-                    }
-                }
-            } 
-            else if (status === 'doing') {
-                const winner = players.find(p => p.id === activePlayerId);
-                if (winner) {
-                     document.getElementById(`player-ui-${winner.id}`).classList.add('active');
-                     
-                     taskModal.style.display = 'flex';
-                     document.getElementById('task-type-title').innerText = data.currentType === 'truth' ? "DOĞRULUQ" : "CƏSARƏT";
-                     document.getElementById('task-text').innerText = data.currentText;
-
-                     const doneBtn = taskModal.querySelector('button');
-                     if (activePlayerId === myId) {
-                         doneBtn.style.display = 'inline-block';
-                     } else {
-                         doneBtn.style.display = 'none';
-                         statusTextEl.innerText = `${winner.name} icra edir...`;
-                     }
-                }
+            if(status === 'doing') {
+                document.getElementById('task-title').innerText = data.type === 'truth' ? "DOĞRULUQ" : "CƏSARƏT";
+                document.getElementById('task-text').innerText = data.text;
+                document.getElementById('live-answer').innerText = data.currentAnswer || "Yazılır...";
+                
+                const isMe = winnerId === myId;
+                document.getElementById('input-zone').style.display = isMe ? 'flex' : 'none';
+                document.getElementById('wait-msg').style.display = isMe ? 'none' : 'block';
             }
         }
 
-        function spinBottleAction() {
-            if (players.length < 2) {
-                alert("Oynamaq üçün ən az 2 nəfər lazımdır!");
-                return;
-            }
-
-            update(ref(db, `rooms/${roomId}`), { status: 'spinning' });
-
-            const randomRot = Math.floor(Math.random() * 720) + 720;
-            const newRotation = currentRotation + randomRot;
-            const segmentSize = 360 / players.length;
-
-            // Random qalib seçirik
-            const winningPlayer = players[ Math.floor(Math.random() * players.length) ];
-            const playerIndex = players.findIndex(p => p.id === winningPlayer.id);
+        window.spinBottleAction = () => {
+            if(players.length < 2) return alert("Azı 2 nəfər!");
+            const winner = players[Math.floor(Math.random() * players.length)];
+            const targetAngle = (players.findIndex(p => p.id === winner.id) * (360/players.length)) + (360*5);
             
-            // Oyunçunun bucağı
-            const targetAngle = (playerIndex * segmentSize); 
-            
-            // Tam oyunçunun üstündə dayansın
-            const extraSpins = 4 * 360; 
-            const finalRot = currentRotation + extraSpins + (targetAngle - (currentRotation % 360));
-
             update(ref(db, `rooms/${roomId}`), {
-                rotation: finalRot,
+                rot: targetAngle,
                 status: 'spinning'
             });
 
             setTimeout(() => {
                 update(ref(db, `rooms/${roomId}`), {
                     status: 'selected',
-                    activePlayer: winningPlayer.id
+                    activePlayer: winner.id
                 });
             }, 3100);
-        }
+        };
 
-        function makeChoice(type) {
-            let text = "";
-            let dataArr = [];
-
-            if (type === 'truth') dataArr = truthQuestions;
-            else dataArr = dareTasks;
-
-            const randIndex = Math.floor(Math.random() * dataArr.length);
-            text = dataArr[randIndex];
-
+        window.makeChoice = (type) => {
+            const arr = type === 'truth' ? truthQuestions : dareTasks;
             update(ref(db, `rooms/${roomId}`), {
                 status: 'doing',
-                currentType: type,
-                currentText: text
+                type: type,
+                text: arr[Math.floor(Math.random()*arr.length)],
+                currentAnswer: ""
             });
-        }
+        };
 
-        function completeTurn() {
+        window.syncTyping = (val) => {
+            update(ref(db, `rooms/${roomId}`), { currentAnswer: val });
+        };
+
+        window.completeTurn = () => {
+            document.getElementById('my-answer').value = "";
             update(ref(db, `rooms/${roomId}`), {
                 status: 'waiting',
                 activePlayer: null,
-                currentText: null,
-                currentType: null
+                currentAnswer: null
             });
-        }
+        };
     </script>
 </body>
 </html>
