@@ -3,40 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pro Soccer Multiplayer</title>
+    <title>Soccer Pro Fixed</title>
     <style>
         * { touch-action: none; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
-        body { margin: 0; background: #1a1a1a; color: white; font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
+        body { margin: 0; background: #111; color: white; font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
         
-        #ui-layer { position: absolute; inset: 0; background: rgba(0,0,0,0.85); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; }
-        .box { background: #222; padding: 25px; border-radius: 15px; text-align: center; border: 2px solid #4CAF50; width: 90%; max-width: 320px; }
-        input { padding: 12px; border-radius: 8px; border: none; margin: 10px 0; width: 100%; text-align: center; font-size: 16px; }
-        button { padding: 12px; background: #4CAF50; color: white; border: none; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; }
+        #ui-layer { position: absolute; inset: 0; background: rgba(0,0,0,0.9); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; }
+        .box { background: #222; padding: 20px; border-radius: 12px; text-align: center; border: 2px solid #4CAF50; width: 300px; }
+        input { padding: 12px; border-radius: 8px; border: 1px solid #444; margin: 10px 0; width: 100%; background: #000; color: #fff; font-size: 16px; }
+        button { padding: 12px; background: #4CAF50; color: white; border: none; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 5px; }
         
-        canvas { background: #2e7d32; border: 5px solid #fff; box-shadow: 0 0 20px #000; max-width: 100vw; max-height: 85vh; }
+        #header-info { position: absolute; top: 10px; width: 100%; text-align: center; font-weight: bold; font-size: 14px; color: #4CAF50; z-index: 10; }
+        canvas { background: #1b5e20; border: 4px solid #fff; border-radius: 8px; max-width: 98vw; max-height: 80vh; }
         
-        #goal-overlay { 
-            position: absolute; display: none; font-size: 80px; font-weight: bold; 
-            color: #ffeb3b; text-shadow: 0 0 20px #000; z-index: 50;
-            animation: bounce 0.5s infinite alternate;
-        }
-        @keyframes bounce { from { transform: scale(1); } to { transform: scale(1.2); } }
+        #goal-anim { position: absolute; display: none; font-size: 70px; color: #fff; text-shadow: 0 0 20px #4CAF50; z-index: 60; pointer-events: none; }
     </style>
 </head>
 <body>
 
+<div id="header-info">KOD: <span id="code-val">-</span> | ROL: <span id="role-val">-</span></div>
+
 <div id="ui-layer">
     <div class="box">
-        <h3>⚽ PRO SOCCER</h3>
-        <input type="text" id="playerName" placeholder="Adınız...">
-        <button onclick="start(true)">Yeni Oyun Yarat</button>
-        <hr style="margin:15px; opacity:0.2">
-        <input type="text" id="joinCode" placeholder="Otaq kodu...">
-        <button onclick="start(false)">Qoşul</button>
+        <h3>⚽ SOCCER ONLINE</h3>
+        <input type="text" id="pName" placeholder="Adınız..." maxlength="10">
+        <button onclick="initGame(true)">Yeni Oyun</button>
+        <div style="margin: 10px; font-size: 12px; color: #666;">və ya</div>
+        <input type="text" id="jCode" placeholder="Otaq Kodu...">
+        <button onclick="initGame(false)">Qoşul</button>
     </div>
 </div>
 
-<div id="goal-overlay">GOAL!</div>
+<div id="goal-anim">GOAL!</div>
 <canvas id="gameCanvas"></canvas>
 
 <script type="module">
@@ -54,167 +52,160 @@
     const db = getDatabase(app);
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
-    canvas.width = 400; canvas.height = 650;
-
-    // Səslər (Base64 və ya Web Audio API istifadə etmək olar, bura sadə Audio obyektləri qoyuruq)
-    const hitSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3');
-    const goalSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2020/2020-preview.mp3');
+    canvas.width = 400; canvas.height = 600;
 
     let myRole = null, roomId = null, myName = "";
-    let isGoalAnimating = false;
+    let isGoal = false;
 
     let state = {
         p1: { x: 200, y: 100, name: "" },
-        p2: { x: 200, y: 550, name: "" },
-        ball: { x: 200, y: 325, vx: 0, vy: 0 },
-        score: { p1: 0, p2: 0 },
-        lastHit: ""
+        p2: { x: 200, y: 500, name: "" },
+        ball: { x: 200, y: 300, vx: 0, vy: 0 },
+        score: { p1: 0, p2: 0 }
     };
 
-    window.start = (isHost) => {
-        myName = document.getElementById('playerName').value || "Oyuncu";
-        roomId = isHost ? Math.random().toString(36).substring(2, 7).toUpperCase() : document.getElementById('joinCode').value.toUpperCase();
+    window.initGame = (isHost) => {
+        myName = document.getElementById('pName').value || "Player";
+        roomId = isHost ? Math.random().toString(36).substring(2, 7).toUpperCase() : document.getElementById('jCode').value.toUpperCase();
         if(!roomId) return;
 
-        const roomRef = ref(db, 'pro_matches/' + roomId);
+        const roomRef = ref(db, 'games/' + roomId);
 
-        onValue(roomRef, (snapshot) => {
-            const data = snapshot.val();
-            if (!myRole) {
-                if (!data) {
+        onValue(roomRef, (snap) => {
+            const data = snap.val();
+            if(!myRole) {
+                if(!data) {
                     myRole = 'p1';
                     set(roomRef, state);
                 } else {
                     myRole = 'p2';
                 }
                 document.getElementById('ui-layer').style.display = 'none';
-                initControls();
+                document.getElementById('code-val').innerText = roomId;
+                document.getElementById('role-val').innerText = myRole.toUpperCase();
+                bindControls();
             }
-            if (data) {
-                // Sinxronizasiya: Topun hərəkətini yalnız Host (p1) hesablayır
-                // Digər oyunçu (p2) yalnız datanı vizuallaşdırır
-                state = data;
-                checkGoalAnimation(data.score);
+            if(data) {
+                // Sinxronizasiya
+                state.score = data.score;
+                state.p1 = data.p1;
+                state.p2 = data.p2;
+                // Topun kəskin atılmaması üçün hamar ötürmə
+                if(myRole === 'p2') {
+                    state.ball = data.ball;
+                }
             }
         });
-
-        requestAnimationFrame(gameLoop);
+        requestAnimationFrame(loop);
     };
 
-    function initControls() {
+    function bindControls() {
         const move = (e) => {
+            if(isGoal) return;
             const rect = canvas.getBoundingClientRect();
-            const touch = e.touches ? e.touches[0] : e;
-            const mx = (touch.clientX - rect.left) * (canvas.width / rect.width);
-            const my = (touch.clientY - rect.top) * (canvas.height / rect.height);
+            const t = e.touches ? e.touches[0] : e;
+            const mx = (t.clientX - rect.left) * (canvas.width / rect.width);
+            const my = (t.clientY - rect.top) * (canvas.height / rect.height);
             
-            // Meydança sərhədləri daxilində hərəkət
-            const limitedX = Math.max(25, Math.min(canvas.width - 25, mx));
-            const limitedY = Math.max(25, Math.min(canvas.height - 25, my));
-
-            update(ref(db, `pro_matches/${roomId}/${myRole}`), { x: limitedX, y: limitedY, name: myName });
+            update(ref(db, `games/${roomId}/${myRole}`), { 
+                x: Math.max(25, Math.min(375, mx)), 
+                y: Math.max(25, Math.min(575, my)),
+                name: myName 
+            });
         };
-        canvas.addEventListener('mousemove', move);
-        canvas.addEventListener('touchmove', (e) => { e.preventDefault(); move(e); }, { passive: false });
+        window.addEventListener('mousemove', move);
+        window.addEventListener('touchmove', (e) => { e.preventDefault(); move(e); }, {passive:false});
     }
 
-    function updatePhysics() {
-        if (myRole !== 'p1' || isGoalAnimating) return; // Yalnız Host fizikanı idarə edir
+    function physics() {
+        if(myRole !== 'p1' || isGoal) return;
 
-        let { ball, p1, p2, score } = state;
+        let b = state.ball;
+        b.x += b.vx; b.y += b.vy;
+        b.vx *= 0.98; b.vy *= 0.98; // Sürtünmə
 
-        ball.x += ball.vx;
-        ball.y += ball.vy;
-        ball.vx *= 0.985;
-        ball.vy *= 0.985;
-
-        // Divarlar
-        if (ball.x < 15 || ball.x > canvas.width - 15) { ball.vx *= -1; hitSound.play(); }
-
-        // Qapı və Qol
-        const inGoal = (ball.x > 120 && ball.x < 280);
-        if (!inGoal) {
-            if (ball.y < 15 || ball.y > canvas.height - 15) { ball.vy *= -1; hitSound.play(); }
+        // Sərhədlər
+        if(b.x < 15 || b.x > 385) b.vx *= -1;
+        
+        // Qapı sahəsi (120-280 arası)
+        const inGoal = b.x > 120 && b.x < 280;
+        if(!inGoal) {
+            if(b.y < 15 || b.y > 585) b.vy *= -1;
         } else {
-            if (ball.y < -10) { score.p2++; resetBall(); goalSound.play(); }
-            if (ball.y > canvas.height + 10) { score.p1++; resetBall(); goalSound.play(); }
+            if(b.y < -10) { score(2); }
+            if(b.y > 610) { score(1); }
         }
 
         // Toqquşma
-        [p1, p2].forEach(p => {
-            const dx = ball.x - p.x;
-            const dy = ball.y - p.y;
+        [state.p1, state.p2].forEach(p => {
+            const dx = b.x - p.x;
+            const dy = b.y - p.y;
             const dist = Math.sqrt(dx*dx + dy*dy);
-            if (dist < 40) {
-                hitSound.play();
+            if(dist < 40) {
                 const angle = Math.atan2(dy, dx);
-                const power = 8;
-                ball.vx = Math.cos(angle) * power;
-                ball.vy = Math.sin(angle) * power;
+                const speed = 7;
+                b.vx = Math.cos(angle) * speed;
+                b.vy = Math.sin(angle) * speed;
+                // Topun içəri girməməsi üçün itələmə
+                b.x = p.x + Math.cos(angle) * 41;
+                b.y = p.y + Math.sin(angle) * 41;
             }
         });
 
-        function resetBall() {
-            ball = { x: 200, y: 325, vx: 0, vy: 0 };
-        }
-
-        update(ref(db, 'pro_matches/' + roomId), { ball, score });
+        update(ref(db, `games/${roomId}/ball`), b);
     }
 
-    let prevScore = { p1: 0, p2: 0 };
-    function checkGoalAnimation(newScore) {
-        if (newScore.p1 !== prevScore.p1 || newScore.p2 !== prevScore.p2) {
-            isGoalAnimating = true;
-            const overlay = document.getElementById('goal-overlay');
-            overlay.style.display = 'block';
-            setTimeout(() => {
-                overlay.style.display = 'none';
-                isGoalAnimating = false;
-            }, 2000);
-            prevScore = { ...newScore };
-        }
+    function score(p) {
+        isGoal = true;
+        document.getElementById('goal-anim').style.display = 'block';
+        let newScore = {...state.score};
+        if(p===1) newScore.p1++; else newScore.p2++;
+        
+        setTimeout(() => {
+            update(ref(db, `games/${roomId}`), {
+                score: newScore,
+                ball: { x: 200, y: 300, vx: 0, vy: 0 }
+            });
+            document.getElementById('goal-anim').style.display = 'none';
+            isGoal = false;
+        }, 2000);
     }
 
     function draw() {
-        // Ot Meydança
-        ctx.fillStyle = "#2e7d32"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.clearRect(0,0,400,600);
         
-        // Cizgilər
-        ctx.strokeStyle = "rgba(255,255,255,0.6)"; ctx.lineWidth = 3;
-        ctx.strokeRect(5, 5, canvas.width-10, canvas.height-10);
-        ctx.beginPath(); ctx.moveTo(0, canvas.height/2); ctx.lineTo(canvas.width, canvas.height/2); ctx.stroke();
-        ctx.beginPath(); ctx.arc(200, 325, 60, 0, Math.PI*2); ctx.stroke();
+        // Meydança
+        ctx.strokeStyle = "rgba(255,255,255,0.3)"; ctx.lineWidth = 2;
+        ctx.strokeRect(10,10,380,580);
+        ctx.beginPath(); ctx.moveTo(10,300); ctx.lineTo(390,300); ctx.stroke();
+        ctx.beginPath(); ctx.arc(200,300,50,0,Math.PI*2); ctx.stroke();
         
         // Qapılar
-        ctx.strokeStyle = "white"; ctx.lineWidth = 10;
-        ctx.strokeRect(120, -5, 160, 10); ctx.strokeRect(120, canvas.height-5, 160, 10);
+        ctx.strokeStyle = "#fff"; ctx.lineWidth = 8;
+        ctx.strokeRect(120, 0, 160, 10); ctx.strokeRect(120, 590, 160, 10);
 
         // Hesab
-        ctx.fillStyle = "rgba(255,255,255,0.2)"; ctx.font = "80px Arial";
-        ctx.textAlign = "center";
-        ctx.fillText(state.score.p1, 200, 280);
-        ctx.fillText(state.score.p2, 200, 420);
+        ctx.fillStyle = "rgba(255,255,255,0.1)"; ctx.font = "100px Arial"; ctx.textAlign = "center";
+        ctx.fillText(state.score.p1, 200, 250); ctx.fillText(state.score.p2, 200, 420);
 
-        // Oyunçular
-        drawPlayer(state.p1.x, state.p1.y, "#e74c3c", state.p1.name);
-        drawPlayer(state.p2.x, state.p2.y, "#3498db", state.p2.name);
-        
         // Top
-        ctx.shadowBlur = 10; ctx.shadowColor = "white";
-        ctx.fillStyle = "white"; ctx.beginPath(); ctx.arc(state.ball.x, state.ball.y, 12, 0, Math.PI*2); ctx.fill();
-        ctx.shadowBlur = 0;
+        ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(state.ball.x, state.ball.y, 12, 0, Math.PI*2); ctx.fill();
+        
+        // Oyunçular
+        drawP(state.p1.x, state.p1.y, "#ff4444", state.p1.name);
+        drawP(state.p2.x, state.p2.y, "#4444ff", state.p2.name);
     }
 
-    function drawPlayer(x, y, color, name) {
-        ctx.fillStyle = color; ctx.beginPath(); ctx.arc(x, y, 25, 0, Math.PI*2); ctx.fill();
-        ctx.strokeStyle = "white"; ctx.lineWidth = 3; ctx.stroke();
-        ctx.fillStyle = "white"; ctx.font = "14px Arial"; ctx.fillText(name, x, y + 40);
+    function drawP(x, y, c, n) {
+        ctx.fillStyle = c; ctx.beginPath(); ctx.arc(x, y, 25, 0, Math.PI*2); ctx.fill();
+        ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.stroke();
+        ctx.fillStyle = "#fff"; ctx.font = "12px Arial"; ctx.fillText(n, x, y + 40);
     }
 
-    function gameLoop() {
-        updatePhysics();
+    function loop() {
+        physics();
         draw();
-        requestAnimationFrame(gameLoop);
+        requestAnimationFrame(loop);
     }
 </script>
 </body>
