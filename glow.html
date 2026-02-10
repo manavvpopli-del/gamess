@@ -2,29 +2,74 @@
 <html lang="az">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Real Soccer Multiplayer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Fixed Soccer Multiplayer</title>
     <style>
-        body { margin: 0; background: #1a1a1a; color: white; font-family: 'Segoe UI', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
+        /* Ekranın hərəkətini tamamilə bloklayırıq */
+        * {
+            touch-action: none; /* Brauzerin default touch hərəkətlərini söndürür */
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        body { 
+            margin: 0; 
+            padding: 0;
+            background: #1a1a1a; 
+            color: white; 
+            font-family: sans-serif; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            height: 100vh; 
+            width: 100vw;
+            overflow: hidden; /* Scroll-u tam bağlayır */
+            position: fixed; /* Bütün səhifəni sabitləyir */
+        }
         
-        #ui-layer { position: absolute; background: rgba(0, 0, 0, 0.9); width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; text-align: center; }
-        .box { background: #222; padding: 30px; border-radius: 15px; border: 2px solid #4CAF50; box-shadow: 0 0 20px rgba(76, 175, 80, 0.3); }
-        input { padding: 12px; font-size: 1rem; border-radius: 5px; border: none; margin: 10px; width: 200px; text-align: center; }
-        button { padding: 12px 25px; background: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin: 5px; }
+        #ui-layer { 
+            position: absolute; 
+            inset: 0;
+            background: rgba(0, 0, 0, 0.9); 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            z-index: 100; 
+        }
+
+        .box { background: #222; padding: 25px; border-radius: 15px; text-align: center; border: 2px solid #4CAF50; width: 80%; max-width: 300px; }
+        input { padding: 12px; border-radius: 5px; border: none; margin: 8px 0; width: 90%; text-align: center; font-size: 16px; }
+        button { padding: 12px; background: #4CAF50; color: white; border: none; border-radius: 5px; width: 95%; font-weight: bold; margin: 5px 0; }
         
-        canvas { border: 10px solid #fff; border-radius: 5px; background: #2e7d32; cursor: none; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        #game-stats { position: absolute; top: 10px; left: 10px; pointer-events: none; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 5px; }
+        /* Canvas mobil ölçülərinə uyğunlaşdırıldı */
+        canvas { 
+            background: #2e7d32; 
+            border: 5px solid #fff; 
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            max-width: 95vw;
+            max-height: 80vh;
+            touch-action: none;
+        }
+
+        #game-stats { 
+            position: absolute; 
+            top: 5px; 
+            width: 100%; 
+            text-align: center; 
+            font-size: 12px;
+            color: #ccc;
+        }
     </style>
 </head>
 <body>
 
 <div id="ui-layer">
     <div class="box">
-        <h2>⚽ Super Soccer</h2>
-        <input type="text" id="playerName" placeholder="Adınızı yazın..." maxlength="12"><br>
-        <button onclick="createNewGame()">Yeni Oyun Yarat</button>
-        <div style="margin: 10px; color: #888;">və ya</div>
-        <input type="text" id="joinCode" placeholder="Otaq kodu daxil edin..."><br>
+        <h3>⚽ MOBİL FUTBOL</h3>
+        <input type="text" id="playerName" placeholder="Adınız...">
+        <button onclick="createNewGame()">Yeni Oyun</button>
+        <input type="text" id="joinCode" placeholder="Otaq kodu...">
         <button onclick="joinExistingGame()">Qoşul</button>
     </div>
 </div>
@@ -53,35 +98,25 @@
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     
-    canvas.width = 450;
-    canvas.height = 700;
+    canvas.width = 400;
+    canvas.height = 600;
 
-    let myRole = null;
-    let roomId = null;
-    let myName = "";
-    const goalWidth = 160;
-
+    let myRole = null, roomId = null, myName = "";
     let state = {
-        p1: { x: 225, y: 80, name: "Gözlənilir..." },
-        p2: { x: 225, y: 620, name: "Gözlənilir..." },
-        ball: { x: 225, y: 350, vx: 0, vy: 0 },
+        p1: { x: 200, y: 80, name: "..." },
+        p2: { x: 200, y: 520, name: "..." },
+        ball: { x: 200, y: 300, vx: 0, vy: 0 },
         score: { p1: 0, p2: 0 }
     };
 
-    // Otaq yaratma
-    window.createNewGame = function() {
-        const code = Math.random().toString(36).substring(2, 7).toUpperCase();
-        setupGame(code, 'player1');
-    };
-
-    // Qoşulma
-    window.joinExistingGame = function() {
+    window.createNewGame = () => setupGame(Math.random().toString(36).substring(2, 7).toUpperCase(), 'player1');
+    window.joinExistingGame = () => {
         const code = document.getElementById('joinCode').value.trim().toUpperCase();
         if(code) setupGame(code, 'player2');
     };
 
-    function setupGame(code, preferredRole) {
-        myName = document.getElementById('playerName').value || "Adsız";
+    function setupGame(code, rolePref) {
+        myName = document.getElementById('playerName').value || "Oyuncu";
         roomId = code;
         const roomRef = ref(db, 'matches/' + roomId);
 
@@ -97,157 +132,95 @@
                 }
                 document.getElementById('ui-layer').style.display = 'none';
                 document.getElementById('displayRoom').innerText = roomId;
-                
-                // Oyundan çıxanda təmizlə
-                onDisconnect(ref(db, `matches/${roomId}/${myRole}_online`)).remove();
             }
-            if (data) {
-                state = data;
-                document.getElementById('p1NameDisplay').innerText = data.p1.name;
-                document.getElementById('p2NameDisplay').innerText = data.p2.name;
-            }
+            if (data) state = data;
         });
 
-        canvas.addEventListener('mousemove', (e) => {
+        // Touch və Mouse üçün vahid idarəetmə funksiyası
+        const handleInput = (e) => {
+            e.preventDefault();
             const rect = canvas.getBoundingClientRect();
-            const mx = e.clientX - rect.left;
-            const my = e.clientY - rect.top;
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            
+            const mx = (clientX - rect.left) * (canvas.width / rect.width);
+            const my = (clientY - rect.top) * (canvas.height / rect.height);
 
-            if (myRole === 'player1' && my < canvas.height / 2 - 30) {
+            if (myRole === 'player1' && my < canvas.height / 2 - 20) {
                 update(ref(db, `matches/${roomId}/p1`), { x: mx, y: my, name: myName });
-            } else if (myRole === 'player2' && my > canvas.height / 2 + 30) {
+            } else if (myRole === 'player2' && my > canvas.height / 2 + 20) {
                 update(ref(db, `matches/${roomId}/p2`), { x: mx, y: my, name: myName });
             }
-        });
+        };
 
+        canvas.addEventListener('mousemove', handleInput);
+        canvas.addEventListener('touchmove', handleInput, { passive: false });
         requestAnimationFrame(gameLoop);
     }
 
     function updatePhysics() {
         if (myRole !== 'player1') return;
-
         let { ball, p1, p2, score } = state;
 
-        // Topun hərəkəti
-        ball.x += ball.vx;
-        ball.y += ball.vy;
+        ball.x += ball.vx; ball.y += ball.vy;
+        ball.vx *= 0.98; ball.vy *= 0.98; // Sürtünmə
 
-        // Sürtünmə (Real top effekti)
-        ball.vx *= 0.985;
-        ball.vy *= 0.985;
-
-        // Yan divarlar
-        if (ball.x < 20 || ball.x > canvas.width - 20) {
-            ball.vx *= -0.8; 
-            ball.x = ball.x < 20 ? 20 : canvas.width - 20;
-        }
-
-        // Qapı və Üst/Alt divar
-        const inGoalRange = (ball.x > (canvas.width - goalWidth) / 2 && ball.x < (canvas.width + goalWidth) / 2);
-        if (!inGoalRange) {
-            if (ball.y < 20 || ball.y > canvas.height - 20) {
-                ball.vy *= -0.8;
-                ball.y = ball.y < 20 ? 20 : canvas.height - 20;
-            }
+        // Divarlar
+        if (ball.x < 15 || ball.x > canvas.width - 15) ball.vx *= -0.8;
+        
+        const inGoal = (ball.x > 120 && ball.x < 280);
+        if (!inGoal) {
+            if (ball.y < 15 || ball.y > canvas.height - 15) ball.vy *= -0.8;
         } else {
-            if (ball.y < -15) { score.p2++; resetBall(); }
-            else if (ball.y > canvas.height + 15) { score.p1++; resetBall(); }
+            if (ball.y < 0) { score.p2++; ball = {x:200, y:300, vx:0, vy:0}; }
+            if (ball.y > canvas.height) { score.p1++; ball = {x:200, y:300, vx:0, vy:0}; }
         }
 
-        // Toqquşma fizikası
+        // Topla toqquşma
         [p1, p2].forEach(p => {
-            const dx = ball.x - p.x;
-            const dy = ball.y - p.y;
+            const dx = ball.x - p.x, dy = ball.y - p.y;
             const dist = Math.sqrt(dx*dx + dy*dy);
-            if (dist < 45) { // Radiuslar cəmi
+            if (dist < 40) {
                 const angle = Math.atan2(dy, dx);
-                const speed = Math.sqrt(ball.vx**2 + ball.vy**2) + 5; // Vuruş gücü
-                ball.vx = Math.cos(angle) * speed;
-                ball.vy = Math.sin(angle) * speed;
+                ball.vx = Math.cos(angle) * 7;
+                ball.vy = Math.sin(angle) * 7;
             }
         });
-
-        function resetBall() {
-            ball = { x: 225, y: 350, vx: 0, vy: 0 };
-        }
 
         update(ref(db, 'matches/' + roomId), { ball, score });
     }
 
-    function drawField() {
-        // Ot örtüyü
-        ctx.fillStyle = "#2e7d32";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        // Meydança cizgiləri
-        ctx.strokeStyle = "rgba(255,255,255,0.5)";
-        ctx.lineWidth = 3;
-        
-        // Mərkəz dairə və xətt
-        ctx.beginPath();
-        ctx.moveTo(0, canvas.height/2);
-        ctx.lineTo(canvas.width, canvas.height/2);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.arc(canvas.width/2, canvas.height/2, 60, 0, Math.PI*2);
-        ctx.stroke();
-
-        // Cərimə meydançaları
-        ctx.strokeRect((canvas.width-250)/2, 0, 250, 100);
-        ctx.strokeRect((canvas.width-250)/2, canvas.height-100, 250, 100);
-
-        // Qapılar
-        ctx.strokeStyle = "white";
-        ctx.lineWidth = 8;
-        ctx.strokeRect((canvas.width - goalWidth)/2, -2, goalWidth, 5);
-        ctx.strokeRect((canvas.width - goalWidth)/2, canvas.height - 3, goalWidth, 5);
-    }
-
     function draw() {
-        drawField();
+        ctx.fillStyle = "#2e7d32"; ctx.fillRect(0,0,400,600);
+        
+        // Xətlər
+        ctx.strokeStyle = "white"; ctx.lineWidth = 2;
+        ctx.strokeRect(0,0,400,600);
+        ctx.beginPath(); ctx.moveTo(0,300); ctx.lineTo(400,300); ctx.stroke();
+        ctx.beginPath(); ctx.arc(200,300,50,0,Math.PI*2); ctx.stroke();
 
         // Hesab
-        ctx.fillStyle = "rgba(255,255,255,0.2)";
-        ctx.font = "bold 80px sans-serif";
-        ctx.fillText(state.score.p1, canvas.width/2 - 25, canvas.height/2 - 50);
-        ctx.fillText(state.score.p2, canvas.width/2 - 25, canvas.height/2 + 110);
+        ctx.globalAlpha = 0.3; ctx.font = "60px Arial"; ctx.fillStyle = "white";
+        ctx.fillText(state.score.p1, 180, 250); ctx.fillText(state.score.p2, 180, 370);
+        ctx.globalAlpha = 1.0;
 
-        // Oyunçular (Rəngli formalar)
-        drawObject(state.p1.x, state.p1.y, 25, "#e74c3c", state.p1.name);
-        drawObject(state.p2.x, state.p2.y, 25, "#3498db", state.p2.name);
-        
-        // Top (Futbol topu dizaynı)
-        drawBall(state.ball.x, state.ball.y);
+        // Qapılar
+        ctx.lineWidth = 6;
+        ctx.strokeRect(120, -2, 160, 5); ctx.strokeRect(120, 597, 160, 5);
+
+        // Obyektlər
+        drawCircle(state.p1.x, state.p1.y, 22, "#e74c3c");
+        drawCircle(state.p2.x, state.p2.y, 22, "#3498db");
+        drawCircle(state.ball.x, state.ball.y, 12, "#fff");
     }
 
-    function drawObject(x, y, r, color, name) {
-        ctx.fillStyle = color;
-        ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2); ctx.fill();
-        ctx.strokeStyle = "white"; ctx.lineWidth = 3; ctx.stroke();
-        
-        ctx.fillStyle = "white";
-        ctx.font = "12px Arial";
-        ctx.textAlign = "center";
-        ctx.fillText(name, x, y + r + 15);
-    }
-
-    function drawBall(x, y) {
-        ctx.fillStyle = "white";
-        ctx.beginPath(); ctx.arc(x, y, 15, 0, Math.PI*2); ctx.fill();
-        ctx.strokeStyle = "black"; ctx.lineWidth = 1; ctx.stroke();
-        // Topun üzərindəki qara naxışlar (simvolik)
-        ctx.fillStyle = "black";
-        for(let i=0; i<5; i++) {
-            ctx.beginPath();
-            ctx.arc(x + Math.cos(i)*8, y + Math.sin(i)*8, 3, 0, Math.PI*2);
-            ctx.fill();
-        }
+    function drawCircle(x, y, r, c) {
+        ctx.fillStyle = c; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2); ctx.fill();
+        ctx.strokeStyle = "white"; ctx.lineWidth = 2; ctx.stroke();
     }
 
     function gameLoop() {
-        updatePhysics();
-        draw();
-        requestAnimationFrame(gameLoop);
+        updatePhysics(); draw(); requestAnimationFrame(gameLoop);
     }
 </script>
 </body>
