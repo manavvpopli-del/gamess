@@ -3,17 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Glow Hockey Multiplayer</title>
+    <title>Neon Hockey Multiplayer</title>
     <style>
-        body { margin: 0; background: #0a0a0a; color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
-        canvas { border: 5px solid #333; border-radius: 15px; box-shadow: 0 0 20px #00d4ff88; background: #000; cursor: none; }
-        #status { margin-bottom: 10px; font-size: 1.2rem; color: #00d4ff; }
-        .ui { position: absolute; top: 20px; }
+        body { margin: 0; background: #050505; color: white; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
+        
+        /* Giriş Ekranı */
+        #login-screen { position: absolute; background: rgba(10, 10, 10, 0.95); width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10; }
+        input { padding: 12px; font-size: 1.1rem; border-radius: 8px; border: 2px solid #00d4ff; background: #111; color: white; margin: 10px; outline: none; text-align: center; }
+        button { padding: 12px 30px; font-size: 1.1rem; background: #00d4ff; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        button:hover { background: #008cb3; transform: scale(1.05); }
+
+        /* Oyun Sahəsi */
+        canvas { border: 4px solid #333; border-radius: 10px; background: #000; cursor: none; box-shadow: 0 0 30px rgba(0, 212, 255, 0.2); }
+        #info { position: absolute; top: 10px; font-size: 1rem; color: #aaa; }
     </style>
 </head>
 <body>
 
-<div id="status">Otağa qoşulur...</div>
+<div id="login-screen">
+    <h2>Glow Hockey Multiplayer</h2>
+    <input type="text" id="roomInput" placeholder="Otaq kodunu daxil edin..." maxlength="10">
+    <button onclick="joinRoom()">Oyuna Başla</button>
+</div>
+
+<div id="info">Otaq: <span id="roomName">-</span> | Rol: <span id="playerRole">-</span></div>
 <canvas id="gameCanvas"></canvas>
 
 <script type="module">
@@ -34,133 +47,150 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // Otaq ID-si (URL-dən götürür və ya default 'room1')
-    const urlParams = new URLSearchParams(window.location.search);
-    const roomId = urlParams.get('room') || 'room1';
-    const roomRef = ref(db, 'rooms/' + roomId);
-
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     canvas.width = 400;
     canvas.height = 600;
 
-    let role = null; // 'player1' (üst) və ya 'player2' (alt)
+    let role = null;
+    let roomId = null;
+    const goalWidth = 140; // Qapı genişliyi
+
     let gameState = {
-        p1: { x: 200, y: 50 },
-        p2: { x: 200, y: 550 },
+        p1: { x: 200, y: 60 },
+        p2: { x: 200, y: 540 },
         ball: { x: 200, y: 300, vx: 0, vy: 0 },
         score: { p1: 0, p2: 0 }
     };
 
-    // 1. Oyunçu Rolunu Müəyyən Etmək
-    onValue(roomRef, (snapshot) => {
-        const data = snapshot.val();
-        if (!data) {
-            role = 'player1';
-            set(roomRef, { ...gameState, player1_active: true });
-        } else if (!role) {
-            role = data.player1_active ? 'player2' : 'player1';
-            update(roomRef, { [role + '_active']: true });
-        }
-        if (data) gameState = data;
-        document.getElementById('status').innerText = `Rolunuz: ${role} | Otaq: ${roomId}`;
-    }, { onlyOnce: true });
+    window.joinRoom = function() {
+        const input = document.getElementById('roomInput').value.trim();
+        if (!input) return alert("Kod daxil edin!");
+        
+        roomId = input;
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('roomName').innerText = roomId;
+        
+        const roomRef = ref(db, 'rooms/' + roomId);
 
-    // 2. Məlumatları Dinləmək (Sinxronizasiya)
-    onValue(roomRef, (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-            gameState.p1 = data.p1;
-            gameState.p2 = data.p2;
-            gameState.ball = data.ball;
-            gameState.score = data.score;
-        }
-    });
+        onValue(roomRef, (snapshot) => {
+            const data = snapshot.val();
+            if (!data) {
+                role = 'player1';
+                set(roomRef, { ...gameState, p1_online: true });
+            } else if (!role) {
+                role = data.p1_online ? 'player2' : 'player1';
+                update(roomRef, { [role + '_online']: true });
+            }
+            document.getElementById('playerRole').innerText = role;
+        }, { onlyOnce: true });
 
-    // 3. İdarəetmə (Mouse/Touch)
-    canvas.addEventListener('mousemove', (e) => {
-        if (!role) return;
-        const rect = canvas.getBoundingClientRect();
-        const mouseX = e.clientX - rect.left;
-        const mouseY = e.clientY - rect.top;
+        // Sinxronizasiya
+        onValue(roomRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data) gameState = data;
+        });
 
-        // Oyunçuların öz sahasında qalmasını təmin edirik
-        if (role === 'player1' && mouseY < canvas.height / 2) {
-            update(ref(db, `rooms/${roomId}/p1`), { x: mouseX, y: mouseY });
-        } else if (role === 'player2' && mouseY > canvas.height / 2) {
-            update(ref(db, `rooms/${roomId}/p2`), { x: mouseX, y: mouseY });
-        }
-    });
+        // Mouse hərəkəti
+        canvas.addEventListener('mousemove', (e) => {
+            if (!role) return;
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
 
-    // 4. Fizika (Yalnız Player 1 hesbalayır ki, konflikt olmasın)
+            if (role === 'player1' && mouseY < canvas.height / 2 - 20) {
+                update(ref(db, `rooms/${roomId}/p1`), { x: mouseX, y: mouseY });
+            } else if (role === 'player2' && mouseY > canvas.height / 2 + 20) {
+                update(ref(db, `rooms/${roomId}/p2`), { x: mouseX, y: mouseY });
+            }
+        });
+
+        requestAnimationFrame(gameLoop);
+    };
+
     function updatePhysics() {
-        if (role !== 'player1') return;
+        if (role !== 'player1') return; // Hesablamanı yalnız host (p1) edir
 
         let { ball, p1, p2, score } = gameState;
 
         ball.x += ball.vx;
         ball.y += ball.vy;
 
-        // Divarlardan əks olunma
-        if (ball.x < 15 || ball.x > canvas.width - 15) ball.vx *= -1;
-        
-        // Sürtünmə
-        ball.vx *= 0.98;
-        ball.vy *= 0.98;
+        // Yan divarlardan əks olunma
+        if (ball.x < 15 || ball.x > canvas.width - 15) {
+            ball.vx *= -1;
+            ball.x = ball.x < 15 ? 15 : canvas.width - 15;
+        }
 
-        // Toqquşma (Sadələşdirilmiş)
-        [p1, p2].forEach(p => {
-            const dx = ball.x - p.x;
-            const dy = ball.y - p.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            if (distance < 35) { // 20 radius paf + 15 radius top
-                ball.vx = dx * 0.2;
-                ball.vy = dy * 0.2;
+        // Üst və alt divarlar (Qapı yoxdursa əks olunma)
+        const inGoalRange = (ball.x > (canvas.width - goalWidth) / 2 && ball.x < (canvas.width + goalWidth) / 2);
+
+        if (!inGoalRange) {
+            if (ball.y < 15 || ball.y > canvas.height - 15) {
+                ball.vy *= -1;
+                ball.y = ball.y < 15 ? 15 : canvas.height - 15;
             }
-        });
-
-        // Qol yoxlanışı
-        if (ball.y < 0) { score.p2++; resetBall(); }
-        if (ball.y > canvas.height) { score.p1++; resetBall(); }
+        } else {
+            // Qol yoxlanışı
+            if (ball.y < -10) { score.p2++; resetBall(); }
+            else if (ball.y > canvas.height + 10) { score.p1++; resetBall(); }
+        }
 
         function resetBall() {
             ball = { x: 200, y: 300, vx: 0, vy: 0 };
         }
 
-        update(roomRef, { ball, score });
+        // Toqquşma (Paddle vs Ball)
+        [p1, p2].forEach(p => {
+            const dx = ball.x - p.x;
+            const dy = ball.y - p.y;
+            const dist = Math.sqrt(dx*dx + dy*dy);
+            if (dist < 35) {
+                ball.vx = dx * 0.25;
+                ball.vy = dy * 0.25;
+            }
+        });
+
+        // Sürtünmə
+        ball.vx *= 0.99;
+        ball.vy *= 0.99;
+
+        update(ref(db, 'rooms/' + roomId), { ball, score });
     }
 
-    // 5. Render (Qrafika)
     function draw() {
-        ctx.fillStyle = "black";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Orta xətt
-        ctx.strokeStyle = "#333";
-        ctx.lineWidth = 2;
+        // Sahə cizgiləri
+        ctx.strokeStyle = "#222";
+        ctx.lineWidth = 4;
         ctx.beginPath();
-        ctx.moveTo(0, canvas.height/2);
-        ctx.lineTo(canvas.width, canvas.height/2);
+        ctx.arc(200, 300, 60, 0, Math.PI * 2);
+        ctx.moveTo(0, 300);
+        ctx.lineTo(400, 300);
         ctx.stroke();
 
-        // Hesab
-        ctx.font = "20px Arial";
-        ctx.fillStyle = "white";
-        ctx.fillText(gameState.score.p1, 20, 280);
-        ctx.fillText(gameState.score.p2, 20, 330);
-
-        // Oyunçular
-        drawCircle(gameState.p1.x, gameState.p1.y, 20, "#ff0055"); // P1 - Qırmızı
-        drawCircle(gameState.p2.x, gameState.p2.y, 20, "#00d4ff"); // P2 - Mavi
+        // Qapıları çək (Neon Effekt)
+        ctx.lineWidth = 8;
+        ctx.strokeStyle = "#ff0055"; // Üst qapı
+        ctx.strokeRect((canvas.width - goalWidth)/2, -5, goalWidth, 10);
         
-        // Top
-        drawCircle(gameState.ball.x, gameState.ball.y, 15, "#fff");
+        ctx.strokeStyle = "#00d4ff"; // Alt qapı
+        ctx.strokeRect((canvas.width - goalWidth)/2, canvas.height - 5, goalWidth, 10);
 
-        if (role === 'player1') updatePhysics();
-        requestAnimationFrame(draw);
+        // Hesab
+        ctx.font = "bold 40px Arial";
+        ctx.fillStyle = "rgba(255,255,255,0.1)";
+        ctx.fillText(gameState.score.p1, 185, 280);
+        ctx.fillText(gameState.score.p2, 185, 345);
+
+        // Oyunçular və Top
+        drawCircle(gameState.p1.x, gameState.p1.y, 20, "#ff0055");
+        drawCircle(gameState.p2.x, gameState.p2.y, 20, "#00d4ff");
+        drawCircle(gameState.ball.x, gameState.ball.y, 15, "#fff", true);
     }
 
-    function drawCircle(x, y, r, color) {
+    function drawCircle(x, y, r, color, isBall = false) {
         ctx.shadowBlur = 15;
         ctx.shadowColor = color;
         ctx.fillStyle = color;
@@ -168,9 +198,18 @@
         ctx.arc(x, y, r, 0, Math.PI * 2);
         ctx.fill();
         ctx.shadowBlur = 0;
+        if(!isBall) {
+            ctx.strokeStyle = "white";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
     }
 
-    draw();
+    function gameLoop() {
+        updatePhysics();
+        draw();
+        requestAnimationFrame(gameLoop);
+    }
 </script>
 </body>
 </html>
