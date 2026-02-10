@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glow Hockey Multiplayer</title>
+    <style>
+        body { margin: 0; background: #0a0a0a; color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
+        canvas { border: 5px solid #333; border-radius: 15px; box-shadow: 0 0 20px #00d4ff88; background: #000; cursor: none; }
+        #status { margin-bottom: 10px; font-size: 1.2rem; color: #00d4ff; }
+        .ui { position: absolute; top: 20px; }
+    </style>
+</head>
+<body>
+
+<div id="status">Otağa qoşulur...</div>
+<canvas id="gameCanvas"></canvas>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, set, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyCM5WdZNSj9oFipNI-J3csHpOIvK8PjoLU",
+        authDomain: "sevgili-testi.firebaseapp.com",
+        databaseURL: "https://sevgili-testi-default-rtdb.firebaseio.com",
+        projectId: "sevgili-testi",
+        storageBucket: "sevgili-testi.firebasestorage.app",
+        messagingSenderId: "399260477557",
+        appId: "1:399260477557:web:584204a698d7bf145bb03c",
+        measurementId: "G-44P21XCZ7G"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // Otaq ID-si (URL-dən götürür və ya default 'room1')
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomId = urlParams.get('room') || 'room1';
+    const roomRef = ref(db, 'rooms/' + roomId);
+
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = 400;
+    canvas.height = 600;
+
+    let role = null; // 'player1' (üst) və ya 'player2' (alt)
+    let gameState = {
+        p1: { x: 200, y: 50 },
+        p2: { x: 200, y: 550 },
+        ball: { x: 200, y: 300, vx: 0, vy: 0 },
+        score: { p1: 0, p2: 0 }
+    };
+
+    // 1. Oyunçu Rolunu Müəyyən Etmək
+    onValue(roomRef, (snapshot) => {
+        const data = snapshot.val();
+        if (!data) {
+            role = 'player1';
+            set(roomRef, { ...gameState, player1_active: true });
+        } else if (!role) {
+            role = data.player1_active ? 'player2' : 'player1';
+            update(roomRef, { [role + '_active']: true });
+        }
+        if (data) gameState = data;
+        document.getElementById('status').innerText = `Rolunuz: ${role} | Otaq: ${roomId}`;
+    }, { onlyOnce: true });
+
+    // 2. Məlumatları Dinləmək (Sinxronizasiya)
+    onValue(roomRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            gameState.p1 = data.p1;
+            gameState.p2 = data.p2;
+            gameState.ball = data.ball;
+            gameState.score = data.score;
+        }
+    });
+
+    // 3. İdarəetmə (Mouse/Touch)
+    canvas.addEventListener('mousemove', (e) => {
+        if (!role) return;
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+
+        // Oyunçuların öz sahasında qalmasını təmin edirik
+        if (role === 'player1' && mouseY < canvas.height / 2) {
+            update(ref(db, `rooms/${roomId}/p1`), { x: mouseX, y: mouseY });
+        } else if (role === 'player2' && mouseY > canvas.height / 2) {
+            update(ref(db, `rooms/${roomId}/p2`), { x: mouseX, y: mouseY });
+        }
+    });
+
+    // 4. Fizika (Yalnız Player 1 hesbalayır ki, konflikt olmasın)
+    function updatePhysics() {
+        if (role !== 'player1') return;
+
+        let { ball, p1, p2, score } = gameState;
+
+        ball.x += ball.vx;
+        ball.y += ball.vy;
+
+        // Divarlardan əks olunma
+        if (ball.x < 15 || ball.x > canvas.width - 15) ball.vx *= -1;
+        
+        // Sürtünmə
+        ball.vx *= 0.98;
+        ball.vy *= 0.98;
+
+        // Toqquşma (Sadələşdirilmiş)
+        [p1, p2].forEach(p => {
+            const dx = ball.x - p.x;
+            const dy = ball.y - p.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            if (distance < 35) { // 20 radius paf + 15 radius top
+                ball.vx = dx * 0.2;
+                ball.vy = dy * 0.2;
+            }
+        });
+
+        // Qol yoxlanışı
+        if (ball.y < 0) { score.p2++; resetBall(); }
+        if (ball.y > canvas.height) { score.p1++; resetBall(); }
+
+        function resetBall() {
+            ball = { x: 200, y: 300, vx: 0, vy: 0 };
+        }
+
+        update(roomRef, { ball, score });
+    }
+
+    // 5. Render (Qrafika)
+    function draw() {
+        ctx.fillStyle = "black";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Orta xətt
+        ctx.strokeStyle = "#333";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, canvas.height/2);
+        ctx.lineTo(canvas.width, canvas.height/2);
+        ctx.stroke();
+
+        // Hesab
+        ctx.font = "20px Arial";
+        ctx.fillStyle = "white";
+        ctx.fillText(gameState.score.p1, 20, 280);
+        ctx.fillText(gameState.score.p2, 20, 330);
+
+        // Oyunçular
+        drawCircle(gameState.p1.x, gameState.p1.y, 20, "#ff0055"); // P1 - Qırmızı
+        drawCircle(gameState.p2.x, gameState.p2.y, 20, "#00d4ff"); // P2 - Mavi
+        
+        // Top
+        drawCircle(gameState.ball.x, gameState.ball.y, 15, "#fff");
+
+        if (role === 'player1') updatePhysics();
+        requestAnimationFrame(draw);
+    }
+
+    function drawCircle(x, y, r, color) {
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = color;
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+    }
+
+    draw();
+</script>
+</body>
+</html>
