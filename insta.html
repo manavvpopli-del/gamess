@@ -3,173 +3,195 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>InstaBoost | Pulsuz İzləyici Paneli</title>
+    <title>InstaBoost PRO | Premium Panel</title>
     <style>
         :root {
-            --primary: #bc2a8d;
-            --secondary: #8a3ab9;
-            --dark: #121212;
-            --card: #1e1e1e;
-            --text: #ffffff;
+            --bg: #0f0c29;
+            --glass: rgba(255, 255, 255, 0.05);
+            --neon: #00f2fe;
+            --pink: #ff0080;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--dark);
-            color: var(--text);
+            background: linear-gradient(to right, #0f0c29, #302b63, #24243e);
+            font-family: 'Inter', sans-serif;
+            color: white;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
-            overflow: hidden;
         }
 
-        .container {
-            background-color: var(--card);
-            padding: 2rem;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        .main-card {
+            background: var(--glass);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 40px;
+            border-radius: 24px;
             width: 100%;
-            max-width: 400px;
+            max-width: 500px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
             text-align: center;
-            border: 1px solid #333;
         }
 
-        h2 { margin-bottom: 1.5rem; background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        h1 { font-weight: 800; letter-spacing: -1px; margin-bottom: 5px; background: linear-gradient(to right, #00f2fe, #4facfe); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        p.subtitle { color: #aaa; font-size: 0.9rem; margin-bottom: 30px; }
 
-        .input-group { margin-bottom: 1rem; text-align: left; }
-        
-        label { display: block; margin-bottom: 5px; font-size: 0.9rem; color: #aaa; }
-
-        input, select {
+        .input-box {
+            background: rgba(0,0,0,0.2);
+            border: 1px solid #444;
+            padding: 15px;
+            border-radius: 12px;
             width: 100%;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid #333;
-            background: #252525;
             color: white;
+            font-size: 1rem;
+            margin-bottom: 20px;
             box-sizing: border-box;
             outline: none;
+            transition: 0.3s;
         }
 
-        input:focus { border-color: var(--primary); }
+        .input-box:focus { border-color: var(--neon); box-shadow: 0 0 10px rgba(0, 242, 254, 0.3); }
 
-        button {
-            width: 100%;
-            padding: 12px;
-            margin-top: 1rem;
-            border: none;
-            border-radius: 8px;
-            background: linear-gradient(45deg, var(--secondary), var(--primary));
-            color: white;
-            font-weight: bold;
+        .packages {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .package-item {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid #333;
+            padding: 15px;
+            border-radius: 12px;
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: 0.3s;
         }
 
-        button:active { transform: scale(0.98); }
+        .package-item:hover { border-color: var(--pink); background: rgba(255, 0, 128, 0.05); }
 
-        /* Simulyasiya Ekranı */
-        #process { display: none; }
+        .package-item.active { border-color: var(--pink); background: rgba(255, 0, 128, 0.1); box-shadow: 0 0 15px rgba(255, 0, 128, 0.2); }
 
-        .loader {
+        .package-item h4 { margin: 0; font-size: 1.1rem; }
+        .package-item span { font-size: 0.8rem; color: #00ff88; font-weight: bold; }
+
+        button.start-btn {
+            background: linear-gradient(45deg, #4facfe 0%, #00f2fe 100%);
+            border: none;
+            padding: 15px 40px;
+            border-radius: 12px;
+            color: #000;
+            font-weight: 800;
+            cursor: pointer;
             width: 100%;
-            background: #333;
-            height: 10px;
-            border-radius: 5px;
-            margin: 20px 0;
-            overflow: hidden;
+            font-size: 1rem;
+            text-transform: uppercase;
         }
 
-        .progress {
-            width: 0%;
-            height: 100%;
-            background: linear-gradient(90deg, #f09433, #bc1888);
-            transition: width 0.3s;
-        }
+        /* Loading Screen */
+        #loader-screen { display: none; }
+        .progress-container { background: #111; height: 8px; border-radius: 10px; margin: 25px 0; overflow: hidden; }
+        .progress-bar { width: 0%; height: 100%; background: var(--neon); box-shadow: 0 0 15px var(--neon); transition: 0.4s; }
+        .log-text { font-family: 'Courier New', monospace; font-size: 0.8rem; color: #00ff88; min-height: 20px; }
 
-        .status-text { font-size: 0.85rem; color: #00ff88; font-family: monospace; }
-        
-        .success-msg { color: #00ff88; display: none; }
+        .done-icon { font-size: 50px; color: #00ff88; margin-bottom: 15px; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div id="setup">
-        <h2>InstaBoost v4.2</h2>
-        <div class="input-group">
-            <label>İstifadəçi Adı</label>
-            <input type="text" id="username" placeholder="@istifadeci_adi">
+<div class="main-card">
+    <div id="initial-ui">
+        <h1>INSTABOOST <span style="color:white; font-size: 0.5em; vertical-align: middle; border: 1px solid white; padding: 2px 5px; border-radius: 4px;">PRO</span></h1>
+        <p class="subtitle">Dünyanın ən sürətli süni intellektli izləyici paneli</p>
+        
+        <input type="text" id="target-user" class="input-box" placeholder="İnstagram istifadəçi adı (@...)">
+        
+        <div class="packages">
+            <div class="package-item" onclick="selectPkg(this, '500', '4.99 AZN')">
+                <h4>500 İzləyici</h4>
+                <span>4.99 AZN</span>
+            </div>
+            <div class="package-item" onclick="selectPkg(this, '2500', '12.50 AZN')">
+                <h4>2500 İzləyici</h4>
+                <span>12.50 AZN</span>
+            </div>
+            <div class="package-item" onclick="selectPkg(this, '10K', '35.00 AZN')">
+                <h4>10,000 İzləyici</h4>
+                <span>35.00 AZN</span>
+            </div>
+            <div class="package-item" onclick="selectPkg(this, '50K', '89.99 AZN')">
+                <h4>50,000 İzləyici</h4>
+                <span>89.99 AZN</span>
+            </div>
         </div>
-        <div class="input-group">
-            <label>İzləyici Sayı</label>
-            <select id="amount">
-                <option value="500">500 İzləyici</option>
-                <option value="1000">1000 İzləyici</option>
-                <option value="5000">5000 İzləyici</option>
-                <option value="10000">10000 İzləyici</option>
-            </select>
-        </div>
-        <button onclick="startBoost()">İNDİ BAŞLAT</button>
+
+        <button class="start-btn" onclick="processOrder()">ÖDƏNİŞİ TAMAMLA VƏ BAŞLAT</button>
     </div>
 
-    <div id="process">
-        <h3 id="target-user">@user üçün hazırlanır...</h3>
-        <div class="loader"><div class="progress" id="bar"></div></div>
-        <div class="status-text" id="log">Serverə qoşulur...</div>
+    <div id="loader-screen">
+        <h2 id="status-title">Ödəniş təsdiqlənir...</h2>
+        <div class="progress-container"><div class="progress-bar" id="bar"></div></div>
+        <p class="log-text" id="log-msg">Sistemə sorğu göndərilir...</p>
         
-        <div class="success-msg" id="final">
-            <p>✅ Əməliyyat uğurla tamamlandı!</p>
-            <p style="font-size: 0.8rem; color: #ccc;">İzləyicilər 24 saat ərzində profilinizə köçürüləcək.</p>
-            <button onclick="location.reload()">YENİDƏN SINAYIN</button>
+        <div id="success-area" style="display:none;">
+            <div class="done-icon">✔</div>
+            <h3>Sifariş Tamamlandı!</h3>
+            <p style="font-size: 0.9rem; color: #ccc;">Sifariş kodu: #BST-9921<br>İzləyicilər 1-3 saat ərzində yüklənəcək.</p>
+            <button class="start-btn" style="background: var(--glass); color: white; border: 1px solid white;" onclick="location.reload()">YENİ SİFARİŞ</button>
         </div>
     </div>
 </div>
 
 <script>
-    function startBoost() {
-        const user = document.getElementById('username').value;
-        if(user.length < 3) {
-            alert("Zəhmət olmasa düzgün istifadəçi adı daxil edin!");
+    let selectedAmount = "";
+
+    function selectPkg(el, amt, price) {
+        document.querySelectorAll('.package-item').forEach(item => item.classList.remove('active'));
+        el.classList.add('active');
+        selectedAmount = amt;
+    }
+
+    function processOrder() {
+        const user = document.getElementById('target-user').value;
+        if(!user || !selectedAmount) {
+            alert("Zəhmət olmasa istifadəçi adını daxil edin və paket seçin!");
             return;
         }
 
-        document.getElementById('setup').style.display = 'none';
-        document.getElementById('process').style.display = 'block';
-        document.getElementById('target-user').innerText = "@" + user + " üçün göndərilir...";
+        document.getElementById('initial-ui').style.display = 'none';
+        document.getElementById('loader-screen').style.display = 'block';
 
         const logs = [
-            "Proksi serverləri aktivləşdirilir...",
-            "İnstagram API ilə əlaqə qurulur...",
-            "İstifadəçi verilənlər bazasında tapıldı.",
-            "Paketlər hazırlanır...",
-            "Şifrələmə protokolu (SSL) keçilir...",
-            "İzləyicilər növbəyə alınır...",
-            "Göndərim başladıldı: 15%...",
-            "Göndərim başladıldı: 45%...",
-            "Göndərim başladıldı: 82%...",
-            "Son yoxlamalar aparılır..."
+            "Bank əməliyyatı yoxlanılır...",
+            "Ödəniş uğurla qəbul edildi!",
+            "İnstagram Cloud Server-ə qoşulur...",
+            "@" + user + " hesabı analiz edilir...",
+            "Paket (" + selectedAmount + ") növbəyə alındı.",
+            "Şifrələmə protokolları aktivdir.",
+            "Bot əleyhinə sistemlər keçilir...",
+            "İzləyici datası sinxronizasiya olunur...",
+            "Göndərim üçün son təsdiq gözlənilir..."
         ];
 
         let i = 0;
-        let progress = 0;
-        const logEl = document.getElementById('log');
-        const barEl = document.getElementById('bar');
+        const logMsg = document.getElementById('log-msg');
+        const bar = document.getElementById('bar');
 
         const interval = setInterval(() => {
             if (i < logs.length) {
-                logEl.innerText = logs[i];
-                progress += 10;
-                barEl.style.width = progress + "%";
+                logMsg.innerText = logs[i];
+                bar.style.width = ((i + 1) / logs.length * 100) + "%";
                 i++;
             } else {
                 clearInterval(interval);
-                logEl.style.display = 'none';
-                document.getElementById('final').style.display = 'block';
+                document.getElementById('status-title').style.display = 'none';
+                document.getElementById('log-msg').style.display = 'none';
+                document.querySelector('.progress-container').style.display = 'none';
+                document.getElementById('success-area').style.display = 'block';
             }
-        }, 1500);
+        }, 1200);
     }
 </script>
 
