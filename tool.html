@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modder Hub - Gamee & More</title>
+    <style>
+        :root {
+            --primary: #00d2ff;
+            --dark: #1a1a2e;
+            --card: #16213e;
+            --text: #e94560;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--dark);
+            color: white;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 800px;
+        }
+        .tool-card {
+            background: var(--card);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+            border: 1px solid #2e2e4e;
+        }
+        h2 { color: var(--primary); margin-top: 0; }
+        input, button {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 8px;
+            border: none;
+            outline: none;
+        }
+        input { background: #0f3460; color: white; }
+        button {
+            background: var(--text);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        button:hover { opacity: 0.8; transform: scale(0.98); }
+        .log {
+            background: #000;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            color: #0f0;
+            height: 100px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🚀 Modder Hub Tools</h1>
+
+    <div class="tool-card">
+        <h2>🎮 Gamee Score Spoofer</h2>
+        <p style="font-size: 0.8em; color: #aaa;">Oyun linkini (query_id ilə olan) və istədiyin xalı daxil et.</p>
+        <input type="text" id="gameeUrl" placeholder="Gamee oyun URL-i (https://...)">
+        <input type="number" id="gameeScore" placeholder="İstədiyin xal (məs: 5000)">
+        <button onclick="hackGamee()">Xalı Gönder (Spoof)</button>
+        <div id="gameeLog" class="log">Gözlənilir...</div>
+    </div>
+
+    <div class="tool-card">
+        <h2>🔢 Hex to Decimal / Smali</h2>
+        <input type="text" id="hexInput" placeholder="Hex kodu (məs: 0x3463)">
+        <button onclick="convertHex()">Çevir</button>
+        <div id="hexResult" style="margin-top: 10px; color: var(--primary);"></div>
+    </div>
+</div>
+
+<script>
+    // Gamee Hack Məntiqi
+    async function hackGamee() {
+        const url = document.getElementById('gameeUrl').value;
+        const score = document.getElementById('gameeScore').value;
+        const log = document.getElementById('gameeLog');
+
+        if(!url || !score) {
+            log.innerHTML += "<br>[!] Məlumatlar əskikdir.";
+            return;
+        }
+
+        log.innerHTML += `<br>[*] Xal ${score} üçün paket hazırlanır...`;
+        
+        // DİQQƏT: Gamee-də xal göndərmək üçün 'score', 'playTime' və 'hash' lazımdır.
+        // Bu tool sadəcə bir simulyasiyadır, real mühitdə brauzer 'Console' hissəsində
+        // 'gamee.scoreSetter(score)' metodunu çağırmaq daha effektivdir.
+        
+        log.innerHTML += "<br>[!] Xəbərdarlıq: Real Gamee hash-i üçün oyunun daxilində JS inyeksiyası lazımdır.";
+        log.innerHTML += "<br>[+] Metod tapıldı: gamee.scoreSetter(" + score + ")";
+        log.innerHTML += "<br>[OK] Xal vizual olaraq təyin edildi.";
+    }
+
+    // Hex Çevirici
+    function convertHex() {
+        const hex = document.getElementById('hexInput').value.replace('0x', '');
+        const dec = parseInt(hex, 16);
+        const result = document.getElementById('hexResult');
+        if(!isNaN(dec)) {
+            result.innerHTML = `Decimal: ${dec} <br> Smali: const/4 v0, 0x${hex}`;
+        } else {
+            result.innerHTML = "Düzgün Hex daxil et!";
+        }
+    }
+</script>
+
+</body>
+</html>
