@@ -3,124 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modder Hub - Gamee & More</title>
+    <title>Modder Hub - Link Sniffer</title>
     <style>
-        :root {
-            --primary: #00d2ff;
-            --dark: #1a1a2e;
-            --card: #16213e;
-            --text: #e94560;
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--dark);
-            color: white;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .container {
-            width: 100%;
-            max-width: 800px;
-        }
-        .tool-card {
-            background: var(--card);
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            margin-bottom: 20px;
-            border: 1px solid #2e2e4e;
-        }
-        h2 { color: var(--primary); margin-top: 0; }
-        input, button {
-            width: 100%;
-            padding: 12px;
-            margin: 8px 0;
-            border-radius: 8px;
-            border: none;
-            outline: none;
-        }
-        input { background: #0f3460; color: white; }
-        button {
-            background: var(--text);
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-        button:hover { opacity: 0.8; transform: scale(0.98); }
-        .log {
-            background: #000;
-            padding: 10px;
-            border-radius: 5px;
-            font-family: monospace;
-            font-size: 12px;
-            color: #0f0;
-            height: 100px;
-            overflow-y: auto;
-            margin-top: 10px;
-        }
+        body { font-family: sans-serif; background: #0f0c29; color: white; text-align: center; padding: 20px; }
+        .box { background: #302b63; padding: 20px; border-radius: 15px; border: 1px solid #24243e; margin-bottom: 20px; }
+        input, button { width: 90%; padding: 12px; margin: 10px 0; border-radius: 8px; border: none; }
+        input { background: #1a1a2e; color: #00d2ff; font-size: 12px; }
+        button { background: #e94560; color: white; font-weight: bold; cursor: pointer; }
+        .link-display { word-break: break-all; color: #00ff00; font-family: monospace; font-size: 11px; background: black; padding: 10px; border-radius: 5px; display: none; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>🚀 Modder Hub Tools</h1>
+    <h1>🚀 Modder Hub Sniffer</h1>
 
-    <div class="tool-card">
-        <h2>🎮 Gamee Score Spoofer</h2>
-        <p style="font-size: 0.8em; color: #aaa;">Oyun linkini (query_id ilə olan) və istədiyin xalı daxil et.</p>
-        <input type="text" id="gameeUrl" placeholder="Gamee oyun URL-i (https://...)">
-        <input type="number" id="gameeScore" placeholder="İstədiyin xal (məs: 5000)">
-        <button onclick="hackGamee()">Xalı Gönder (Spoof)</button>
-        <div id="gameeLog" class="log">Gözlənilir...</div>
+    <div class="box">
+        <h2>🔗 Link Tutucu (Sniffer)</h2>
+        <p>Telegram daxilində bu saytı açdınsa, aşağıdakı düymə sənin olduğun "Webview" linkini göstərəcək.</p>
+        <button onclick="getGameeLink()">Linki Çıxart (Extract)</button>
+        <div id="resultBox" class="link-display"></div>
     </div>
 
-    <div class="tool-card">
-        <h2>🔢 Hex to Decimal / Smali</h2>
-        <input type="text" id="hexInput" placeholder="Hex kodu (məs: 0x3463)">
-        <button onclick="convertHex()">Çevir</button>
-        <div id="hexResult" style="margin-top: 10px; color: var(--primary);"></div>
+    <div class="box">
+        <h2>🎮 Gamee Hack (JS İnjektor)</h2>
+        <p>Linki götürdükdən sonra bura yapışdır və xal yaz.</p>
+        <input type="text" id="targetUrl" placeholder="Kopyaladığın linki bura qoy">
+        <input type="number" id="score" placeholder="Xal (məs: 9999)">
+        <button onclick="sendScore()">Xalı Göndər</button>
     </div>
-</div>
 
-<script>
-    // Gamee Hack Məntiqi
-    async function hackGamee() {
-        const url = document.getElementById('gameeUrl').value;
-        const score = document.getElementById('gameeScore').value;
-        const log = document.getElementById('gameeLog');
-
-        if(!url || !score) {
-            log.innerHTML += "<br>[!] Məlumatlar əskikdir.";
-            return;
+    <script>
+        function getGameeLink() {
+            // Telegram Webview linkini window.location vasitəsilə tuturuq
+            const currentLink = window.location.href;
+            const display = document.getElementById('resultBox');
+            display.innerText = currentLink;
+            display.style.display = 'block';
+            alert("Link Tutuldu!");
         }
 
-        log.innerHTML += `<br>[*] Xal ${score} üçün paket hazırlanır...`;
-        
-        // DİQQƏT: Gamee-də xal göndərmək üçün 'score', 'playTime' və 'hash' lazımdır.
-        // Bu tool sadəcə bir simulyasiyadır, real mühitdə brauzer 'Console' hissəsində
-        // 'gamee.scoreSetter(score)' metodunu çağırmaq daha effektivdir.
-        
-        log.innerHTML += "<br>[!] Xəbərdarlıq: Real Gamee hash-i üçün oyunun daxilində JS inyeksiyası lazımdır.";
-        log.innerHTML += "<br>[+] Metod tapıldı: gamee.scoreSetter(" + score + ")";
-        log.innerHTML += "<br>[OK] Xal vizual olaraq təyin edildi.";
-    }
-
-    // Hex Çevirici
-    function convertHex() {
-        const hex = document.getElementById('hexInput').value.replace('0x', '');
-        const dec = parseInt(hex, 16);
-        const result = document.getElementById('hexResult');
-        if(!isNaN(dec)) {
-            result.innerHTML = `Decimal: ${dec} <br> Smali: const/4 v0, 0x${hex}`;
-        } else {
-            result.innerHTML = "Düzgün Hex daxil et!";
+        function sendScore() {
+            alert("Məlumat: Bu hissə üçün linkdəki 'query_id' və 'hash' istifadə olunaraq serverə POST sorğusu göndərilməlidir.");
+            console.log("Hedef Link: " + document.getElementById('targetUrl').value);
         }
-    }
-</script>
-
+    </script>
 </body>
 </html>
