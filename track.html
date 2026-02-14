@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Telefon Nömrəsi Məkan Tapıcı 2026</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/libphonenumber-js@1.11.9/bundle/libphonenumber-js.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacOSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0d1117;
+      color: #e6edf3;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      background: #161b22;
+      padding: 15px 20px;
+      border-bottom: 1px solid #30363d;
+      text-align: center;
+    }
+    h1 {
+      margin: 0;
+      font-size: 1.6rem;
+      color: #ff4444;
+    }
+    .container {
+      flex: 1;
+      padding: 20px;
+      max-width: 700px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    input {
+      width: 100%;
+      padding: 14px;
+      font-size: 1.1rem;
+      background: #21262d;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      color: white;
+      box-sizing: border-box;
+      margin-bottom: 15px;
+    }
+    button {
+      width: 100%;
+      padding: 14px;
+      font-size: 1.1rem;
+      background: #ff4444;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    button:hover { background: #ff6666; }
+    #status {
+      margin: 20px 0;
+      text-align: center;
+      font-size: 1.1rem;
+      min-height: 1.5em;
+    }
+    #result {
+      background: #161b22;
+      padding: 20px;
+      border-radius: 8px;
+      border: 1px solid #30363d;
+      display: none;
+    }
+    #map { 
+      height: 320px; 
+      margin-top: 15px;
+      border-radius: 8px;
+      border: 1px solid #30363d;
+    }
+    .warning {
+      color: #ff4444;
+      font-size: 0.95rem;
+      margin-top: 25px;
+      text-align: center;
+    }
+    .loading::after {
+      content: " •••";
+      animation: dots 1.5s steps(4) infinite;
+    }
+    @keyframes dots {
+      0%, 25% { content: " •"; }
+      25%, 50% { content: " ••"; }
+      50%, 75% { content: " •••"; }
+      75%, 100% { content: ""; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Telefon Nömrəsi Məkan Tapıcı</h1>
+</header>
+
+<div class="container">
+  <input type="tel" id="phone" placeholder="+994 50 123 45 67" autofocus />
+  <button onclick="startTracking()">Məkanı Tap</button>
+
+  <div id="status"></div>
+
+  <div id="result">
+    <div id="info"></div>
+    <div id="map"></div>
+  </div>
+
+  <div class="warning">
+    Bu yalnız təxmini məlumatdır (ölkə / böyük şəhər səviyyəsində).<br>
+    Real vaxt koordinatları yalnız xüsusi proqram və ya hüquq-mühafizə vasitəsilə əldə olunur.
+  </div>
+</div>
+
+<script>
+// Ölkə mərkəzləri (təxmini koordinatlar) – daha çox əlavə edə bilərsən
+const countryCenters = {
+  "AZ": { lat: 40.4093, lng: 49.8671, zoom: 11, name: "Bakı ətrafı" },
+  "TR": { lat: 41.0082, lng: 28.9784, zoom: 10, name: "İstanbul ətrafı" },
+  "RU": { lat: 55.7558, lng: 37.6173, zoom: 10, name: "Moskva ətrafı" },
+  "GE": { lat: 41.6938, lng: 44.8015, zoom: 11, name: "Tbilisi ətrafı" },
+  "IR": { lat: 35.6892, lng: 51.3890, zoom: 11, name: "Tehran ətrafı" },
+  "US": { lat: 40.7128, lng: -74.0060, zoom: 10, name: "New York ətrafı" },
+  "DE": { lat: 52.5200, lng: 13.4050, zoom: 10, name: "Berlin ətrafı" },
+  "UA": { lat: 50.4501, lng: 30.5234, zoom: 10, name: "Kiyev ətrafı" },
+  // default
+  "UNKNOWN": { lat: 0, lng: 0, zoom: 2, name: "Bilinmir" }
+};
+
+let map = null;
+
+function startTracking() {
+  const input = document.getElementById("phone").value.trim();
+  const status = document.getElementById("status");
+  const result = document.getElementById("result");
+  const info = document.getElementById("info");
+
+  status.innerHTML = "Sorğu göndərilir...";
+  status.className = "loading";
+
+  setTimeout(() => {  // saxta gecikmə – realistiklik üçün
+    if (!input || !input.startsWith("+")) {
+      status.innerHTML = "Nömrə + ilə başlamalıdır!";
+      status.style.color = "#ff4444";
+      return;
+    }
+
+    try {
+      const phone = libphonenumber.parsePhoneNumber(input);
+
+      if (!phone || !phone.isValid()) {
+        status.innerHTML = "Nömrə düzgün formatda deyil!";
+        status.style.color = "#ff4444";
+        return;
+      }
+
+      const countryCode = phone.country;
+      const callingCode = phone.countryCallingCode;
+      const carrier = phone.carrier || "Bilinmir";
+      const type = phone.getType() || "Bilinmir";
+
+      const center = countryCenters[countryCode] || countryCenters.UNKNOWN;
+
+      status.innerHTML = "Məlumat alındı!";
+      status.style.color = "#56d364";
+
+      info.innerHTML = `
+        <strong>Ölkə:</strong> \( {phone.getCountry() || "?"} (+ \){callingCode})<br>
+        <strong>Operator:</strong> ${carrier}<br>
+        <strong>Nömrə tipi:</strong> ${type}<br>
+        <strong>Təxmini məkan:</strong> ${center.name}
+      `;
+
+      result.style.display = "block";
+
+      // Xəritəni yenidən yarat (əvvəlki varsa sil)
+      if (map) map.remove();
+      map = L.map('map').setView([center.lat, center.lng], center.zoom);
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        maxZoom: 18
+      }).addTo(map);
+
+      L.marker([center.lat, center.lng])
+        .addTo(map)
+        .bindPopup(`<b>${center.name}</b><br>Təxmini yer`)
+        .openPopup();
+
+    } catch (err) {
+      status.innerHTML = "Xəta: " + err.message;
+      status.style.color = "#ff4444";
+    }
+  }, 1800); // 1.8 saniyə saxta yükləmə
+}
+</script>
+
+</body>
+</html>
