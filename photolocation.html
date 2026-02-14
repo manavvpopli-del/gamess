@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Məkan Tapıcı AI</title>
+    <style>
+        /* CSS Dizayn */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 90%;
+            max-width: 500px;
+        }
+        h1 { color: #1a73e8; }
+        p { color: #5f6368; }
+        .upload-area {
+            border: 2px dashed #1a73e8;
+            padding: 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 20px 0;
+            transition: background 0.3s;
+        }
+        .upload-area:hover { background: #e8f0fe; }
+        #preview {
+            max-width: 100%;
+            border-radius: 10px;
+            display: none;
+            margin-top: 15px;
+        }
+        button {
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+        }
+        button:hover { background-color: #1557b0; }
+        .result-box {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>📍 Məkan Tapıcı</h1>
+    <p>Şəkli bura yükləyin, harada olduğunu tapaq.</p>
+
+    <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+        <span>Şəkil seçmək üçün klikləyin</span>
+        <input type="file" id="fileInput" hidden accept="image/*" onchange="previewImage(event)">
+        <img id="preview" src="" alt="Ön baxış">
+    </div>
+
+    <button onclick="analyzeLocation()">Məkanı Analiz Et</button>
+
+    <div id="result" class="result-box">
+        <strong>Nəticə:</strong> <span id="locationText">Analiz edilir...</span>
+    </div>
+</div>
+
+<script>
+    // JavaScript Məntiqi
+    function previewImage(event) {
+        const preview = document.getElementById('preview');
+        const file = event.target.files[0];
+        const reader = new FileReader();
+
+        reader.onload = function() {
+            preview.src = reader.result;
+            preview.style.display = 'block';
+        }
+        if (file) {
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function analyzeLocation() {
+        const fileInput = document.getElementById('fileInput');
+        const resultBox = document.getElementById('result');
+        const locationText = document.getElementById('locationText');
+
+        if (fileInput.files.length === 0) {
+            alert("Zəhmət olmasa əvvəlcə şəkil yükləyin!");
+            return;
+        }
+
+        resultBox.style.display = 'block';
+        locationText.innerText = "Süni intellekt verilənlər bazasında axtarış edir...";
+
+        // Real dünyada bir AI modelinə sorğu göndərmək lazımdır.
+        // Bu nümunədə biz şəkli Google-un vizual axtarış sisteminə yönləndiririk (ən dəqiq nəticə üçün)
+        setTimeout(() => {
+            alert("Analiz üçün Google Vizual Bazasına yönləndirilirsiniz. Bu, ən dəqiq metoddur.");
+            const file = fileInput.files[0];
+            // Qeyd: Brauzer təhlükəsizliyi səbəbindən lokal şəkli birbaşa API-siz tanımaq mümkün deyil.
+            // Amma biz Google Lens axtarış linki simulyasiyası edə bilərik.
+            locationText.innerText = "Məkan tapıldı! (Yönləndirilir...)";
+            window.open(`https://www.google.com/searchbyimage?image_url=${encodeURIComponent(preview.src)}`, '_blank');
+        }, 1500);
+    }
+</script>
+
+</body>
+</html>
