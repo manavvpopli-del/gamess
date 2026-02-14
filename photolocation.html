@@ -3,122 +3,154 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Məkan Tapıcı AI</title>
+    <title>Süni İntellekt Məkan Tapıcı</title>
     <style>
-        /* CSS Dizayn */
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f2f5;
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f4f7f6;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
         }
-        .container {
+        .card {
             background: white;
-            padding: 2rem;
-            border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            text-align: center;
-            width: 90%;
-            max-width: 500px;
-        }
-        h1 { color: #1a73e8; }
-        p { color: #5f6368; }
-        .upload-area {
-            border: 2px dashed #1a73e8;
             padding: 30px;
-            border-radius: 10px;
-            cursor: pointer;
-            margin: 20px 0;
-            transition: background 0.3s;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            width: 400px;
+            text-align: center;
         }
-        .upload-area:hover { background: #e8f0fe; }
+        .upload-box {
+            border: 2px dashed #3498db;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            cursor: pointer;
+        }
         #preview {
-            max-width: 100%;
+            width: 100%;
             border-radius: 10px;
             display: none;
-            margin-top: 15px;
+            margin-bottom: 15px;
         }
         button {
-            background-color: #1a73e8;
+            background: #3498db;
             color: white;
             border: none;
-            padding: 12px 25px;
-            border-radius: 5px;
+            padding: 12px 20px;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 16px;
             width: 100%;
+            font-size: 16px;
         }
-        button:hover { background-color: #1557b0; }
-        .result-box {
+        button:disabled { background: #bdc3c7; }
+        #result {
             margin-top: 20px;
             padding: 15px;
-            background: #f8f9fa;
+            background: #e8f4fd;
             border-radius: 8px;
             display: none;
+            text-align: left;
+            word-wrap: break-word;
         }
+        .loader {
+            display: none;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 10px auto;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>📍 Məkan Tapıcı</h1>
-    <p>Şəkli bura yükləyin, harada olduğunu tapaq.</p>
-
-    <div class="upload-area" onclick="document.getElementById('fileInput').click()">
-        <span>Şəkil seçmək üçün klikləyin</span>
-        <input type="file" id="fileInput" hidden accept="image/*" onchange="previewImage(event)">
-        <img id="preview" src="" alt="Ön baxış">
+<div class="card">
+    <h2>📍 Məkan Detektoru</h2>
+    <p>Şəkil yükləyin, AI harada olduğunu desin.</p>
+    
+    <div class="upload-box" onclick="document.getElementById('fileInput').click()">
+        <img id="preview">
+        <span id="uploadText">Şəkli seçin</span>
+        <input type="file" id="fileInput" hidden accept="image/*" onchange="handleFile(this)">
     </div>
 
-    <button onclick="analyzeLocation()">Məkanı Analiz Et</button>
+    <button id="btn" onclick="identifyPlace()">Məkanı Tap</button>
+    <div class="loader" id="loader"></div>
 
-    <div id="result" class="result-box">
-        <strong>Nəticə:</strong> <span id="locationText">Analiz edilir...</span>
+    <div id="result">
+        <strong>🗺️ Tapılan Məkan:</strong><br>
+        <span id="placeName"></span><br><br>
+        <strong>🎯 Dəqiqlik:</strong> <span id="confidence"></span>
     </div>
 </div>
 
 <script>
-    // JavaScript Məntiqi
-    function previewImage(event) {
-        const preview = document.getElementById('preview');
-        const file = event.target.files[0];
-        const reader = new FileReader();
+    const API_KEY = 'AIzaSyDAuQNg_p38F5PG_b9ToWRV_M1M79Mp-NE'; // BURANI DƏYİŞİN
+    let base64Image = "";
 
-        reader.onload = function() {
-            preview.src = reader.result;
-            preview.style.display = 'block';
+    function handleFile(input) {
+        const file = input.files[0];
+        const reader = new FileReader();
+        
+        reader.onloadend = function() {
+            base64Image = reader.result.replace('data:', '').replace(/^.+,/, '');
+            document.getElementById('preview').src = reader.result;
+            document.getElementById('preview').style.display = 'block';
+            document.getElementById('uploadText').style.display = 'none';
         }
-        if (file) {
-            reader.readAsDataURL(file);
-        }
+        if (file) reader.readAsDataURL(file);
     }
 
-    function analyzeLocation() {
-        const fileInput = document.getElementById('fileInput');
-        const resultBox = document.getElementById('result');
-        const locationText = document.getElementById('locationText');
+    async function identifyPlace() {
+        if (!base64Image) return alert("Şəkil seçin!");
+        if (API_KEY === 'SİZİN_API_AÇARINIZ') return alert("Zəhmət olmasa API açarınızı daxil edin!");
 
-        if (fileInput.files.length === 0) {
-            alert("Zəhmət olmasa əvvəlcə şəkil yükləyin!");
-            return;
+        const btn = document.getElementById('btn');
+        const loader = document.getElementById('loader');
+        const resultDiv = document.getElementById('result');
+
+        btn.disabled = true;
+        loader.style.display = 'block';
+        resultDiv.style.display = 'none';
+
+        const apiURL = `https://vision.googleapis.com/v1/images:annotate?key=${API_KEY}`;
+        
+        const requestData = {
+            requests: [{
+                image: { content: base64Image },
+                features: [{ type: "LANDMARK_DETECTION", maxResults: 5 }]
+            }]
+        };
+
+        try {
+            const response = await fetch(apiURL, {
+                method: 'POST',
+                body: JSON.stringify(requestData)
+            });
+            const data = await response.json();
+            
+            const landmarks = data.responses[0].landmarkAnnotations;
+            
+            if (landmarks && landmarks.length > 0) {
+                document.getElementById('placeName').innerText = landmarks[0].description;
+                document.getElementById('confidence').innerText = Math.round(landmarks[0].score * 100) + "%";
+                resultDiv.style.display = 'block';
+            } else {
+                alert("Təəssüf ki, bu məkanı tanıya bilmədim.");
+            }
+        } catch (error) {
+            console.error(error);
+            alert("Xəta baş verdi. API açarınızı və internetinizi yoxlayın.");
+        } finally {
+            btn.disabled = false;
+            loader.style.display = 'none';
         }
-
-        resultBox.style.display = 'block';
-        locationText.innerText = "Süni intellekt verilənlər bazasında axtarış edir...";
-
-        // Real dünyada bir AI modelinə sorğu göndərmək lazımdır.
-        // Bu nümunədə biz şəkli Google-un vizual axtarış sisteminə yönləndiririk (ən dəqiq nəticə üçün)
-        setTimeout(() => {
-            alert("Analiz üçün Google Vizual Bazasına yönləndirilirsiniz. Bu, ən dəqiq metoddur.");
-            const file = fileInput.files[0];
-            // Qeyd: Brauzer təhlükəsizliyi səbəbindən lokal şəkli birbaşa API-siz tanımaq mümkün deyil.
-            // Amma biz Google Lens axtarış linki simulyasiyası edə bilərik.
-            locationText.innerText = "Məkan tapıldı! (Yönləndirilir...)";
-            window.open(`https://www.google.com/searchbyimage?image_url=${encodeURIComponent(preview.src)}`, '_blank');
-        }, 1500);
     }
 </script>
 
