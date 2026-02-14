@@ -3,107 +3,177 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Telefon Nömrəsi Məkan Tapıcı 2026</title>
+  <title>Telefon Nömrəsi Tracker • Realistik</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/libphonenumber-js@1.11.9/bundle/libphonenumber-js.min.js"></script>
   <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
     body {
-      margin: 0;
-      font-family: -apple-system, BlinkMacOSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #0d1117;
-      color: #e6edf3;
-      height: 100vh;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0a0e17;
+      color: #e0e7ff;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
     }
     header {
-      background: #161b22;
-      padding: 15px 20px;
-      border-bottom: 1px solid #30363d;
+      background: linear-gradient(180deg, #1e293b, #0f172a);
+      padding: 1.2rem;
       text-align: center;
+      border-bottom: 1px solid #334155;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
     }
     h1 {
-      margin: 0;
-      font-size: 1.6rem;
-      color: #ff4444;
+      font-size: 1.8rem;
+      color: #ff3b5c;
+      text-shadow: 0 0 10px rgba(255,59,92,0.4);
     }
     .container {
       flex: 1;
-      padding: 20px;
-      max-width: 700px;
+      padding: 1.5rem;
+      max-width: 720px;
       margin: 0 auto;
       width: 100%;
     }
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
     input {
-      width: 100%;
-      padding: 14px;
-      font-size: 1.1rem;
-      background: #21262d;
-      border: 1px solid #30363d;
-      border-radius: 6px;
+      padding: 1rem 1.2rem;
+      font-size: 1.15rem;
+      background: #1e293b;
+      border: 2px solid #334155;
+      border-radius: 10px;
       color: white;
-      box-sizing: border-box;
-      margin-bottom: 15px;
+      outline: none;
+      transition: all 0.3s;
+    }
+    input:focus {
+      border-color: #ff3b5c;
+      box-shadow: 0 0 0 3px rgba(255,59,92,0.25);
     }
     button {
-      width: 100%;
-      padding: 14px;
-      font-size: 1.1rem;
-      background: #ff4444;
+      padding: 1rem;
+      font-size: 1.15rem;
+      font-weight: bold;
+      background: linear-gradient(90deg, #ff3b5c, #f97316);
       color: white;
       border: none;
-      border-radius: 6px;
+      border-radius: 10px;
       cursor: pointer;
-      transition: 0.2s;
+      transition: all 0.3s;
+      box-shadow: 0 4px 15px rgba(255,59,92,0.3);
     }
-    button:hover { background: #ff6666; }
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(255,59,92,0.5);
+    }
     #status {
-      margin: 20px 0;
       text-align: center;
-      font-size: 1.1rem;
-      min-height: 1.5em;
+      font-size: 1.3rem;
+      margin: 1.5rem 0;
+      min-height: 2em;
+      opacity: 0;
+      transition: opacity 0.4s;
+    }
+    #status.visible { opacity: 1; }
+    .loading {
+      color: #60a5fa;
+      animation: pulseText 1.8s infinite;
+    }
+    @keyframes pulseText {
+      0%,100% { opacity: 0.7; }
+      50%     { opacity: 1; }
     }
     #result {
-      background: #161b22;
-      padding: 20px;
-      border-radius: 8px;
-      border: 1px solid #30363d;
+      background: #111827;
+      border-radius: 12px;
+      padding: 1.5rem;
+      border: 1px solid #334155;
       display: none;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
     }
-    #map { 
-      height: 320px; 
-      margin-top: 15px;
-      border-radius: 8px;
-      border: 1px solid #30363d;
+    #info {
+      margin-bottom: 1.2rem;
+      line-height: 1.6;
+    }
+    #info strong { color: #ff3b5c; }
+    #map {
+      height: 380px;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid #334155;
+    }
+    /* Pulsing marker */
+    .pulse-marker {
+      position: relative;
+      width: 24px;
+      height: 24px;
+    }
+    .pulse-marker::before,
+    .pulse-marker::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      background: rgba(255,59,92,0.4);
+      z-index: 1;
+    }
+    .pulse-marker::before {
+      width: 60px;
+      height: 60px;
+      animation: pulseOuter 2s infinite ease-out;
+    }
+    .pulse-marker::after {
+      width: 90px;
+      height: 90px;
+      animation: pulseOuter 2.8s infinite ease-out;
+      opacity: 0.6;
+    }
+    .pulse-marker span {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 14px;
+      height: 14px;
+      background: #ff3b5c;
+      border: 3px solid white;
+      border-radius: 50%;
+      box-shadow: 0 0 15px #ff3b5c;
+      z-index: 2;
+    }
+    @keyframes pulseOuter {
+      0%   { transform: translate(-50%, -50%) scale(0.4); opacity: 0; }
+      50%  { opacity: 0.8; }
+      100% { transform: translate(-50%, -50%) scale(1.8); opacity: 0; }
     }
     .warning {
-      color: #ff4444;
-      font-size: 0.95rem;
-      margin-top: 25px;
+      margin-top: 1.8rem;
       text-align: center;
-    }
-    .loading::after {
-      content: " •••";
-      animation: dots 1.5s steps(4) infinite;
-    }
-    @keyframes dots {
-      0%, 25% { content: " •"; }
-      25%, 50% { content: " ••"; }
-      50%, 75% { content: " •••"; }
-      75%, 100% { content: ""; }
+      font-size: 0.95rem;
+      color: #94a3b8;
+      line-height: 1.5;
     }
   </style>
 </head>
 <body>
 
 <header>
-  <h1>Telefon Nömrəsi Məkan Tapıcı</h1>
+  <h1>Telefon Tracker 2026</h1>
 </header>
 
 <div class="container">
-  <input type="tel" id="phone" placeholder="+994 50 123 45 67" autofocus />
-  <button onclick="startTracking()">Məkanı Tap</button>
+  <div class="input-group">
+    <input type="tel" id="phone" placeholder="+994 50 123 45 67" autofocus />
+    <button onclick="startFakeTrack()">MƏKANI TAP</button>
+  </div>
 
   <div id="status"></div>
 
@@ -113,91 +183,108 @@
   </div>
 
   <div class="warning">
-    Bu yalnız təxmini məlumatdır (ölkə / böyük şəhər səviyyəsində).<br>
-    Real vaxt koordinatları yalnız xüsusi proqram və ya hüquq-mühafizə vasitəsilə əldə olunur.
+    Bu sadəcə təxmini demo interfeysdir.<br>
+    Real vaxt GPS məlumatı yalnız xüsusi icazə/proqram ilə mümkündür.
   </div>
 </div>
 
 <script>
-// Ölkə mərkəzləri (təxmini koordinatlar) – daha çox əlavə edə bilərsən
-const countryCenters = {
-  "AZ": { lat: 40.4093, lng: 49.8671, zoom: 11, name: "Bakı ətrafı" },
-  "TR": { lat: 41.0082, lng: 28.9784, zoom: 10, name: "İstanbul ətrafı" },
-  "RU": { lat: 55.7558, lng: 37.6173, zoom: 10, name: "Moskva ətrafı" },
-  "GE": { lat: 41.6938, lng: 44.8015, zoom: 11, name: "Tbilisi ətrafı" },
-  "IR": { lat: 35.6892, lng: 51.3890, zoom: 11, name: "Tehran ətrafı" },
-  "US": { lat: 40.7128, lng: -74.0060, zoom: 10, name: "New York ətrafı" },
-  "DE": { lat: 52.5200, lng: 13.4050, zoom: 10, name: "Berlin ətrafı" },
-  "UA": { lat: 50.4501, lng: 30.5234, zoom: 10, name: "Kiyev ətrafı" },
-  // default
-  "UNKNOWN": { lat: 0, lng: 0, zoom: 2, name: "Bilinmir" }
+// Ölkə mərkəzləri (daha çox əlavə edə bilərsən)
+const locations = {
+  "AZ": { lat: 40.4093, lng: 49.8671, zoom: 12, city: "Bakı ətrafı" },
+  "TR": { lat: 41.0082, lng: 28.9784, zoom: 11, city: "İstanbul zonası" },
+  "RU": { lat: 55.7558, lng: 37.6173, zoom: 11, city: "Moskva bölgəsi" },
+  "GE": { lat: 41.6938, lng: 44.8015, zoom: 12, city: "Tbilisi ətrafı" },
+  "IR": { lat: 35.6892, lng: 51.3890, zoom: 12, city: "Tehran zonası" },
+  "UNKNOWN": { lat: 20, lng: 0, zoom: 2, city: "Bilinmir" }
 };
 
 let map = null;
+let marker = null;
 
-function startTracking() {
-  const input = document.getElementById("phone").value.trim();
+function startFakeTrack() {
+  const phoneInput = document.getElementById("phone").value.trim();
   const status = document.getElementById("status");
   const result = document.getElementById("result");
   const info = document.getElementById("info");
 
-  status.innerHTML = "Sorğu göndərilir...";
-  status.className = "loading";
+  if (!phoneInput || !phoneInput.startsWith("+")) {
+    status.textContent = "Nömrəni + ilə başlayaraq yazın!";
+    status.style.color = "#ff3b5c";
+    status.classList.add("visible");
+    return;
+  }
 
-  setTimeout(() => {  // saxta gecikmə – realistiklik üçün
-    if (!input || !input.startsWith("+")) {
-      status.innerHTML = "Nömrə + ilə başlamalıdır!";
-      status.style.color = "#ff4444";
-      return;
-    }
+  status.textContent = "Sorğu göndərilir...";
+  status.style.color = "#60a5fa";
+  status.classList.add("visible", "loading");
 
+  // Saxta gecikmələr – daha realistik hiss üçün
+  setTimeout(() => {
+    status.textContent = "Operator axtarılır...";
+  }, 1400);
+
+  setTimeout(() => {
+    status.textContent = "Məkan məlumatı yüklənir...";
+  }, 2800);
+
+  setTimeout(() => {
     try {
-      const phone = libphonenumber.parsePhoneNumber(input);
+      const number = libphonenumber.parsePhoneNumber(phoneInput);
 
-      if (!phone || !phone.isValid()) {
-        status.innerHTML = "Nömrə düzgün formatda deyil!";
-        status.style.color = "#ff4444";
+      if (!number?.isValid()) {
+        status.textContent = "Yanlış nömrə formatı!";
+        status.style.color = "#ff3b5c";
+        status.classList.remove("loading");
         return;
       }
 
-      const countryCode = phone.country;
-      const callingCode = phone.countryCallingCode;
-      const carrier = phone.carrier || "Bilinmir";
-      const type = phone.getType() || "Bilinmir";
+      const cc = number.country || "UNKNOWN";
+      const place = locations[cc] || locations.UNKNOWN;
 
-      const center = countryCenters[countryCode] || countryCenters.UNKNOWN;
-
-      status.innerHTML = "Məlumat alındı!";
-      status.style.color = "#56d364";
+      status.textContent = "Məkan tapıldı!";
+      status.style.color = "#34d399";
+      status.classList.remove("loading");
 
       info.innerHTML = `
-        <strong>Ölkə:</strong> \( {phone.getCountry() || "?"} (+ \){callingCode})<br>
-        <strong>Operator:</strong> ${carrier}<br>
-        <strong>Nömrə tipi:</strong> ${type}<br>
-        <strong>Təxmini məkan:</strong> ${center.name}
+        <strong>Ölkə:</strong> \( {number.getCountry() || "?"} (+ \){number.countryCallingCode})<br>
+        <strong>Operator:</strong> ${number.carrier || "Təyin olunmayıb"}<br>
+        <strong>Tip:</strong> ${number.getType() || "?"}<br>
+        <strong>Təxmini yer:</strong> ${place.city}
       `;
 
       result.style.display = "block";
 
-      // Xəritəni yenidən yarat (əvvəlki varsa sil)
+      // Xəritə yenilənir
       if (map) map.remove();
-      map = L.map('map').setView([center.lat, center.lng], center.zoom);
+
+      map = L.map('map', {
+        zoomControl: true,
+        attributionControl: false
+      }).setView([place.lat, place.lng], place.zoom);
 
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-        maxZoom: 18
+        maxZoom: 19,
       }).addTo(map);
 
-      L.marker([center.lat, center.lng])
-        .addTo(map)
-        .bindPopup(`<b>${center.name}</b><br>Təxmini yer`)
-        .openPopup();
+      // Pulsing marker
+      const pulsingIcon = L.divIcon({
+        className: 'pulse-marker',
+        html: '<span></span>',
+        iconSize: [24, 24],
+        iconAnchor: [12, 12]
+      });
 
-    } catch (err) {
-      status.innerHTML = "Xəta: " + err.message;
-      status.style.color = "#ff4444";
+      if (marker) marker.remove();
+      marker = L.marker([place.lat, place.lng], { icon: pulsingIcon }).addTo(map);
+      marker.bindPopup(`<b>${place.city}</b><br>Təxmini koordinat`).openPopup();
+
+    } catch (e) {
+      status.textContent = "Xəta baş verdi!";
+      status.style.color = "#ff3b5c";
+      status.classList.remove("loading");
     }
-  }, 1800); // 1.8 saniyə saxta yükləmə
+  }, 4200); // ümumi ~4.2 saniyəlik animasiya dövrü
 }
 </script>
 
